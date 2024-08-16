@@ -28,6 +28,8 @@ class _SignUpPageState extends State<SignUpPage> with WidgetsBindingObserver {
   bool _isPasswordVisible = false;
   bool _isPasswordVisible2 = false;
 
+  bool dropDownTapped = false;
+
   @override
   Widget build(BuildContext context) {
     return OrientationBuilder(
@@ -37,8 +39,8 @@ class _SignUpPageState extends State<SignUpPage> with WidgetsBindingObserver {
             child: Center(
               child: SizedBox(
                 height: orientation == Orientation.portrait
-                    ? MediaQuery.of(context).size.height * 1.4
-                    : MediaQuery.of(context).size.height * 1.9,
+                    ? MediaQuery.of(context).size.height * 1.2
+                    : MediaQuery.of(context).size.height * 2,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -107,7 +109,7 @@ class _SignUpPageState extends State<SignUpPage> with WidgetsBindingObserver {
                         cursorColor: Colors.black,
                       ),
                     ),
-                    SizedBox(height: MediaQuery.of(context).size.height * 0.05),
+                    SizedBox(height: MediaQuery.of(context).size.height * 0.02),
                     const Padding(
                       padding: EdgeInsets.symmetric(horizontal: 20.0),
                       child: Text(
@@ -150,7 +152,7 @@ class _SignUpPageState extends State<SignUpPage> with WidgetsBindingObserver {
                         cursorColor: Colors.black,
                       ),
                     ),
-                    SizedBox(height: MediaQuery.of(context).size.height * 0.05),
+                    SizedBox(height: MediaQuery.of(context).size.height * 0.02),
                     const Padding(
                       padding: EdgeInsets.symmetric(horizontal: 20.0),
                       child: Text(
@@ -196,11 +198,32 @@ class _SignUpPageState extends State<SignUpPage> with WidgetsBindingObserver {
                                 SizedBox(
                                     width: MediaQuery.of(context).size.width *
                                         0.02),
-                                Image.asset(
-                                  'images/material-symbols_arrow-drop-down.png',
-                                  width: 24.0,
-                                  height: 24.0,
-                                ),
+                                if (dropDownTapped == false)
+                                  GestureDetector(
+                                    onTap: () {
+                                      setState(() {
+                                        dropDownTapped = true;
+                                      });
+                                    },
+                                    child: Image.asset(
+                                      'images/material-symbols_arrow-drop-down.png',
+                                      width: 24.0,
+                                      height: 24.0,
+                                    ),
+                                  )
+                                else
+                                  GestureDetector(
+                                    onTap: () {
+                                      setState(() {
+                                        dropDownTapped = false;
+                                      });
+                                    },
+                                    child: Image.asset(
+                                      'images/material-symbols_arrow-drop-down-upwards.png',
+                                      width: 24.0,
+                                      height: 24.0,
+                                    ),
+                                  ),
                               ],
                             ),
                           ),
@@ -233,7 +256,7 @@ class _SignUpPageState extends State<SignUpPage> with WidgetsBindingObserver {
                         ],
                       ),
                     ),
-                    SizedBox(height: MediaQuery.of(context).size.height * 0.05),
+                    SizedBox(height: MediaQuery.of(context).size.height * 0.02),
                     const Padding(
                       padding: EdgeInsets.symmetric(horizontal: 20.0),
                       child: Text(
@@ -287,7 +310,7 @@ class _SignUpPageState extends State<SignUpPage> with WidgetsBindingObserver {
                         obscuringCharacter: "*",
                       ),
                     ),
-                    SizedBox(height: MediaQuery.of(context).size.height * 0.05),
+                    SizedBox(height: MediaQuery.of(context).size.height * 0.02),
                     const Padding(
                       padding: EdgeInsets.symmetric(horizontal: 20.0),
                       child: Text(
@@ -341,7 +364,7 @@ class _SignUpPageState extends State<SignUpPage> with WidgetsBindingObserver {
                         obscuringCharacter: "*",
                       ),
                     ),
-                    SizedBox(height: MediaQuery.of(context).size.height * 0.1),
+                    SizedBox(height: MediaQuery.of(context).size.height * 0.05),
                     Container(
                       width: double.infinity,
                       height: (60 / MediaQuery.of(context).size.height) *
@@ -394,7 +417,7 @@ class _SignUpPageState extends State<SignUpPage> with WidgetsBindingObserver {
                         ),
                       ),
                     ),
-                    SizedBox(height: MediaQuery.of(context).size.height * 0.05),
+                    SizedBox(height: MediaQuery.of(context).size.height * 0.02),
                     const Center(
                       child: Text(
                         '- Or -',
@@ -406,7 +429,7 @@ class _SignUpPageState extends State<SignUpPage> with WidgetsBindingObserver {
                         ),
                       ),
                     ),
-                    SizedBox(height: MediaQuery.of(context).size.height * 0.05),
+                    SizedBox(height: MediaQuery.of(context).size.height * 0.02),
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 20.0),
                       child: Row(

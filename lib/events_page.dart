@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:signal_app/events_details.dart';
 
 class EventsPage extends StatefulWidget {
   const EventsPage({
@@ -215,8 +216,21 @@ class _EventsPageState extends State<EventsPage> {
                                 Padding(
                                   padding: const EdgeInsets.symmetric(
                                       vertical: 20.0),
-                                  child: Image.asset(
-                                    'images/NewsPost.png',
+                                  child: InkWell(
+                                    onTap: () {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (context) =>
+                                              EventsDetails(key: UniqueKey()),
+                                        ),
+                                      );
+                                    },
+                                    child: Image.asset(
+                                      'images/NewsPost.png',
+                                      width: double.infinity,
+                                      fit: BoxFit.cover,
+                                    ),
                                   ),
                                 ),
                                 const Text(

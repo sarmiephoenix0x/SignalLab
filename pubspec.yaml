@@ -75,6 +75,7 @@ flutter:
   - images/majesticons_user-line.png
   - images/majesticons_user-line_active.png
   - images/mingcute_signal-fill.png
+  - images/mingcute_signal-fill_active.png
   - images/tabler_help.png
   - images/tabler_menu_button.png
   - images/tabler_notification.png
@@ -132,12 +133,14 @@ flutter:
   - images/logos_bitcoin.png
   - images/carbon_in-progress.png
   - images/material-symbols_arrow-drop-down.png
+  - images/material-symbols_arrow-drop-down-upwards.png
   - images/gridicons_dropdown.png
   - images/gridicons_dropdown-upwards.png
   - images/material-symbols_pie-chart.png
   - images/bx_upvote.png
   - images/bx_upvote-downwards.png
   - images/mdi_share-outline.png
+  - images/Pexels Photo by 3Motional Studio.png
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware
 

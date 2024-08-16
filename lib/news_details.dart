@@ -177,7 +177,7 @@ class _NewsDetailsState extends State<NewsDetails> {
                                 'images/NewsProfileImg.png',
                               ),
                               SizedBox(
-                                width: MediaQuery.of(context).size.width * 0.05,
+                                width: MediaQuery.of(context).size.width * 0.01,
                               ),
                               Expanded(
                                 child: Column(
