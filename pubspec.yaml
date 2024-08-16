@@ -141,6 +141,13 @@ flutter:
   - images/bx_upvote-downwards.png
   - images/mdi_share-outline.png
   - images/Pexels Photo by 3Motional Studio.png
+  - images/not_voted.png
+  - images/voted.png
+  - images/token-branded_binance-smart-chain.png
+  - images/noto_fire.png
+  - images/bx_upvote_downwards-black.png
+  - images/bx_upvote-black.png
+  - images/ic_baseline-share.png
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware
 

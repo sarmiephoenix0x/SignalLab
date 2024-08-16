@@ -188,6 +188,7 @@ class _EventsPageState extends State<EventsPage> {
                                 Row(
                                   children: [
                                     const Expanded(
+                                      flex:5,
                                       child: Text(
                                         'Binance Expands Account Statement Function',
                                         overflow: TextOverflow.ellipsis,

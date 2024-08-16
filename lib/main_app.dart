@@ -1245,6 +1245,7 @@ class _MainAppState extends State<MainApp> with TickerProviderStateMixin {
                           Row(
                             children: [
                               Expanded(
+                                flex: 5,
                                 child: Text(
                                   'Trades last 7 days: ----',
                                   style: TextStyle(
@@ -1257,6 +1258,7 @@ class _MainAppState extends State<MainApp> with TickerProviderStateMixin {
                               ),
                               Spacer(),
                               Expanded(
+                                flex: 2,
                                 child: Text(
                                   'Win rate: ----',
                                   textAlign: TextAlign.end,
@@ -1273,6 +1275,7 @@ class _MainAppState extends State<MainApp> with TickerProviderStateMixin {
                           Row(
                             children: [
                               Expanded(
+                                flex: 5,
                                 child: Text(
                                   'Trades last 14 days: ----',
                                   style: TextStyle(
@@ -1285,6 +1288,7 @@ class _MainAppState extends State<MainApp> with TickerProviderStateMixin {
                               ),
                               Spacer(),
                               Expanded(
+                                flex: 2,
                                 child: Text(
                                   'Win rate: ----',
                                   textAlign: TextAlign.end,
@@ -1301,6 +1305,7 @@ class _MainAppState extends State<MainApp> with TickerProviderStateMixin {
                           Row(
                             children: [
                               Expanded(
+                                flex: 5,
                                 child: Text(
                                   'Trades last 30 days: ----',
                                   style: TextStyle(
@@ -1313,6 +1318,7 @@ class _MainAppState extends State<MainApp> with TickerProviderStateMixin {
                               ),
                               Spacer(),
                               Expanded(
+                                flex: 2,
                                 child: Text(
                                   'Win rate: ----',
                                   textAlign: TextAlign.end,
@@ -1351,6 +1357,7 @@ class _MainAppState extends State<MainApp> with TickerProviderStateMixin {
                             child: Row(
                               children: [
                                 Expanded(
+                                  flex: 5,
                                   child: Text(
                                     'Opened',
                                     style: TextStyle(
@@ -1363,6 +1370,7 @@ class _MainAppState extends State<MainApp> with TickerProviderStateMixin {
                                 ),
                                 Spacer(),
                                 Expanded(
+                                  flex: 5,
                                   child: Text(
                                     'Jan-18, 1:40 PM',
                                     overflow: TextOverflow.ellipsis,
@@ -1435,6 +1443,7 @@ class _MainAppState extends State<MainApp> with TickerProviderStateMixin {
                                 ),
                                 const Spacer(),
                                 Expanded(
+                                  flex: 5,
                                   child: Container(
                                     decoration: BoxDecoration(
                                       color: Colors.black,
@@ -1448,6 +1457,7 @@ class _MainAppState extends State<MainApp> with TickerProviderStateMixin {
                                     child: Row(
                                       children: [
                                         const Expanded(
+                                          flex: 5,
                                           child: Text(
                                             'In progress',
                                             overflow: TextOverflow.ellipsis,
@@ -1509,8 +1519,10 @@ class _MainAppState extends State<MainApp> with TickerProviderStateMixin {
                             child: Row(
                               children: [
                                 Expanded(
+                                  flex: 5,
                                   child: Text(
                                     'Stop Loss 40.0%',
+                                    overflow: TextOverflow.ellipsis,
                                     style: TextStyle(
                                       fontFamily: 'Inconsolata',
                                       fontSize: 13,
@@ -1562,6 +1574,7 @@ class _MainAppState extends State<MainApp> with TickerProviderStateMixin {
                                   Row(
                                     children: [
                                       const Expanded(
+                                        flex: 5,
                                         child: Text(
                                           'Current Price',
                                           overflow: TextOverflow.ellipsis,
@@ -1575,6 +1588,7 @@ class _MainAppState extends State<MainApp> with TickerProviderStateMixin {
                                       ),
                                       const Spacer(),
                                       const Expanded(
+                                        flex: 3,
                                         child: Text(
                                           '0.0903',
                                           overflow: TextOverflow.ellipsis,
@@ -1588,6 +1602,7 @@ class _MainAppState extends State<MainApp> with TickerProviderStateMixin {
                                       ),
                                       const Spacer(),
                                       const Expanded(
+                                        flex: 4,
                                         child: Text(
                                           '-35.5%',
                                           overflow: TextOverflow.ellipsis,
@@ -1599,11 +1614,6 @@ class _MainAppState extends State<MainApp> with TickerProviderStateMixin {
                                           ),
                                         ),
                                       ),
-                                      SizedBox(
-                                          width: MediaQuery.of(context)
-                                                  .size
-                                                  .width *
-                                              0.03),
                                       if (usdtCurrentPriceDropDownActive ==
                                           false)
                                         GestureDetector(
@@ -1656,6 +1666,7 @@ class _MainAppState extends State<MainApp> with TickerProviderStateMixin {
                                         child: const Row(
                                           children: [
                                             Expanded(
+                                              flex: 2,
                                               child: Text(
                                                 'Target 1',
                                                 overflow: TextOverflow.ellipsis,
@@ -1669,6 +1680,7 @@ class _MainAppState extends State<MainApp> with TickerProviderStateMixin {
                                             ),
                                             Spacer(),
                                             Expanded(
+                                              flex: 2,
                                               child: Text(
                                                 '0.15',
                                                 overflow: TextOverflow.ellipsis,
@@ -1682,6 +1694,7 @@ class _MainAppState extends State<MainApp> with TickerProviderStateMixin {
                                             ),
                                             Spacer(),
                                             Expanded(
+                                              flex: 2,
                                               child: Text(
                                                 '6.67%',
                                                 overflow: TextOverflow.ellipsis,
@@ -1722,6 +1735,7 @@ class _MainAppState extends State<MainApp> with TickerProviderStateMixin {
                                         child: const Row(
                                           children: [
                                             Expanded(
+                                              flex: 2,
                                               child: Text(
                                                 'Target 2',
                                                 overflow: TextOverflow.ellipsis,
@@ -1735,6 +1749,7 @@ class _MainAppState extends State<MainApp> with TickerProviderStateMixin {
                                             ),
                                             Spacer(),
                                             Expanded(
+                                              flex: 2,
                                               child: Text(
                                                 '0.15',
                                                 overflow: TextOverflow.ellipsis,
@@ -1748,6 +1763,7 @@ class _MainAppState extends State<MainApp> with TickerProviderStateMixin {
                                             ),
                                             Spacer(),
                                             Expanded(
+                                              flex: 2,
                                               child: Text(
                                                 '6.67%',
                                                 overflow: TextOverflow.ellipsis,
@@ -1788,6 +1804,7 @@ class _MainAppState extends State<MainApp> with TickerProviderStateMixin {
                                         child: const Row(
                                           children: [
                                             Expanded(
+                                              flex: 2,
                                               child: Text(
                                                 'Target 3',
                                                 overflow: TextOverflow.ellipsis,
@@ -1801,6 +1818,7 @@ class _MainAppState extends State<MainApp> with TickerProviderStateMixin {
                                             ),
                                             Spacer(),
                                             Expanded(
+                                              flex: 2,
                                               child: Text(
                                                 '0.15',
                                                 overflow: TextOverflow.ellipsis,
@@ -1814,6 +1832,7 @@ class _MainAppState extends State<MainApp> with TickerProviderStateMixin {
                                             ),
                                             Spacer(),
                                             Expanded(
+                                              flex: 2,
                                               child: Text(
                                                 '6.67%',
                                                 overflow: TextOverflow.ellipsis,
@@ -1842,6 +1861,7 @@ class _MainAppState extends State<MainApp> with TickerProviderStateMixin {
                             child: Row(
                               children: [
                                 Expanded(
+                                  flex: 10,
                                   child: Container(
                                     decoration: BoxDecoration(
                                       color: Colors.white,
@@ -1862,6 +1882,7 @@ class _MainAppState extends State<MainApp> with TickerProviderStateMixin {
                                     child: Row(
                                       children: [
                                         const Expanded(
+                                          flex: 10,
                                           child: Text(
                                             'View Steps',
                                             overflow: TextOverflow.ellipsis,
@@ -1882,6 +1903,7 @@ class _MainAppState extends State<MainApp> with TickerProviderStateMixin {
                                 ),
                                 const Spacer(),
                                 Expanded(
+                                  flex: 10,
                                   child: Container(
                                     decoration: BoxDecoration(
                                       color: Colors.white,
@@ -1902,6 +1924,7 @@ class _MainAppState extends State<MainApp> with TickerProviderStateMixin {
                                     child: Row(
                                       children: [
                                         const Expanded(
+                                          flex: 10,
                                           child: Text(
                                             'View Charts',
                                             overflow: TextOverflow.ellipsis,
@@ -1941,96 +1964,56 @@ class _MainAppState extends State<MainApp> with TickerProviderStateMixin {
                           ),
                         ],
                       ),
-                      child: Column(children: [
-                        const Padding(
-                          padding: EdgeInsets.symmetric(horizontal: 25.0),
-                          child: Row(
-                            children: [
-                              Expanded(
-                                child: Text(
-                                  'Opened',
-                                  style: TextStyle(
-                                    fontFamily: 'Inconsolata',
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 18,
-                                    color: Colors.black,
+                      child: Column(
+                        children: [
+                          const Padding(
+                            padding: EdgeInsets.symmetric(horizontal: 25.0),
+                            child: Row(
+                              children: [
+                                Expanded(
+                                  flex: 5,
+                                  child: Text(
+                                    'Opened',
+                                    style: TextStyle(
+                                      fontFamily: 'Inconsolata',
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 18,
+                                      color: Colors.black,
+                                    ),
                                   ),
                                 ),
-                              ),
-                              Spacer(),
-                              Expanded(
-                                child: Text(
-                                  'Jan-18, 1:40 PM',
-                                  overflow: TextOverflow.ellipsis,
-                                  style: TextStyle(
-                                    fontFamily: 'Inconsolata',
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 15,
-                                    color: Colors.black,
+                                Spacer(),
+                                Expanded(
+                                  flex: 5,
+                                  child: Text(
+                                    'Jan-18, 1:40 PM',
+                                    overflow: TextOverflow.ellipsis,
+                                    style: TextStyle(
+                                      fontFamily: 'Inconsolata',
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 15,
+                                      color: Colors.black,
+                                    ),
                                   ),
                                 ),
-                              ),
-                            ],
+                              ],
+                            ),
                           ),
-                        ),
-                        SizedBox(
-                          height: MediaQuery.of(context).size.height * 0.02,
-                        ),
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 25.0),
-                          child: Row(
-                            children: [
-                              Image.asset(
-                                'images/logos_bitcoin.png',
-                              ),
-                              SizedBox(
-                                  width:
-                                      MediaQuery.of(context).size.width * 0.03),
-                              Container(
-                                decoration: BoxDecoration(
-                                  color: Colors.black,
-                                  borderRadius: BorderRadius.circular(10),
-                                  border: Border.all(
-                                    width: 0,
-                                  ),
+                          SizedBox(
+                            height: MediaQuery.of(context).size.height * 0.02,
+                          ),
+                          Padding(
+                            padding:
+                                const EdgeInsets.symmetric(horizontal: 25.0),
+                            child: Row(
+                              children: [
+                                Image.asset(
+                                  'images/logos_bitcoin.png',
                                 ),
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: 12, vertical: 6),
-                                child: const Text(
-                                  'LONG',
-                                  style: TextStyle(
-                                    fontSize: 15,
-                                    fontFamily: 'Inconsolata',
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.white,
-                                  ),
-                                ),
-                              ),
-                              SizedBox(
-                                  width:
-                                      MediaQuery.of(context).size.width * 0.02),
-                              const SizedBox(
-                                height: 35,
-                                child: VerticalDivider(
-                                  color: Colors.black,
-                                  thickness: 2.0,
-                                ),
-                              ),
-                              SizedBox(
-                                  width:
-                                      MediaQuery.of(context).size.width * 0.02),
-                              const Text(
-                                'BTC',
-                                style: TextStyle(
-                                  fontSize: 15,
-                                  fontFamily: 'Inconsolata',
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.black,
-                                ),
-                              ),
-                              const Spacer(),
-                              Expanded(
-                                child: Container(
+                                SizedBox(
+                                    width: MediaQuery.of(context).size.width *
+                                        0.03),
+                                Container(
                                   decoration: BoxDecoration(
                                     color: Colors.black,
                                     borderRadius: BorderRadius.circular(10),
@@ -2040,475 +2023,545 @@ class _MainAppState extends State<MainApp> with TickerProviderStateMixin {
                                   ),
                                   padding: const EdgeInsets.symmetric(
                                       horizontal: 12, vertical: 6),
-                                  child: Row(
-                                    children: [
-                                      const Expanded(
-                                        child: Text(
-                                          'In progress',
-                                          overflow: TextOverflow.ellipsis,
-                                          style: TextStyle(
-                                            fontSize: 15,
-                                            fontFamily: 'Inconsolata',
-                                            color: Colors.white,
+                                  child: const Text(
+                                    'LONG',
+                                    style: TextStyle(
+                                      fontSize: 15,
+                                      fontFamily: 'Inconsolata',
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                                ),
+                                SizedBox(
+                                    width: MediaQuery.of(context).size.width *
+                                        0.02),
+                                const SizedBox(
+                                  height: 35,
+                                  child: VerticalDivider(
+                                    color: Colors.black,
+                                    thickness: 2.0,
+                                  ),
+                                ),
+                                SizedBox(
+                                    width: MediaQuery.of(context).size.width *
+                                        0.02),
+                                const Text(
+                                  'BTC',
+                                  style: TextStyle(
+                                    fontSize: 15,
+                                    fontFamily: 'Inconsolata',
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.black,
+                                  ),
+                                ),
+                                const Spacer(),
+                                Expanded(
+                                  flex: 5,
+                                  child: Container(
+                                    decoration: BoxDecoration(
+                                      color: Colors.black,
+                                      borderRadius: BorderRadius.circular(10),
+                                      border: Border.all(
+                                        width: 0,
+                                      ),
+                                    ),
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 12, vertical: 6),
+                                    child: Row(
+                                      children: [
+                                        const Expanded(
+                                          flex: 5,
+                                          child: Text(
+                                            'In progress',
+                                            overflow: TextOverflow.ellipsis,
+                                            style: TextStyle(
+                                              fontSize: 15,
+                                              fontFamily: 'Inconsolata',
+                                              color: Colors.white,
+                                            ),
                                           ),
                                         ),
-                                      ),
-                                      Image.asset(
-                                        'images/carbon_in-progress.png',
-                                      ),
-                                    ],
+                                        Image.asset(
+                                          'images/carbon_in-progress.png',
+                                        ),
+                                      ],
+                                    ),
                                   ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        SizedBox(
-                          height: MediaQuery.of(context).size.height * 0.02,
-                        ),
-                        const Padding(
-                          padding: EdgeInsets.symmetric(horizontal: 25.0),
-                          child: Row(
-                            children: [
-                              Expanded(
-                                child: Text(
-                                  'Entry price',
-                                  style: TextStyle(
-                                    fontFamily: 'Inconsolata',
-                                    fontSize: 13,
-                                    color: Colors.black,
-                                  ),
-                                ),
-                              ),
-                              Spacer(),
-                              Expanded(
-                                child: Text(
-                                  '0.14',
-                                  overflow: TextOverflow.ellipsis,
-                                  textAlign: TextAlign.end,
-                                  style: TextStyle(
-                                    fontFamily: 'Inconsolata',
-                                    fontSize: 13,
-                                    color: Colors.black,
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        SizedBox(
-                          height: MediaQuery.of(context).size.height * 0.02,
-                        ),
-                        const Padding(
-                          padding: EdgeInsets.symmetric(horizontal: 25.0),
-                          child: Row(
-                            children: [
-                              Expanded(
-                                child: Text(
-                                  'Stop Loss 40.0%',
-                                  style: TextStyle(
-                                    fontFamily: 'Inconsolata',
-                                    fontSize: 13,
-                                    color: Colors.black,
-                                  ),
-                                ),
-                              ),
-                              Spacer(),
-                              Expanded(
-                                child: Text(
-                                  '0.1',
-                                  overflow: TextOverflow.ellipsis,
-                                  textAlign: TextAlign.end,
-                                  style: TextStyle(
-                                    fontFamily: 'Inconsolata',
-                                    fontSize: 13,
-                                    color: Colors.black,
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        SizedBox(
-                          height: MediaQuery.of(context).size.height * 0.02,
-                        ),
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 10.0),
-                          child: Container(
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                              borderRadius: BorderRadius.circular(10),
-                              border: Border.all(
-                                width: 0,
-                              ),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Colors.grey.withOpacity(0.5),
-                                  spreadRadius: 3,
-                                  blurRadius: 5,
                                 ),
                               ],
                             ),
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 20, vertical: 10),
-                            child: Column(
+                          ),
+                          SizedBox(
+                            height: MediaQuery.of(context).size.height * 0.02,
+                          ),
+                          const Padding(
+                            padding: EdgeInsets.symmetric(horizontal: 25.0),
+                            child: Row(
                               children: [
-                                Row(
-                                  children: [
-                                    const Expanded(
-                                      child: Text(
-                                        'Current Price',
-                                        overflow: TextOverflow.ellipsis,
-                                        style: TextStyle(
-                                          fontSize: 15,
-                                          fontWeight: FontWeight.bold,
-                                          fontFamily: 'Inconsolata',
-                                          color: Colors.black,
+                                Expanded(
+                                  child: Text(
+                                    'Entry price',
+                                    style: TextStyle(
+                                      fontFamily: 'Inconsolata',
+                                      fontSize: 13,
+                                      color: Colors.black,
+                                    ),
+                                  ),
+                                ),
+                                Spacer(),
+                                Expanded(
+                                  child: Text(
+                                    '0.14',
+                                    overflow: TextOverflow.ellipsis,
+                                    textAlign: TextAlign.end,
+                                    style: TextStyle(
+                                      fontFamily: 'Inconsolata',
+                                      fontSize: 13,
+                                      color: Colors.black,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          SizedBox(
+                            height: MediaQuery.of(context).size.height * 0.02,
+                          ),
+                          const Padding(
+                            padding: EdgeInsets.symmetric(horizontal: 25.0),
+                            child: Row(
+                              children: [
+                                Expanded(
+                                  flex: 5,
+                                  child: Text(
+                                    'Stop Loss 40.0%',
+                                    overflow: TextOverflow.ellipsis,
+                                    style: TextStyle(
+                                      fontFamily: 'Inconsolata',
+                                      fontSize: 13,
+                                      color: Colors.black,
+                                    ),
+                                  ),
+                                ),
+                                Spacer(),
+                                Expanded(
+                                  child: Text(
+                                    '0.1',
+                                    overflow: TextOverflow.ellipsis,
+                                    textAlign: TextAlign.end,
+                                    style: TextStyle(
+                                      fontFamily: 'Inconsolata',
+                                      fontSize: 13,
+                                      color: Colors.black,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          SizedBox(
+                            height: MediaQuery.of(context).size.height * 0.02,
+                          ),
+                          Padding(
+                            padding:
+                                const EdgeInsets.symmetric(horizontal: 10.0),
+                            child: Container(
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(10),
+                                border: Border.all(
+                                  width: 0,
+                                ),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.grey.withOpacity(0.5),
+                                    spreadRadius: 3,
+                                    blurRadius: 5,
+                                  ),
+                                ],
+                              ),
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 20, vertical: 10),
+                              child: Column(
+                                children: [
+                                  Row(
+                                    children: [
+                                      const Expanded(
+                                        flex: 5,
+                                        child: Text(
+                                          'Current Price',
+                                          overflow: TextOverflow.ellipsis,
+                                          style: TextStyle(
+                                            fontSize: 15,
+                                            fontWeight: FontWeight.bold,
+                                            fontFamily: 'Inconsolata',
+                                            color: Colors.black,
+                                          ),
+                                        ),
+                                      ),
+                                      const Spacer(),
+                                      const Expanded(
+                                        flex: 3,
+                                        child: Text(
+                                          '0.0903',
+                                          overflow: TextOverflow.ellipsis,
+                                          style: TextStyle(
+                                            fontSize: 15,
+                                            fontWeight: FontWeight.bold,
+                                            fontFamily: 'Inconsolata',
+                                            color: Colors.black,
+                                          ),
+                                        ),
+                                      ),
+                                      const Spacer(),
+                                      const Expanded(
+                                        flex: 4,
+                                        child: Text(
+                                          '-35.5%',
+                                          overflow: TextOverflow.ellipsis,
+                                          style: TextStyle(
+                                            fontSize: 15,
+                                            fontWeight: FontWeight.bold,
+                                            fontFamily: 'Inconsolata',
+                                            color: Color(0xFFFF0000),
+                                          ),
+                                        ),
+                                      ),
+                                      if (usdtCurrentPriceDropDownActive ==
+                                          false)
+                                        GestureDetector(
+                                          onTap: () {
+                                            setState(() {
+                                              usdtCurrentPriceDropDownActive =
+                                                  true;
+                                            });
+                                          },
+                                          child: Image.asset(
+                                            'images/material-symbols_arrow-drop-down.png',
+                                          ),
+                                        )
+                                      else
+                                        GestureDetector(
+                                          onTap: () {
+                                            setState(() {
+                                              usdtCurrentPriceDropDownActive =
+                                                  false;
+                                            });
+                                          },
+                                          child: Image.asset(
+                                            'images/material-symbols_arrow-drop-down-upwards.png',
+                                          ),
+                                        ),
+                                    ],
+                                  ),
+                                  if (usdtCurrentPriceDropDownActive == true)
+                                    Padding(
+                                      padding: const EdgeInsets.only(top: 10.0),
+                                      child: Container(
+                                        decoration: BoxDecoration(
+                                          color: Colors.white,
+                                          borderRadius:
+                                              BorderRadius.circular(10),
+                                          border: Border.all(
+                                            width: 0,
+                                          ),
+                                          boxShadow: [
+                                            BoxShadow(
+                                              color:
+                                                  Colors.grey.withOpacity(0.5),
+                                              spreadRadius: 3,
+                                              blurRadius: 5,
+                                            ),
+                                          ],
+                                        ),
+                                        padding: const EdgeInsets.symmetric(
+                                            horizontal: 20, vertical: 6),
+                                        child: const Row(
+                                          children: [
+                                            Expanded(
+                                              flex: 2,
+                                              child: Text(
+                                                'Target 1',
+                                                overflow: TextOverflow.ellipsis,
+                                                style: TextStyle(
+                                                  fontSize: 15,
+                                                  fontWeight: FontWeight.bold,
+                                                  fontFamily: 'Inconsolata',
+                                                  color: Colors.black,
+                                                ),
+                                              ),
+                                            ),
+                                            Spacer(),
+                                            Expanded(
+                                              flex: 2,
+                                              child: Text(
+                                                '0.15',
+                                                overflow: TextOverflow.ellipsis,
+                                                style: TextStyle(
+                                                  fontSize: 15,
+                                                  fontWeight: FontWeight.bold,
+                                                  fontFamily: 'Inconsolata',
+                                                  color: Colors.black,
+                                                ),
+                                              ),
+                                            ),
+                                            Spacer(),
+                                            Expanded(
+                                              flex: 2,
+                                              child: Text(
+                                                '6.67%',
+                                                overflow: TextOverflow.ellipsis,
+                                                style: TextStyle(
+                                                  fontSize: 15,
+                                                  fontWeight: FontWeight.bold,
+                                                  fontFamily: 'Inconsolata',
+                                                  color: Color(0xFFFF0000),
+                                                ),
+                                              ),
+                                            ),
+                                          ],
                                         ),
                                       ),
                                     ),
-                                    const Spacer(),
-                                    const Expanded(
-                                      child: Text(
-                                        '0.0903',
-                                        overflow: TextOverflow.ellipsis,
-                                        style: TextStyle(
-                                          fontSize: 15,
-                                          fontWeight: FontWeight.bold,
-                                          fontFamily: 'Inconsolata',
-                                          color: Colors.black,
+                                  if (usdtCurrentPriceDropDownActive == true)
+                                    Padding(
+                                      padding: const EdgeInsets.only(top: 10.0),
+                                      child: Container(
+                                        decoration: BoxDecoration(
+                                          color: Colors.white,
+                                          borderRadius:
+                                              BorderRadius.circular(10),
+                                          border: Border.all(
+                                            width: 0,
+                                          ),
+                                          boxShadow: [
+                                            BoxShadow(
+                                              color:
+                                                  Colors.grey.withOpacity(0.5),
+                                              spreadRadius: 3,
+                                              blurRadius: 5,
+                                            ),
+                                          ],
+                                        ),
+                                        padding: const EdgeInsets.symmetric(
+                                            horizontal: 20, vertical: 6),
+                                        child: const Row(
+                                          children: [
+                                            Expanded(
+                                              flex: 2,
+                                              child: Text(
+                                                'Target 2',
+                                                overflow: TextOverflow.ellipsis,
+                                                style: TextStyle(
+                                                  fontSize: 15,
+                                                  fontWeight: FontWeight.bold,
+                                                  fontFamily: 'Inconsolata',
+                                                  color: Colors.black,
+                                                ),
+                                              ),
+                                            ),
+                                            Spacer(),
+                                            Expanded(
+                                              flex: 2,
+                                              child: Text(
+                                                '0.15',
+                                                overflow: TextOverflow.ellipsis,
+                                                style: TextStyle(
+                                                  fontSize: 15,
+                                                  fontWeight: FontWeight.bold,
+                                                  fontFamily: 'Inconsolata',
+                                                  color: Colors.black,
+                                                ),
+                                              ),
+                                            ),
+                                            Spacer(),
+                                            Expanded(
+                                              flex: 2,
+                                              child: Text(
+                                                '6.67%',
+                                                overflow: TextOverflow.ellipsis,
+                                                style: TextStyle(
+                                                  fontSize: 15,
+                                                  fontWeight: FontWeight.bold,
+                                                  fontFamily: 'Inconsolata',
+                                                  color: Color(0xFFFF0000),
+                                                ),
+                                              ),
+                                            ),
+                                          ],
                                         ),
                                       ),
                                     ),
-                                    const Spacer(),
-                                    const Expanded(
-                                      child: Text(
-                                        '-35.5%',
-                                        overflow: TextOverflow.ellipsis,
-                                        style: TextStyle(
-                                          fontSize: 15,
-                                          fontWeight: FontWeight.bold,
-                                          fontFamily: 'Inconsolata',
-                                          color: Color(0xFFFF0000),
+                                  if (usdtCurrentPriceDropDownActive == true)
+                                    Padding(
+                                      padding: const EdgeInsets.only(top: 10.0),
+                                      child: Container(
+                                        decoration: BoxDecoration(
+                                          color: Colors.white,
+                                          borderRadius:
+                                              BorderRadius.circular(10),
+                                          border: Border.all(
+                                            width: 0,
+                                          ),
+                                          boxShadow: [
+                                            BoxShadow(
+                                              color:
+                                                  Colors.grey.withOpacity(0.5),
+                                              spreadRadius: 3,
+                                              blurRadius: 5,
+                                            ),
+                                          ],
+                                        ),
+                                        padding: const EdgeInsets.symmetric(
+                                            horizontal: 20, vertical: 6),
+                                        child: const Row(
+                                          children: [
+                                            Expanded(
+                                              flex: 2,
+                                              child: Text(
+                                                'Target 3',
+                                                overflow: TextOverflow.ellipsis,
+                                                style: TextStyle(
+                                                  fontSize: 15,
+                                                  fontWeight: FontWeight.bold,
+                                                  fontFamily: 'Inconsolata',
+                                                  color: Colors.black,
+                                                ),
+                                              ),
+                                            ),
+                                            Spacer(),
+                                            Expanded(
+                                              flex: 2,
+                                              child: Text(
+                                                '0.15',
+                                                overflow: TextOverflow.ellipsis,
+                                                style: TextStyle(
+                                                  fontSize: 15,
+                                                  fontWeight: FontWeight.bold,
+                                                  fontFamily: 'Inconsolata',
+                                                  color: Colors.black,
+                                                ),
+                                              ),
+                                            ),
+                                            Spacer(),
+                                            Expanded(
+                                              flex: 2,
+                                              child: Text(
+                                                '6.67%',
+                                                overflow: TextOverflow.ellipsis,
+                                                style: TextStyle(
+                                                  fontSize: 15,
+                                                  fontWeight: FontWeight.bold,
+                                                  fontFamily: 'Inconsolata',
+                                                  color: Color(0xFFFF0000),
+                                                ),
+                                              ),
+                                            ),
+                                          ],
                                         ),
                                       ),
                                     ),
-                                    SizedBox(
-                                        width:
-                                            MediaQuery.of(context).size.width *
-                                                0.03),
-                                    if (btcCurrentPriceDropDownActive == false)
-                                      GestureDetector(
-                                        onTap: () {
-                                          setState(() {
-                                            btcCurrentPriceDropDownActive =
-                                                true;
-                                          });
-                                        },
-                                        child: Image.asset(
+                                ],
+                              ),
+                            ),
+                          ),
+                          SizedBox(
+                            height: MediaQuery.of(context).size.height * 0.02,
+                          ),
+                          Padding(
+                            padding:
+                                const EdgeInsets.symmetric(horizontal: 25.0),
+                            child: Row(
+                              children: [
+                                Expanded(
+                                  flex: 10,
+                                  child: Container(
+                                    decoration: BoxDecoration(
+                                      color: Colors.white,
+                                      borderRadius: BorderRadius.circular(10),
+                                      border: Border.all(
+                                        width: 0,
+                                      ),
+                                      boxShadow: [
+                                        BoxShadow(
+                                          color: Colors.grey.withOpacity(0.5),
+                                          spreadRadius: 3,
+                                          blurRadius: 5,
+                                        ),
+                                      ],
+                                    ),
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 20, vertical: 6),
+                                    child: Row(
+                                      children: [
+                                        const Expanded(
+                                          flex: 10,
+                                          child: Text(
+                                            'View Steps',
+                                            overflow: TextOverflow.ellipsis,
+                                            style: TextStyle(
+                                              fontSize: 15,
+                                              fontWeight: FontWeight.bold,
+                                              fontFamily: 'Inconsolata',
+                                              color: Colors.black,
+                                            ),
+                                          ),
+                                        ),
+                                        Image.asset(
                                           'images/material-symbols_arrow-drop-down.png',
                                         ),
-                                      )
-                                    else
-                                      GestureDetector(
-                                        onTap: () {
-                                          setState(() {
-                                            btcCurrentPriceDropDownActive =
-                                                false;
-                                          });
-                                        },
-                                        child: Image.asset(
-                                          'images/material-symbols_arrow-drop-down-upwards.png',
-                                        ),
-                                      ),
-                                  ],
+                                      ],
+                                    ),
+                                  ),
                                 ),
-                                if (btcCurrentPriceDropDownActive == true)
-                                  Padding(
-                                    padding: const EdgeInsets.only(top: 10.0),
-                                    child: Container(
-                                      decoration: BoxDecoration(
-                                        color: Colors.white,
-                                        borderRadius: BorderRadius.circular(10),
-                                        border: Border.all(
-                                          width: 0,
+                                const Spacer(),
+                                Expanded(
+                                  flex: 10,
+                                  child: Container(
+                                    decoration: BoxDecoration(
+                                      color: Colors.white,
+                                      borderRadius: BorderRadius.circular(10),
+                                      border: Border.all(
+                                        width: 0,
+                                      ),
+                                      boxShadow: [
+                                        BoxShadow(
+                                          color: Colors.grey.withOpacity(0.5),
+                                          spreadRadius: 3,
+                                          blurRadius: 5,
                                         ),
-                                        boxShadow: [
-                                          BoxShadow(
-                                            color: Colors.grey.withOpacity(0.5),
-                                            spreadRadius: 3,
-                                            blurRadius: 5,
-                                          ),
-                                        ],
-                                      ),
-                                      padding: const EdgeInsets.symmetric(
-                                          horizontal: 20, vertical: 6),
-                                      child: const Row(
-                                        children: [
-                                          Expanded(
-                                            child: Text(
-                                              'Target 1',
-                                              overflow: TextOverflow.ellipsis,
-                                              style: TextStyle(
-                                                fontSize: 15,
-                                                fontWeight: FontWeight.bold,
-                                                fontFamily: 'Inconsolata',
-                                                color: Colors.black,
-                                              ),
+                                      ],
+                                    ),
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 20, vertical: 6),
+                                    child: Row(
+                                      children: [
+                                        const Expanded(
+                                          flex: 10,
+                                          child: Text(
+                                            'View Charts',
+                                            overflow: TextOverflow.ellipsis,
+                                            style: TextStyle(
+                                              fontSize: 15,
+                                              fontWeight: FontWeight.bold,
+                                              fontFamily: 'Inconsolata',
+                                              color: Colors.black,
                                             ),
                                           ),
-                                          Spacer(),
-                                          Expanded(
-                                            child: Text(
-                                              '0.15',
-                                              overflow: TextOverflow.ellipsis,
-                                              style: TextStyle(
-                                                fontSize: 15,
-                                                fontWeight: FontWeight.bold,
-                                                fontFamily: 'Inconsolata',
-                                                color: Colors.black,
-                                              ),
-                                            ),
-                                          ),
-                                          Spacer(),
-                                          Expanded(
-                                            child: Text(
-                                              '6.67%',
-                                              overflow: TextOverflow.ellipsis,
-                                              style: TextStyle(
-                                                fontSize: 15,
-                                                fontWeight: FontWeight.bold,
-                                                fontFamily: 'Inconsolata',
-                                                color: Color(0xFFFF0000),
-                                              ),
-                                            ),
-                                          ),
-                                        ],
-                                      ),
+                                        ),
+                                        Image.asset(
+                                          'images/material-symbols_pie-chart.png',
+                                        ),
+                                      ],
                                     ),
                                   ),
-                                if (btcCurrentPriceDropDownActive == true)
-                                  Padding(
-                                    padding: const EdgeInsets.only(top: 10.0),
-                                    child: Container(
-                                      decoration: BoxDecoration(
-                                        color: Colors.white,
-                                        borderRadius: BorderRadius.circular(10),
-                                        border: Border.all(
-                                          width: 0,
-                                        ),
-                                        boxShadow: [
-                                          BoxShadow(
-                                            color: Colors.grey.withOpacity(0.5),
-                                            spreadRadius: 3,
-                                            blurRadius: 5,
-                                          ),
-                                        ],
-                                      ),
-                                      padding: const EdgeInsets.symmetric(
-                                          horizontal: 20, vertical: 6),
-                                      child: const Row(
-                                        children: [
-                                          Expanded(
-                                            child: Text(
-                                              'Target 2',
-                                              overflow: TextOverflow.ellipsis,
-                                              style: TextStyle(
-                                                fontSize: 15,
-                                                fontWeight: FontWeight.bold,
-                                                fontFamily: 'Inconsolata',
-                                                color: Colors.black,
-                                              ),
-                                            ),
-                                          ),
-                                          Spacer(),
-                                          Expanded(
-                                            child: Text(
-                                              '0.15',
-                                              overflow: TextOverflow.ellipsis,
-                                              style: TextStyle(
-                                                fontSize: 15,
-                                                fontWeight: FontWeight.bold,
-                                                fontFamily: 'Inconsolata',
-                                                color: Colors.black,
-                                              ),
-                                            ),
-                                          ),
-                                          Spacer(),
-                                          Expanded(
-                                            child: Text(
-                                              '6.67%',
-                                              overflow: TextOverflow.ellipsis,
-                                              style: TextStyle(
-                                                fontSize: 15,
-                                                fontWeight: FontWeight.bold,
-                                                fontFamily: 'Inconsolata',
-                                                color: Color(0xFFFF0000),
-                                              ),
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  ),
-                                if (btcCurrentPriceDropDownActive == true)
-                                  Padding(
-                                    padding: const EdgeInsets.only(top: 10.0),
-                                    child: Container(
-                                      decoration: BoxDecoration(
-                                        color: Colors.white,
-                                        borderRadius: BorderRadius.circular(10),
-                                        border: Border.all(
-                                          width: 0,
-                                        ),
-                                        boxShadow: [
-                                          BoxShadow(
-                                            color: Colors.grey.withOpacity(0.5),
-                                            spreadRadius: 3,
-                                            blurRadius: 5,
-                                          ),
-                                        ],
-                                      ),
-                                      padding: const EdgeInsets.symmetric(
-                                          horizontal: 20, vertical: 6),
-                                      child: const Row(
-                                        children: [
-                                          Expanded(
-                                            child: Text(
-                                              'Target 3',
-                                              overflow: TextOverflow.ellipsis,
-                                              style: TextStyle(
-                                                fontSize: 15,
-                                                fontWeight: FontWeight.bold,
-                                                fontFamily: 'Inconsolata',
-                                                color: Colors.black,
-                                              ),
-                                            ),
-                                          ),
-                                          Spacer(),
-                                          Expanded(
-                                            child: Text(
-                                              '0.15',
-                                              overflow: TextOverflow.ellipsis,
-                                              style: TextStyle(
-                                                fontSize: 15,
-                                                fontWeight: FontWeight.bold,
-                                                fontFamily: 'Inconsolata',
-                                                color: Colors.black,
-                                              ),
-                                            ),
-                                          ),
-                                          Spacer(),
-                                          Expanded(
-                                            child: Text(
-                                              '6.67%',
-                                              overflow: TextOverflow.ellipsis,
-                                              style: TextStyle(
-                                                fontSize: 15,
-                                                fontWeight: FontWeight.bold,
-                                                fontFamily: 'Inconsolata',
-                                                color: Color(0xFFFF0000),
-                                              ),
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  ),
+                                ),
                               ],
                             ),
                           ),
-                        ),
-                        SizedBox(
-                          height: MediaQuery.of(context).size.height * 0.02,
-                        ),
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 25.0),
-                          child: Row(
-                            children: [
-                              Expanded(
-                                child: Container(
-                                  decoration: BoxDecoration(
-                                    color: Colors.white,
-                                    borderRadius: BorderRadius.circular(10),
-                                    border: Border.all(
-                                      width: 0,
-                                    ),
-                                    boxShadow: [
-                                      BoxShadow(
-                                        color: Colors.grey.withOpacity(0.5),
-                                        spreadRadius: 3,
-                                        blurRadius: 5,
-                                      ),
-                                    ],
-                                  ),
-                                  padding: const EdgeInsets.symmetric(
-                                      horizontal: 20, vertical: 6),
-                                  child: Row(
-                                    children: [
-                                      const Expanded(
-                                        child: Text(
-                                          'View Steps',
-                                          overflow: TextOverflow.ellipsis,
-                                          style: TextStyle(
-                                            fontSize: 15,
-                                            fontWeight: FontWeight.bold,
-                                            fontFamily: 'Inconsolata',
-                                            color: Colors.black,
-                                          ),
-                                        ),
-                                      ),
-                                      Image.asset(
-                                        'images/material-symbols_arrow-drop-down.png',
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                              const Spacer(),
-                              Expanded(
-                                child: Container(
-                                  decoration: BoxDecoration(
-                                    color: Colors.white,
-                                    borderRadius: BorderRadius.circular(10),
-                                    border: Border.all(
-                                      width: 0,
-                                    ),
-                                    boxShadow: [
-                                      BoxShadow(
-                                        color: Colors.grey.withOpacity(0.5),
-                                        spreadRadius: 3,
-                                        blurRadius: 5,
-                                      ),
-                                    ],
-                                  ),
-                                  padding: const EdgeInsets.symmetric(
-                                      horizontal: 20, vertical: 6),
-                                  child: Row(
-                                    children: [
-                                      const Expanded(
-                                        child: Text(
-                                          'View Charts',
-                                          overflow: TextOverflow.ellipsis,
-                                          style: TextStyle(
-                                            fontSize: 15,
-                                            fontWeight: FontWeight.bold,
-                                            fontFamily: 'Inconsolata',
-                                            color: Colors.black,
-                                          ),
-                                        ),
-                                      ),
-                                      Image.asset(
-                                        'images/material-symbols_pie-chart.png',
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ]),
+                        ],
+                      ),
                     ),
                     SizedBox(height: MediaQuery.of(context).size.height * 0.02),
                   ],
