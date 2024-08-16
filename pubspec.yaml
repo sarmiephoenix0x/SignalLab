@@ -117,6 +117,27 @@ flutter:
   - images/message-2-line.png
   - images/share-forward-box-fill.png
   - images/add-circle-line.png
+  - images/Component 1.png
+  - images/Component 2.png
+  - images/Component 3.png
+  - images/Component 4.png
+  - images/Component 5.png
+  - images/share-box-line.png
+  - images/feedback-line.png
+  - images/save-line.png
+  - images/basketball-line.png
+  - images/camera-3-line.png
+  - images/user-smile-line.png
+  - images/cryptocurrency-color_usdt.png
+  - images/logos_bitcoin.png
+  - images/carbon_in-progress.png
+  - images/material-symbols_arrow-drop-down.png
+  - images/gridicons_dropdown.png
+  - images/gridicons_dropdown-upwards.png
+  - images/material-symbols_pie-chart.png
+  - images/bx_upvote.png
+  - images/bx_upvote-downwards.png
+  - images/mdi_share-outline.png
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware
 

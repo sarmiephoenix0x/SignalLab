@@ -40,7 +40,9 @@ class _PackagesPageState extends State<PackagesPage> {
                               child:
                                   Image.asset('images/tabler_arrow-back.png'),
                             ),
-                            const Spacer(),
+                            SizedBox(
+                                width:
+                                    MediaQuery.of(context).size.width * 0.02),
                             const Text(
                               'Packages',
                               style: TextStyle(
@@ -50,8 +52,6 @@ class _PackagesPageState extends State<PackagesPage> {
                                 color: Colors.black,
                               ),
                             ),
-                            SizedBox(
-                                width: MediaQuery.of(context).size.width * 0.1),
                             const Spacer(),
                           ],
                         ),
