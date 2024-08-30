@@ -35,7 +35,11 @@ dependencies:
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.6
-  carousel_slider: ^4.0.0
+  # carousel_slider: ^4.0.0
+  carousel_slider:
+    git:
+      url: https://github.com/sampaio96/flutter_carousel_slider.git
+      ref: master
 
 dev_dependencies:
   flutter_test:
@@ -148,6 +152,32 @@ flutter:
   - images/bx_upvote_downwards-black.png
   - images/bx_upvote-black.png
   - images/ic_baseline-share.png
+  - images/lets-icons_up.png
+  - images/lets-icons_up-white.png
+  - images/bi_eye.png
+  - images/BTC-Tag.png
+  - images/BNB-Tag.png
+  - images/FLX-Tag.png
+  - images/Thumbs-up.png
+  - images/Thumbs-down.png
+  - images/noto_crown.png
+  - images/PlusButton.png
+  - images/SearchButton.png
+  - images/NextButton.png
+  - images/clarity_block-line.png
+  - images/vaadin_coin-piles.png
+  - images/icon-park_github.png
+  - images/logos_reddit-icon.png
+  - images/logos_telegram.png
+  - images/mdi_tick-decagram-green.png
+  - images/oui_vis-pie.png
+  - images/ph_coin-duotone.png
+  - images/streamline_web.png
+  - images/FilterButton.png
+  - images/wpf_today.png
+  - images/carbon_result-new.png
+  - images/wpf_today-black.png
+  - images/carbon_result-new-white.png
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware
 

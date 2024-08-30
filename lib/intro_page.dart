@@ -1,6 +1,7 @@
-import 'package:flutter/material.dart';
-import 'package:signal_app/sign_in_page.dart';
+import 'package:flutter/material.dart' hide CarouselController;
 import 'package:carousel_slider/carousel_slider.dart';
+import 'package:carousel_slider/carousel_controller.dart';
+import 'package:signal_app/sign_in_page.dart';
 import 'package:signal_app/sign_up_page.dart';
 
 class IntroPage extends StatefulWidget {
@@ -33,6 +34,8 @@ class _IntroPageState extends State<IntroPage> {
   ];
 
   int _current = 0;
+
+  // Use the fully qualified CarouselController from the carousel_slider package
   final CarouselController _controller = CarouselController();
 
   @override
@@ -120,29 +123,30 @@ class _IntroPageState extends State<IntroPage> {
                                       );
                                     },
                                     style: ButtonStyle(
-                                      backgroundColor: WidgetStateProperty
+                                      backgroundColor: MaterialStateProperty
                                           .resolveWith<Color>(
-                                        (Set<WidgetState> states) {
+                                        (Set<MaterialState> states) {
                                           if (states
-                                              .contains(WidgetState.pressed)) {
+                                              .contains(MaterialState.pressed)) {
                                             return Colors.white;
                                           }
                                           return Colors.black;
                                         },
                                       ),
-                                      foregroundColor: WidgetStateProperty
+                                      foregroundColor: MaterialStateProperty
                                           .resolveWith<Color>(
-                                        (Set<WidgetState> states) {
+                                        (Set<MaterialState> states) {
                                           if (states
-                                              .contains(WidgetState.pressed)) {
+                                              .contains(MaterialState.pressed)) {
                                             return Colors.black;
                                           }
                                           return Colors.white;
                                         },
                                       ),
                                       elevation:
-                                          WidgetStateProperty.all<double>(4.0),
-                                      shape: WidgetStateProperty.all<
+                                          MaterialStateProperty.all<double>(
+                                              4.0),
+                                      shape: MaterialStateProperty.all<
                                           RoundedRectangleBorder>(
                                         const RoundedRectangleBorder(
                                           borderRadius: BorderRadius.all(
@@ -182,29 +186,30 @@ class _IntroPageState extends State<IntroPage> {
                                       );
                                     },
                                     style: ButtonStyle(
-                                      backgroundColor: WidgetStateProperty
+                                      backgroundColor: MaterialStateProperty
                                           .resolveWith<Color>(
-                                        (Set<WidgetState> states) {
+                                        (Set<MaterialState> states) {
                                           if (states
-                                              .contains(WidgetState.pressed)) {
+                                              .contains(MaterialState.pressed)) {
                                             return Colors.black;
                                           }
                                           return Colors.white;
                                         },
                                       ),
-                                      foregroundColor: WidgetStateProperty
+                                      foregroundColor: MaterialStateProperty
                                           .resolveWith<Color>(
-                                        (Set<WidgetState> states) {
+                                        (Set<MaterialState> states) {
                                           if (states
-                                              .contains(WidgetState.pressed)) {
+                                              .contains(MaterialState.pressed)) {
                                             return Colors.white;
                                           }
                                           return Colors.black;
                                         },
                                       ),
                                       elevation:
-                                          WidgetStateProperty.all<double>(4.0),
-                                      shape: WidgetStateProperty.all<
+                                          MaterialStateProperty.all<double>(
+                                              4.0),
+                                      shape: MaterialStateProperty.all<
                                           RoundedRectangleBorder>(
                                         const RoundedRectangleBorder(
                                           side: BorderSide(width: 1),

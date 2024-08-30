@@ -69,8 +69,6 @@ class _PackagesPageState extends State<PackagesPage> {
                                   padding: const EdgeInsets.all(12.0),
                                   decoration: BoxDecoration(
                                     color: Colors.white,
-                                    border: Border.all(
-                                        width: 0, color: Colors.black),
                                     borderRadius: BorderRadius.circular(15),
                                     boxShadow: [
                                       BoxShadow(
@@ -326,8 +324,6 @@ class _PackagesPageState extends State<PackagesPage> {
                                   padding: const EdgeInsets.all(12.0),
                                   decoration: BoxDecoration(
                                     color: Colors.white,
-                                    border: Border.all(
-                                        width: 0, color: Colors.black),
                                     borderRadius: BorderRadius.circular(15),
                                     boxShadow: [
                                       BoxShadow(
@@ -583,8 +579,6 @@ class _PackagesPageState extends State<PackagesPage> {
                                   padding: const EdgeInsets.all(12.0),
                                   decoration: BoxDecoration(
                                     color: Colors.white,
-                                    border: Border.all(
-                                        width: 0, color: Colors.black),
                                     borderRadius: BorderRadius.circular(15),
                                     boxShadow: [
                                       BoxShadow(
@@ -840,8 +834,6 @@ class _PackagesPageState extends State<PackagesPage> {
                                   padding: const EdgeInsets.all(12.0),
                                   decoration: BoxDecoration(
                                     color: Colors.white,
-                                    border: Border.all(
-                                        width: 0, color: Colors.black),
                                     borderRadius: BorderRadius.circular(15),
                                     boxShadow: [
                                       BoxShadow(
@@ -1097,8 +1089,6 @@ class _PackagesPageState extends State<PackagesPage> {
                                   padding: const EdgeInsets.all(12.0),
                                   decoration: BoxDecoration(
                                     color: Colors.white,
-                                    border: Border.all(
-                                        width: 0, color: Colors.black),
                                     borderRadius: BorderRadius.circular(15),
                                     boxShadow: [
                                       BoxShadow(
@@ -1354,8 +1344,6 @@ class _PackagesPageState extends State<PackagesPage> {
                                   padding: const EdgeInsets.all(12.0),
                                   decoration: BoxDecoration(
                                     color: Colors.white,
-                                    border: Border.all(
-                                        width: 0, color: Colors.black),
                                     borderRadius: BorderRadius.circular(15),
                                     boxShadow: [
                                       BoxShadow(

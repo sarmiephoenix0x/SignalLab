@@ -11,126 +11,45 @@ class EventsPage extends StatefulWidget {
   _EventsPageState createState() => _EventsPageState();
 }
 
-class _EventsPageState extends State<EventsPage> {
-  final GlobalKey _key = GlobalKey();
+class _EventsPageState extends State<EventsPage> with TickerProviderStateMixin {
+  TabController? tabController;
+  Color _indicatorColor = const Color(0xFFFF0000);
+  bool tabTapped = false;
+  String trendImg = 'images/lets-icons_up-white.png';
 
-  void _showPopupMenu(BuildContext context) async {
-    final RenderBox renderBox =
-        _key.currentContext!.findRenderObject() as RenderBox;
-    final Offset position = renderBox.localToGlobal(Offset.zero);
-
-    await showMenu(
-      context: context,
-      position: RelativeRect.fromLTRB(
-          position.dx,
-          position.dy + renderBox.size.height,
-          position.dx + renderBox.size.width,
-          position.dy),
-      items: [
-        PopupMenuItem<String>(
-          value: 'Share',
-          child: Row(
-            children: [
-              Image.asset(
-                'images/share-box-line.png',
-              ),
-              SizedBox(
-                width: MediaQuery.of(context).size.width * 0.05,
-              ),
-              const Text(
-                'Share',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontFamily: 'Inter',
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ],
-          ),
-        ),
-        PopupMenuItem<String>(
-          value: 'Report',
-          child: Row(
-            children: [
-              Image.asset(
-                'images/feedback-line.png',
-              ),
-              SizedBox(
-                width: MediaQuery.of(context).size.width * 0.05,
-              ),
-              const Text(
-                'Report',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontFamily: 'Inter',
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ],
-          ),
-        ),
-        PopupMenuItem<String>(
-          value: 'Save',
-          child: Row(
-            children: [
-              Image.asset(
-                'images/save-line.png',
-              ),
-              SizedBox(
-                width: MediaQuery.of(context).size.width * 0.05,
-              ),
-              const Text(
-                'Save',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontFamily: 'Inter',
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ],
-          ),
-        ),
-        PopupMenuItem<String>(
-          value: 'Open',
-          child: Row(
-            children: [
-              Image.asset(
-                'images/basketball-line.png',
-              ),
-              SizedBox(
-                width: MediaQuery.of(context).size.width * 0.05,
-              ),
-              const Text(
-                'Open in browser',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontFamily: 'Inter',
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ],
-      elevation: 8.0,
-    ).then((value) {
-      if (value != null) {
-        _handleMenuSelection(value);
-      }
-    });
+  @override
+  void initState() {
+    super.initState();
+    tabController = TabController(length: 8, vsync: this);
+    tabController!.addListener(_handleTabSelection);
   }
 
-  void _handleMenuSelection(String value) {
-    switch (value) {
-      case 'Share':
-        break;
-      case 'Report':
-        break;
-      case 'Save':
-        break;
-      case 'Open':
-        break;
-    }
+  @override
+  void dispose() {
+    tabController?.dispose();
+    super.dispose();
+  }
+
+  void _handleTabSelection() {
+    setState(() {
+      switch (tabController!.index) {
+        case 0:
+          _indicatorColor = const Color(0xFFFF0000);
+          trendImg = 'images/lets-icons_up-white.png';
+          break;
+        case 1:
+          _indicatorColor = const Color(0xFFB65C18);
+          trendImg = 'images/lets-icons_up.png';
+          break;
+        case 2:
+          _indicatorColor = const Color(0xFFB65C18);
+          trendImg = 'images/lets-icons_up.png';
+          break;
+        default:
+          _indicatorColor = Colors.black;
+          trendImg = 'images/lets-icons_up.png';
+      }
+    });
   }
 
   @override
@@ -171,145 +90,58 @@ class _EventsPageState extends State<EventsPage> {
                             ),
                           ),
                           const Spacer(),
+                          Image.asset('images/PlusButton.png'),
+                          Image.asset('images/SearchButton.png'),
                         ],
                       ),
                     ),
+                    SizedBox(
+                      height: MediaQuery.of(context).size.height * 0.03,
+                    ),
+                    _latestInfoTabBar(),
                     Expanded(
-                      child: ListView(
+                      child: TabBarView(
+                        controller: tabController,
                         children: [
-                          Container(
-                            padding: const EdgeInsets.only(
-                                top: 12.0, bottom: 12.0, left: 20, right: 20),
-                            decoration: const BoxDecoration(
-                              color: Colors.white,
-                            ),
-                            child: Column(
-                              children: [
-                                Row(
-                                  children: [
-                                    const Expanded(
-                                      flex:5,
-                                      child: Text(
-                                        'Binance Expands Account Statement Function',
-                                        overflow: TextOverflow.ellipsis,
-                                        style: TextStyle(
-                                          fontSize: 22.0,
-                                          fontFamily: 'Inter',
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                      ),
-                                    ),
-                                    const Spacer(),
-                                    GestureDetector(
-                                      onTap: () {
-                                        _showPopupMenu(context);
-                                      },
-                                      child: SizedBox(
-                                        key: _key,
-                                        width: 20,
-                                        child: Image.asset(
-                                          'images/MoreButton.png',
-                                        ),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                                Padding(
-                                  padding: const EdgeInsets.symmetric(
-                                      vertical: 20.0),
-                                  child: InkWell(
-                                    onTap: () {
-                                      Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                          builder: (context) =>
-                                              EventsDetails(key: UniqueKey()),
-                                        ),
-                                      );
-                                    },
-                                    child: Image.asset(
-                                      'images/NewsPost.png',
-                                      width: double.infinity,
-                                      fit: BoxFit.cover,
-                                    ),
-                                  ),
-                                ),
-                                const Text(
-                                  "Binance Expands Account Statement Function. With our VIP and institutional clients in mind, we’ve upgraded the account statement function...See more",
-                                  style: TextStyle(
-                                      fontSize: 16, fontFamily: 'Inter'),
-                                ),
-                                SizedBox(
-                                    height: MediaQuery.of(context).size.height *
-                                        0.03),
-                                Row(
-                                  children: [
-                                    Container(
-                                      decoration: BoxDecoration(
-                                        borderRadius: BorderRadius.circular(20),
-                                        border: Border.all(
-                                          color: Colors.black,
-                                          width: 2,
-                                        ),
-                                      ),
-                                      padding: const EdgeInsets.symmetric(
-                                          horizontal: 12, vertical: 6),
-                                      child: Row(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.spaceEvenly,
-                                        children: [
-                                          Image.asset(
-                                            'images/bx_upvote.png',
-                                          ),
-                                          const Text(
-                                            '14.0k',
-                                            style: TextStyle(
-                                              fontSize: 16,
-                                              fontFamily: 'Inter',
-                                              fontWeight: FontWeight.bold,
-                                              color: Colors.black,
-                                            ),
-                                          ),
-                                          Image.asset(
-                                            'images/bx_upvote-downwards.png',
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                    const Spacer(),
-                                    Container(
-                                      decoration: BoxDecoration(
-                                        borderRadius: BorderRadius.circular(20),
-                                        border: Border.all(
-                                          color: Colors.black,
-                                          width: 2,
-                                        ),
-                                      ),
-                                      padding: const EdgeInsets.symmetric(
-                                          horizontal: 12, vertical: 6),
-                                      child: Row(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.spaceEvenly,
-                                        children: [
-                                          const Text(
-                                            '10.1k',
-                                            style: TextStyle(
-                                              fontSize: 16,
-                                              fontFamily: 'Inter',
-                                              fontWeight: FontWeight.bold,
-                                              color: Colors.black,
-                                            ),
-                                          ),
-                                          Image.asset(
-                                            'images/mdi_share-outline.png',
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ],
-                            ),
+                          ListView(
+                            children: [
+                              cryptoCard(),
+                            ],
+                          ),
+                          ListView(
+                            children: [
+                              cryptoCard(),
+                            ],
+                          ),
+                          ListView(
+                            children: [
+                              cryptoCard(),
+                            ],
+                          ),
+                          ListView(
+                            children: [
+                              cryptoCard(),
+                            ],
+                          ),
+                          ListView(
+                            children: [
+                              cryptoCard(),
+                            ],
+                          ),
+                          ListView(
+                            children: [
+                              cryptoCard(),
+                            ],
+                          ),
+                          ListView(
+                            children: [
+                              cryptoCard(),
+                            ],
+                          ),
+                          ListView(
+                            children: [
+                              cryptoCard(),
+                            ],
                           ),
                         ],
                       ),
@@ -321,6 +153,224 @@ class _EventsPageState extends State<EventsPage> {
           ),
         );
       },
+    );
+  }
+
+  Widget _latestInfoTabBar() {
+    if (tabController != null) {
+      return Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 20.0),
+        child: TabBar(
+          indicator: BoxDecoration(
+            color: _indicatorColor,
+            borderRadius: BorderRadius.circular(10),
+          ),
+          indicatorSize: TabBarIndicatorSize.label,
+          indicatorPadding:
+              const EdgeInsets.only(left: 2.1, right: 2.1, bottom: 6.6, top: 5),
+          dividerHeight: 0,
+          tabAlignment: TabAlignment.start,
+          controller: tabController!,
+          isScrollable: true,
+          splashBorderRadius: BorderRadius.circular(10),
+          tabs: [
+            _buildCurvedTab('Trending', trendImg),
+            _buildCurvedTab('Hot', 'images/noto_fire.png'),
+            _buildCurvedTab('Significant', 'images/noto_crown.png'),
+            _buildCurvedTab('Top 100 coins', ''),
+            _buildCurvedTab('Top 300 coins', ''),
+            _buildCurvedTab('Top 500 coins', ''),
+            _buildCurvedTab('Major categories', ''),
+            _buildCurvedTab('Next 10 days', ''),
+          ],
+          labelPadding: const EdgeInsets.symmetric(horizontal: 6),
+          labelColor: Colors.white,
+          unselectedLabelColor: Colors.black,
+          labelStyle: const TextStyle(
+            fontSize: 16,
+            fontFamily: 'Inter',
+          ),
+          unselectedLabelStyle: const TextStyle(
+            fontSize: 16,
+            fontFamily: 'Inter',
+          ),
+        ),
+      );
+    } else {
+      return const SizedBox.shrink();
+    }
+  }
+
+  Widget _buildCurvedTab(String label, String img) {
+    return Tab(
+      child: Container(
+        decoration: BoxDecoration(
+          border: Border.all(width: 2, color: Colors.black),
+          borderRadius: BorderRadius.circular(10),
+        ),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+        child: Row(
+          children: [
+            if (img != '')
+              Image.asset(
+                img,
+              ),
+            SizedBox(width: MediaQuery.of(context).size.width * 0.01),
+            Text(
+              label,
+              style: const TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+                fontFamily: 'Inter',
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget cryptoCard() {
+    return Padding(
+      padding: const EdgeInsets.only(left: 20.0, right: 20.0, bottom: 20.0),
+      child: InkWell(
+        onTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => EventsDetails(key: UniqueKey()),
+            ),
+          );
+        },
+        child: Container(
+          padding: const EdgeInsets.all(12.0),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(15),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.grey.withOpacity(0.5),
+                spreadRadius: 3,
+                blurRadius: 5,
+              ),
+            ],
+          ),
+          child: Column(
+            children: [
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Image.asset(
+                    'images/logos_bitcoin.png',
+                  ),
+                  SizedBox(width: MediaQuery.of(context).size.width * 0.03),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'Bitcoin (BTC)',
+                        style: TextStyle(
+                          fontFamily: 'Inconsolata',
+                          fontWeight: FontWeight.bold,
+                          fontSize: 22,
+                          color: Colors.black,
+                        ),
+                      ),
+                      const Text(
+                        '18 August 2024',
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontFamily: 'Inconsolata',
+                          fontWeight: FontWeight.bold,
+                          color: Colors.grey,
+                        ),
+                      ),
+                      SizedBox(
+                        height: MediaQuery.of(context).size.height * 0.02,
+                      ),
+                      Row(
+                        children: [
+                          const Text(
+                            '151MM Token Unlock ',
+                            style: TextStyle(
+                              fontFamily: 'Inconsolata',
+                              fontWeight: FontWeight.bold,
+                              fontSize: 16,
+                              color: Colors.black,
+                            ),
+                          ),
+                          Image.asset(
+                            'images/lets-icons_up.png',
+                          ),
+                          SizedBox(
+                              width: MediaQuery.of(context).size.width * 0.01),
+                          Image.asset(
+                            'images/noto_fire.png',
+                          ),
+                          SizedBox(
+                              width: MediaQuery.of(context).size.width * 0.01),
+                          Image.asset(
+                            'images/noto_crown.png',
+                          ),
+                        ],
+                      ),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          const Text(
+                            '95% | 20k votes ',
+                            style: TextStyle(
+                              fontFamily: 'Inconsolata',
+                              fontSize: 15,
+                              color: Colors.black,
+                            ),
+                          ),
+                          Stack(
+                            children: [
+                              Container(
+                                width: MediaQuery.of(context).size.width * 0.1,
+                                height: 5,
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFF0000FF),
+                                  borderRadius: BorderRadius.circular(0),
+                                ),
+                              ),
+                              Container(
+                                width: MediaQuery.of(context).size.width * 0.2,
+                                height: 5,
+                                decoration: BoxDecoration(
+                                  border: Border.all(
+                                      width: 0.5, color: Colors.black),
+                                  borderRadius: BorderRadius.circular(0),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                  const Spacer(),
+                  SizedBox(
+                    height: MediaQuery.of(context).size.height * 0.15,
+                    child: Column(
+                      children: [
+                        Image.asset(
+                          'images/Thumbs-up.png',
+                        ),
+                        const Spacer(),
+                        Image.asset(
+                          'images/Thumbs-down.png',
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }

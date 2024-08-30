@@ -1,0 +1,210 @@
+Old signal lab news section code:
+Padding(
+                        padding: const EdgeInsets.only(bottom: 20.0),
+                        child: Container(
+                          padding: const EdgeInsets.all(12.0),
+                          decoration: const BoxDecoration(
+                            color: Colors.white,
+                          ),
+                          child: Padding(
+                            padding: const EdgeInsets.only(
+                                top: 20, bottom: 20.0, left: 20, right: 20),
+                            child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Row(
+                                    mainAxisAlignment: MainAxisAlignment.start,
+                                    children: [
+                                      Image.asset(
+                                        'images/NewsProfileImg.png',
+                                      ),
+                                      SizedBox(
+                                        width:
+                                            MediaQuery.of(context).size.width *
+                                                0.01,
+                                      ),
+                                      Expanded(
+                                        child: Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            const Text(
+                                              'Zepenllin',
+                                              overflow: TextOverflow.ellipsis,
+                                              style: TextStyle(
+                                                fontSize: 16,
+                                                fontFamily: 'Inter',
+                                                fontWeight: FontWeight.bold,
+                                              ),
+                                            ),
+                                            SizedBox(
+                                              height: MediaQuery.of(context)
+                                                      .size
+                                                      .height *
+                                                  0.01,
+                                            ),
+                                            const Text(
+                                              'Satellites',
+                                              overflow: TextOverflow.ellipsis,
+                                              style: TextStyle(
+                                                  color: Colors.lightBlue,
+                                                  fontSize: 16,
+                                                  fontFamily: 'Inter'),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                      const Spacer(),
+                                      GestureDetector(
+                                        onTap: () {
+                                          _showPopupMenu(context);
+                                        },
+                                        child: SizedBox(
+                                          key: _dropDownKey,
+                                          width: 20,
+                                          child: Image.asset(
+                                            'images/MoreButton.png',
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  SizedBox(
+                                    height: MediaQuery.of(context).size.height *
+                                        0.03,
+                                  ),
+                                  const Text(
+                                    "Binance Expands Account Statement Function. With our VIP and institutional clients in mind, we’ve upgraded the account statement function...",
+                                    style: TextStyle(
+                                        fontSize: 16, fontFamily: 'Inter'),
+                                  ),
+                                  Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                        vertical: 20.0),
+                                    child: InkWell(
+                                      onTap: () {
+                                        Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder: (context) =>
+                                                NewsDetails(key: UniqueKey()),
+                                          ),
+                                        );
+                                      },
+                                      child: Image.asset(
+                                        'images/NewsPost.png',
+                                        width: double.infinity,
+                                        fit: BoxFit.cover,
+                                      ),
+                                    ),
+                                  ),
+                                  Row(
+                                    children: [
+                                      Image.asset(
+                                        'images/heart-line.png',
+                                      ),
+                                      SizedBox(
+                                        width:
+                                            MediaQuery.of(context).size.width *
+                                                0.03,
+                                      ),
+                                      Image.asset(
+                                        'images/message-2-line.png',
+                                      ),
+                                      SizedBox(
+                                        width:
+                                            MediaQuery.of(context).size.width *
+                                                0.03,
+                                      ),
+                                      Image.asset(
+                                        'images/share-forward-box-fill.png',
+                                      ),
+                                      const Spacer(),
+                                      Image.asset(
+                                        'images/add-circle-line.png',
+                                      ),
+                                    ],
+                                  ),
+                                  SizedBox(
+                                    height: MediaQuery.of(context).size.height *
+                                        0.02,
+                                  ),
+                                  const Text(
+                                    "Liked by Huoge and others 1,900",
+                                    style: TextStyle(
+                                        fontSize: 16, fontFamily: 'Inter'),
+                                  ),
+                                  SizedBox(
+                                    height: MediaQuery.of(context).size.height *
+                                        0.02,
+                                  ),
+                                  Row(
+                                    children: [
+                                      Expanded(
+                                        child: Stack(
+                                          children: [
+                                            Image.asset(
+                                              'images/Component 1.png',
+                                            ),
+                                            Positioned(
+                                              left: MediaQuery.of(context)
+                                                      .padding
+                                                      .left +
+                                                  20,
+                                              child: Image.asset(
+                                                'images/Component 2.png',
+                                              ),
+                                            ),
+                                            Positioned(
+                                              left: MediaQuery.of(context)
+                                                      .padding
+                                                      .left +
+                                                  40,
+                                              child: Image.asset(
+                                                'images/Component 3.png',
+                                              ),
+                                            ),
+                                            Positioned(
+                                              left: MediaQuery.of(context)
+                                                      .padding
+                                                      .left +
+                                                  60,
+                                              child: Image.asset(
+                                                'images/Component 4.png',
+                                              ),
+                                            ),
+                                            Positioned(
+                                              left: MediaQuery.of(context)
+                                                      .padding
+                                                      .left +
+                                                  80,
+                                              child: Image.asset(
+                                                'images/Component 5.png',
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                      Container(
+                                        decoration: BoxDecoration(
+                                          color: Colors.grey.withOpacity(0.3),
+                                          borderRadius:
+                                              BorderRadius.circular(20),
+                                        ),
+                                        padding: const EdgeInsets.symmetric(
+                                            horizontal: 12, vertical: 6),
+                                        child: const Text(
+                                          '150 Responses',
+                                          style: TextStyle(
+                                            fontSize: 16,
+                                            fontFamily: 'Inter',
+                                            color: Colors.black,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ]),
+                          ),
+                        ),
+                      ),
