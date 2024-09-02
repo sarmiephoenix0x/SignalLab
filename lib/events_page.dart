@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:signal_app/events_details.dart';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 class EventsPage extends StatefulWidget {
   const EventsPage({
@@ -16,12 +19,16 @@ class _EventsPageState extends State<EventsPage> with TickerProviderStateMixin {
   Color _indicatorColor = const Color(0xFFFF0000);
   bool tabTapped = false;
   String trendImg = 'images/lets-icons_up-white.png';
+  List<dynamic> events = [];
+  final storage = const FlutterSecureStorage();
+  bool loading = true;
 
   @override
   void initState() {
     super.initState();
     tabController = TabController(length: 8, vsync: this);
     tabController!.addListener(_handleTabSelection);
+    fetchEvents();
   }
 
   @override
@@ -50,6 +57,33 @@ class _EventsPageState extends State<EventsPage> with TickerProviderStateMixin {
           trendImg = 'images/lets-icons_up.png';
       }
     });
+  }
+
+  Future<void> fetchEvents() async {
+    setState(() {
+      loading = true;
+    });
+    final String? accessToken = await storage.read(key: 'accessToken');
+    const url = 'https://script.teendev.dev/signal/api/events';
+    final response = await http.get(
+      Uri.parse(url),
+      headers: {
+        'Authorization': 'Bearer $accessToken',
+      },
+    );
+
+    if (response.statusCode == 200) {
+      setState(() {
+        events = json.decode(response.body);
+        loading = false;
+      });
+    } else {
+      setState(() {
+        loading = false; // Failed to load data
+      });
+      // Handle the error accordingly
+      print('Failed to load events');
+    }
   }
 
   @override
@@ -103,46 +137,102 @@ class _EventsPageState extends State<EventsPage> with TickerProviderStateMixin {
                       child: TabBarView(
                         controller: tabController,
                         children: [
-                          ListView(
-                            children: [
-                              cryptoCard(),
-                            ],
-                          ),
-                          ListView(
-                            children: [
-                              cryptoCard(),
-                            ],
-                          ),
-                          ListView(
-                            children: [
-                              cryptoCard(),
-                            ],
-                          ),
-                          ListView(
-                            children: [
-                              cryptoCard(),
-                            ],
-                          ),
-                          ListView(
-                            children: [
-                              cryptoCard(),
-                            ],
-                          ),
-                          ListView(
-                            children: [
-                              cryptoCard(),
-                            ],
-                          ),
-                          ListView(
-                            children: [
-                              cryptoCard(),
-                            ],
-                          ),
-                          ListView(
-                            children: [
-                              cryptoCard(),
-                            ],
-                          ),
+                          if (loading)
+                            const Center(
+                              child: CircularProgressIndicator(
+                                  color: Colors.black),
+                            )
+                          else
+                            ListView.builder(
+                              itemCount: events.length,
+                              itemBuilder: (context, index) {
+                                return cryptoCard(events[index]);
+                              },
+                            ),
+                          if (loading)
+                            const Center(
+                              child: CircularProgressIndicator(
+                                  color: Colors.black),
+                            )
+                          else
+                            ListView.builder(
+                              itemCount: events.length,
+                              itemBuilder: (context, index) {
+                                return cryptoCard(events[index]);
+                              },
+                            ),
+                          if (loading)
+                            const Center(
+                              child: CircularProgressIndicator(
+                                  color: Colors.black),
+                            )
+                          else
+                            ListView.builder(
+                              itemCount: events.length,
+                              itemBuilder: (context, index) {
+                                return cryptoCard(events[index]);
+                              },
+                            ),
+                          if (loading)
+                            const Center(
+                              child: CircularProgressIndicator(
+                                  color: Colors.black),
+                            )
+                          else
+                            ListView.builder(
+                              itemCount: events.length,
+                              itemBuilder: (context, index) {
+                                return cryptoCard(events[index]);
+                              },
+                            ),
+                          if (loading)
+                            const Center(
+                              child: CircularProgressIndicator(
+                                  color: Colors.black),
+                            )
+                          else
+                            ListView.builder(
+                              itemCount: events.length,
+                              itemBuilder: (context, index) {
+                                return cryptoCard(events[index]);
+                              },
+                            ),
+                          if (loading)
+                            const Center(
+                              child: CircularProgressIndicator(
+                                  color: Colors.black),
+                            )
+                          else
+                            ListView.builder(
+                              itemCount: events.length,
+                              itemBuilder: (context, index) {
+                                return cryptoCard(events[index]);
+                              },
+                            ),
+                          if (loading)
+                            const Center(
+                              child: CircularProgressIndicator(
+                                  color: Colors.black),
+                            )
+                          else
+                            ListView.builder(
+                              itemCount: events.length,
+                              itemBuilder: (context, index) {
+                                return cryptoCard(events[index]);
+                              },
+                            ),
+                          if (loading)
+                            const Center(
+                              child: CircularProgressIndicator(
+                                  color: Colors.black),
+                            )
+                          else
+                            ListView.builder(
+                              itemCount: events.length,
+                              itemBuilder: (context, index) {
+                                return cryptoCard(events[index]);
+                              },
+                            ),
                         ],
                       ),
                     ),
@@ -230,7 +320,48 @@ class _EventsPageState extends State<EventsPage> with TickerProviderStateMixin {
     );
   }
 
-  Widget cryptoCard() {
+  Widget cryptoCard(Map<String, dynamic> event) {
+    int totalVotes =
+        int.parse(event['upvotes']) + int.parse(event['downvotes']);
+    double upvotePercentage =
+        totalVotes > 0 ? int.parse(event['upvotes']) / totalVotes : 0.0;
+
+    Future<void> vote(String type) async {
+      final String? accessToken = await storage.read(key: 'accessToken');
+      final response = await http.post(
+        Uri.parse('https://script.teendev.dev/signal/api/vote'),
+        headers: {
+          'Authorization': 'Bearer $accessToken',
+          'Content-Type': 'application/json',
+        },
+        body: jsonEncode({
+          'type': type,
+          'id': event['id'],
+        }),
+      );
+
+      if (response.statusCode == 200) {
+        // Handle success
+        print("Successfully ${type == 'upvote' ? 'Upvoted' : 'Downvoted'}");
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+                'Successfully ${type == 'upvote' ? 'Upvoted' : 'Downvoted'}'),
+          ),
+        );
+        await fetchEvents();
+      } else if (response.statusCode == 400) {
+        // Handle bad request
+        print("Something isn't right");
+      } else if (response.statusCode == 401) {
+        // Handle unauthorized
+        print("Unauthorized");
+      } else if (response.statusCode == 422) {
+        // Handle validation errors
+        print("Validation error: ${response.body}");
+      }
+    }
+
     return Padding(
       padding: const EdgeInsets.only(left: 20.0, right: 20.0, bottom: 20.0),
       child: InkWell(
@@ -238,7 +369,8 @@ class _EventsPageState extends State<EventsPage> with TickerProviderStateMixin {
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (context) => EventsDetails(key: UniqueKey()),
+              builder: (context) =>
+                  EventsDetails(key: UniqueKey(), eventId: event['id']),
             ),
           );
         },
@@ -260,107 +392,114 @@ class _EventsPageState extends State<EventsPage> with TickerProviderStateMixin {
               Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Image.asset(
-                    'images/logos_bitcoin.png',
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(35),
+                    child: Container(
+                      width: (48 / MediaQuery.of(context).size.width) *
+                          MediaQuery.of(context).size.width,
+                      height: (48 / MediaQuery.of(context).size.height) *
+                          MediaQuery.of(context).size.height,
+                      color: Colors.grey,
+                      child: Image.network(
+                        event['image'],
+                        fit: BoxFit.cover,
+                      ),
+                    ),
                   ),
                   SizedBox(width: MediaQuery.of(context).size.width * 0.03),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        'Bitcoin (BTC)',
-                        style: TextStyle(
-                          fontFamily: 'Inconsolata',
-                          fontWeight: FontWeight.bold,
-                          fontSize: 22,
-                          color: Colors.black,
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          event['title'],
+                          overflow: TextOverflow.ellipsis,
+                          maxLines: 1, // Limits title to one line
+                          style: const TextStyle(
+                            fontFamily: 'Inconsolata',
+                            fontWeight: FontWeight.bold,
+                            fontSize: 22,
+                            color: Colors.black,
+                          ),
                         ),
-                      ),
-                      const Text(
-                        '18 August 2024',
-                        style: TextStyle(
-                          fontSize: 12,
-                          fontFamily: 'Inconsolata',
-                          fontWeight: FontWeight.bold,
-                          color: Colors.grey,
+                        Text(
+                          event['created_at'],
+                          style: const TextStyle(
+                            fontSize: 12,
+                            fontFamily: 'Inconsolata',
+                            fontWeight: FontWeight.bold,
+                            color: Colors.grey,
+                          ),
                         ),
-                      ),
-                      SizedBox(
-                        height: MediaQuery.of(context).size.height * 0.02,
-                      ),
-                      Row(
-                        children: [
-                          const Text(
-                            '151MM Token Unlock ',
-                            style: TextStyle(
-                              fontFamily: 'Inconsolata',
-                              fontWeight: FontWeight.bold,
-                              fontSize: 16,
-                              color: Colors.black,
-                            ),
+                        SizedBox(
+                          height: MediaQuery.of(context).size.height * 0.02,
+                        ),
+                        Text(
+                          event['sub_text'],
+                          maxLines: 2, // Limits sub_text to two lines
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                            fontFamily: 'Inconsolata',
+                            fontSize: 16,
+                            color: Colors.black,
                           ),
-                          Image.asset(
-                            'images/lets-icons_up.png',
-                          ),
-                          SizedBox(
-                              width: MediaQuery.of(context).size.width * 0.01),
-                          Image.asset(
-                            'images/noto_fire.png',
-                          ),
-                          SizedBox(
-                              width: MediaQuery.of(context).size.width * 0.01),
-                          Image.asset(
-                            'images/noto_crown.png',
-                          ),
-                        ],
-                      ),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          const Text(
-                            '95% | 20k votes ',
-                            style: TextStyle(
-                              fontFamily: 'Inconsolata',
-                              fontSize: 15,
-                              color: Colors.black,
-                            ),
-                          ),
-                          Stack(
-                            children: [
-                              Container(
-                                width: MediaQuery.of(context).size.width * 0.1,
-                                height: 5,
-                                decoration: BoxDecoration(
-                                  color: const Color(0xFF0000FF),
-                                  borderRadius: BorderRadius.circular(0),
-                                ),
+                        ),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.start,
+                          children: [
+                            Text(
+                              '${(upvotePercentage * 100).toStringAsFixed(1)}% | $totalVotes votes ',
+                              style: const TextStyle(
+                                fontFamily: 'Inconsolata',
+                                fontSize: 15,
+                                color: Colors.black,
                               ),
-                              Container(
-                                width: MediaQuery.of(context).size.width * 0.2,
-                                height: 5,
-                                decoration: BoxDecoration(
-                                  border: Border.all(
-                                      width: 0.5, color: Colors.black),
-                                  borderRadius: BorderRadius.circular(0),
+                            ),
+                            Stack(
+                              children: [
+                                Container(
+                                  width: MediaQuery.of(context).size.width *
+                                      0.2 *
+                                      upvotePercentage,
+                                  height: 5,
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFF0000FF),
+                                    borderRadius: BorderRadius.circular(0),
+                                  ),
                                 ),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ],
+                                Container(
+                                  width:
+                                      MediaQuery.of(context).size.width * 0.2,
+                                  height: 5,
+                                  decoration: BoxDecoration(
+                                    border: Border.all(
+                                        width: 0.5, color: Colors.black),
+                                    borderRadius: BorderRadius.circular(0),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
                   ),
-                  const Spacer(),
                   SizedBox(
                     height: MediaQuery.of(context).size.height * 0.15,
                     child: Column(
                       children: [
-                        Image.asset(
-                          'images/Thumbs-up.png',
+                        GestureDetector(
+                          onTap: () => vote('upvote'),
+                          child: Image.asset(
+                            'images/Thumbs-up.png',
+                          ),
                         ),
                         const Spacer(),
-                        Image.asset(
-                          'images/Thumbs-down.png',
+                        GestureDetector(
+                          onTap: () => vote('downvote'),
+                          child: Image.asset(
+                            'images/Thumbs-down.png',
+                          ),
                         ),
                       ],
                     ),

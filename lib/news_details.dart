@@ -1,16 +1,20 @@
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 class NewsDetails extends StatefulWidget {
-  const NewsDetails({
-    super.key,
-  });
+  final int newsId;
+
+  const NewsDetails({super.key, required this.newsId});
 
   @override
-  // ignore: library_private_types_in_public_api
-  _NewsDetailsState createState() => _NewsDetailsState();
+  NewsDetailsState createState() => NewsDetailsState();
 }
 
-class _NewsDetailsState extends State<NewsDetails> {
+class NewsDetailsState extends State<NewsDetails> {
+  late Future<Map<String, dynamic>?> _newsFuture;
+  final storage = const FlutterSecureStorage();
   final GlobalKey _key = GlobalKey();
   final FocusNode _commentFocusNode = FocusNode();
 
@@ -136,229 +140,286 @@ class _NewsDetailsState extends State<NewsDetails> {
   }
 
   @override
+  void initState() {
+    super.initState();
+    _newsFuture = fetchNewsDetails(widget.newsId);
+  }
+
+  Future<Map<String, dynamic>?> fetchNewsDetails(int id) async {
+    final String? accessToken = await storage.read(key: 'accessToken');
+    final url = 'https://script.teendev.dev/signal/api/news/$id';
+
+    try {
+      final response = await http.get(
+        Uri.parse(url),
+        headers: {
+          'Authorization': 'Bearer $accessToken',
+          'Content-Type': 'application/json',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        return jsonDecode(response.body);
+      } else {
+        // Handle different status codes
+        if (response.statusCode == 401) {
+          // Unauthorized, handle accordingly
+          print('Unauthorized request');
+        } else if (response.statusCode == 404) {
+          // Not Found, handle accordingly
+          print('No News Exists with this ID');
+        } else if (response.statusCode == 400 || response.statusCode == 422) {
+          // Bad Request or Unprocessable Entity
+          final responseBody = jsonDecode(response.body);
+          print('Error: ${responseBody['message']}');
+          // Handle the validation errors if any
+          if (responseBody['errors'] != null) {
+            print('Validation Errors: ${responseBody['errors']}');
+          }
+        }
+        return null;
+      }
+    } catch (e) {
+      print('An unexpected error occurred: $e');
+      return null;
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return OrientationBuilder(
-      builder: (context, orientation) {
-        return Scaffold(
-          body: Center(
-            child: SizedBox(
-              height: orientation == Orientation.portrait
-                  ? MediaQuery.of(context).size.height
-                  : MediaQuery.of(context).size.height * 1.5,
-              child: Stack(
-                alignment: Alignment.center,
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                    child: SingleChildScrollView(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
+    return Scaffold(
+      body: FutureBuilder<Map<String, dynamic>?>(
+        future: _newsFuture,
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(
+                child: CircularProgressIndicator(color: Colors.black));
+          } else if (snapshot.hasError) {
+            return const Center(child: Text('An unexpected error occurred'));
+          } else if (snapshot.hasData) {
+            final news = snapshot.data;
+            if (news == null) {
+              return const Center(child: Text('No news found'));
+            }
+            return OrientationBuilder(
+              builder: (context, orientation) {
+                return Scaffold(
+                  body: Center(
+                    child: SizedBox(
+                      height: orientation == Orientation.portrait
+                          ? MediaQuery.of(context).size.height
+                          : MediaQuery.of(context).size.height * 1.5,
+                      child: Stack(
+                        alignment: Alignment.center,
                         children: [
-                          SizedBox(
-                              height: MediaQuery.of(context).size.height * 0.1),
-                          Row(
-                            children: [
-                              InkWell(
-                                onTap: () {
-                                  Navigator.pop(context);
-                                },
-                                child:
-                                    Image.asset('images/tabler_arrow-back.png'),
-                              ),
-                              const Spacer(),
-                            ],
-                          ),
-                          SizedBox(
-                              height:
-                                  MediaQuery.of(context).size.height * 0.05),
-                          Row(
-                            children: [
-                              Image.asset(
-                                'images/NewsProfileImg.png',
-                              ),
-                              SizedBox(
-                                width: MediaQuery.of(context).size.width * 0.01,
-                              ),
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    const Text(
-                                      'Zepenllin',
-                                      overflow: TextOverflow.ellipsis,
-                                      style: TextStyle(
-                                        fontSize: 16,
-                                        fontFamily: 'Inter',
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    ),
-                                    SizedBox(
-                                      height:
-                                          MediaQuery.of(context).size.height *
-                                              0.01,
-                                    ),
-                                    const Text(
-                                      '6m ago',
-                                      overflow: TextOverflow.ellipsis,
-                                      style: TextStyle(
-                                          color: Colors.lightBlue,
-                                          fontSize: 16,
-                                          fontFamily: 'Inter'),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              const Spacer(),
-                              GestureDetector(
-                                onTap: () {
-                                  _showPopupMenu(context);
-                                },
-                                child: SizedBox(
-                                  key: _key,
-                                  width: 20,
-                                  child: Image.asset(
-                                    'images/MoreButton.png',
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                          SizedBox(
-                            height: MediaQuery.of(context).size.height * 0.03,
-                          ),
-                          const Text(
-                            "Binance Expands Account Statement Function. With our VIP and institutional clients in mind, we’ve upgraded the account statement function...",
-                            style: TextStyle(fontSize: 16, fontFamily: 'Inter'),
-                          ),
                           Padding(
-                            padding: const EdgeInsets.symmetric(vertical: 20.0),
-                            child: Image.asset(
-                              'images/NewsPost.png',
-                            ),
-                          ),
-                          const Text(
-                            "Featuring over 16 merchants and mini apps, Binance Marketplace is a one-stop shop for all your crypto payment needs and more. \n\nDiscover exclusive offers when you pay for hotel stays, rideshare services, shopping, dining, and more with Binance Pay via Binance Marketplace.",
-                            style: TextStyle(fontSize: 16, fontFamily: 'Inter'),
-                          ),
-                          SizedBox(
-                              height:
-                                  MediaQuery.of(context).size.height * 0.05),
-                          const Center(
-                            child: Text(
-                              'What Can You Do on Marketplace? ',
-                              style: TextStyle(
-                                fontFamily: 'Inter',
-                                fontWeight: FontWeight.bold,
-                                fontSize: 22.0,
-                                color: Colors.black,
-                              ),
-                            ),
-                          ),
-                          SizedBox(
-                              height:
-                                  MediaQuery.of(context).size.height * 0.05),
-                          const Padding(
-                            padding: EdgeInsets.only(bottom: 76.0),
-                            child: Text(
-                              "On Binance Marketplace, you can make purchases, book hotel stays and experiences with crypto, participate in Binance Launchpad, and even earn rewards with Liquid Swap. You can also access the Binance DeFi Wallet, NFT Marketplace, and Binance Live via the Binance Marketplace. \n\nThere are also mini games within the app that you can play with friends and that offer you a chance to win prizes. Need to top up your phone credit? Do it from anywhere you please with the [Mobile Top-Up] feature on Binance Marketplace and earn cashback while you're at it. Looking for an easy way to spend your crypto? Check out Binance Marketplace today. With new merchants added each month, experience a whole new level of convenience!",
-                              style:
-                                  TextStyle(fontSize: 16, fontFamily: 'Inter'),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                  Positioned(
-                    bottom: 0,
-                    child: Container(
-                      height: (80 / MediaQuery.of(context).size.height) *
-                          MediaQuery.of(context).size.height,
-                      padding: const EdgeInsets.all(12.0),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        border: Border.all(width: 0, color: Colors.black),
-                        borderRadius: BorderRadius.circular(15),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.grey.withOpacity(0.5),
-                            spreadRadius: 3,
-                            blurRadius: 5,
-                          ),
-                        ],
-                      ),
-                      child: SizedBox(
-                        width: MediaQuery.of(context).size.width,
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                          child: Row(children: [
-                            Image.asset(
-                              'images/camera-3-line.png',
-                            ),
-                            SizedBox(
-                                width:
-                                    MediaQuery.of(context).size.width * 0.04),
-                            Expanded(
-                              child: Stack(
+                            padding:
+                                const EdgeInsets.symmetric(horizontal: 20.0),
+                            child: SingleChildScrollView(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Container(
-                                    decoration: BoxDecoration(
-                                      color: Colors.grey.withOpacity(0.1),
-                                      borderRadius: BorderRadius.circular(25),
-                                    ),
-                                    child: SingleChildScrollView(
-                                      child: TextFormField(
-                                        keyboardType: TextInputType.multiline,
-                                        maxLines: null,
-                                        controller: commentController,
-                                        focusNode: _commentFocusNode,
-                                        style: const TextStyle(
-                                          fontSize: 16.0,
-                                          decoration: TextDecoration.none,
-                                        ),
-                                        decoration: const InputDecoration(
-                                          contentPadding: EdgeInsets.only(
-                                              left: 20,
-                                              right: 65,
-                                              bottom: 20,
-                                              top: 0),
-                                          labelText: 'Write a comment',
-                                          labelStyle: TextStyle(
-                                            color: Colors.grey,
-                                            fontFamily: 'Inter',
-                                            fontSize: 16.0,
-                                          ),
-                                          floatingLabelBehavior:
-                                              FloatingLabelBehavior.never,
-                                          border: InputBorder.none,
-                                        ),
-                                        cursorColor: Colors.black,
+                                  SizedBox(
+                                    height: MediaQuery.of(context).size.height *
+                                        0.1,
+                                  ),
+                                  Row(
+                                    children: [
+                                      InkWell(
+                                        onTap: () {
+                                          Navigator.pop(context);
+                                        },
+                                        child: Image.asset(
+                                            'images/tabler_arrow-back.png'),
                                       ),
+                                      const Spacer(),
+                                    ],
+                                  ),
+                                  SizedBox(
+                                    height: MediaQuery.of(context).size.height *
+                                        0.05,
+                                  ),
+                                  Row(
+                                    children: [
+                                      Image.asset('images/NewsProfileImg.png'),
+                                      SizedBox(
+                                        width:
+                                            MediaQuery.of(context).size.width *
+                                                0.01,
+                                      ),
+                                      Expanded(
+                                        child: Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            Text(
+                                              news['user'] ?? '',
+                                              overflow: TextOverflow.ellipsis,
+                                              style: const TextStyle(
+                                                fontSize: 16,
+                                                fontFamily: 'Inter',
+                                                fontWeight: FontWeight.bold,
+                                              ),
+                                            ),
+                                            SizedBox(
+                                              height: MediaQuery.of(context)
+                                                      .size
+                                                      .height *
+                                                  0.01,
+                                            ),
+                                            Text(
+                                              news['created_at'] ?? '',
+                                              overflow: TextOverflow.ellipsis,
+                                              style: const TextStyle(
+                                                color: Colors.lightBlue,
+                                                fontSize: 16,
+                                                fontFamily: 'Inter',
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                      const Spacer(),
+                                    ],
+                                  ),
+                                  SizedBox(
+                                    height: MediaQuery.of(context).size.height *
+                                        0.03,
+                                  ),
+                                  Text(
+                                    news['title'] ?? '',
+                                    style: const TextStyle(
+                                        fontSize: 16, fontFamily: 'Inter'),
+                                  ),
+                                  Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                        vertical: 20.0),
+                                    child: Image.network(
+                                      news['images'] ?? '',
                                     ),
                                   ),
-                                  Positioned(
-                                    top: 0,
-                                    right: MediaQuery.of(context).padding.left +
-                                        10,
-                                    bottom: 0,
-                                    child: Image.asset(
-                                      'images/user-smile-line.png',
+                                  Padding(
+                                    padding:
+                                        const EdgeInsets.only(bottom: 76.0),
+                                    child: Text(
+                                      news['article'] ?? '',
+                                      style: const TextStyle(
+                                          fontSize: 16, fontFamily: 'Inter'),
                                     ),
                                   ),
                                 ],
                               ),
                             ),
-                          ]),
-                        ),
+                          ),
+                          Positioned(
+                            bottom: 0,
+                            child: Container(
+                              height:
+                                  (80 / MediaQuery.of(context).size.height) *
+                                      MediaQuery.of(context).size.height,
+                              padding: const EdgeInsets.all(12.0),
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                border:
+                                    Border.all(width: 0, color: Colors.black),
+                                borderRadius: BorderRadius.circular(15),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.grey.withOpacity(0.5),
+                                    spreadRadius: 3,
+                                    blurRadius: 5,
+                                  ),
+                                ],
+                              ),
+                              child: SizedBox(
+                                width: MediaQuery.of(context).size.width,
+                                child: Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 20.0),
+                                  child: Row(children: [
+                                    Image.asset(
+                                      'images/camera-3-line.png',
+                                    ),
+                                    SizedBox(
+                                        width:
+                                            MediaQuery.of(context).size.width *
+                                                0.04),
+                                    Expanded(
+                                      child: Stack(
+                                        children: [
+                                          Container(
+                                            decoration: BoxDecoration(
+                                              color:
+                                                  Colors.grey.withOpacity(0.1),
+                                              borderRadius:
+                                                  BorderRadius.circular(25),
+                                            ),
+                                            child: SingleChildScrollView(
+                                              child: TextFormField(
+                                                keyboardType:
+                                                    TextInputType.multiline,
+                                                maxLines: null,
+                                                controller: commentController,
+                                                focusNode: _commentFocusNode,
+                                                style: const TextStyle(
+                                                  fontSize: 16.0,
+                                                  decoration:
+                                                      TextDecoration.none,
+                                                ),
+                                                decoration:
+                                                    const InputDecoration(
+                                                  contentPadding:
+                                                      EdgeInsets.only(
+                                                          left: 20,
+                                                          right: 65,
+                                                          bottom: 20,
+                                                          top: 0),
+                                                  labelText: 'Write a comment',
+                                                  labelStyle: TextStyle(
+                                                    color: Colors.grey,
+                                                    fontFamily: 'Inter',
+                                                    fontSize: 16.0,
+                                                  ),
+                                                  floatingLabelBehavior:
+                                                      FloatingLabelBehavior
+                                                          .never,
+                                                  border: InputBorder.none,
+                                                ),
+                                                cursorColor: Colors.black,
+                                              ),
+                                            ),
+                                          ),
+                                          Positioned(
+                                            top: 0,
+                                            right: MediaQuery.of(context)
+                                                    .padding
+                                                    .left +
+                                                10,
+                                            bottom: 0,
+                                            child: Image.asset(
+                                              'images/user-smile-line.png',
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ]),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                   ),
-                ],
-              ),
-            ),
-          ),
-        );
-      },
+                );
+              },
+            );
+          } else {
+            return const Center(child: Text('No data available'));
+          }
+        },
+      ),
     );
   }
 }

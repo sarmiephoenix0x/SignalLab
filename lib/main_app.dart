@@ -2,11 +2,16 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:signal_app/card_details.dart';
 import 'package:signal_app/events_page.dart';
+import 'package:signal_app/intro_page.dart';
 import 'package:signal_app/news_details.dart';
 import 'package:signal_app/notification_page.dart';
 import 'package:signal_app/packages_page.dart';
 import 'package:signal_app/sentiment_page.dart';
 import 'package:signal_app/transaction_history.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class MainApp extends StatefulWidget {
   const MainApp({
@@ -35,12 +40,25 @@ class _MainAppState extends State<MainApp> with TickerProviderStateMixin {
       ValueNotifier<bool>(false);
   ValueNotifier<bool> usdtCurrentPriceDropDownActiveTab3 =
       ValueNotifier<bool>(false);
+  final storage = const FlutterSecureStorage();
+  late SharedPreferences prefs;
+  String? userName;
+  String? userBalance;
+  late Future<List<dynamic>> _signalsFuture1;
+  late Future<List<dynamic>> _signalsFuture2;
+  late Future<List<dynamic>> _signalsFuture3;
 
   @override
   void initState() {
     super.initState();
+    _initializePrefs();
+    fetchCourses();
+    fetchNews();
     homeTab = TabController(length: 2, vsync: this);
     signalTab = TabController(length: 3, vsync: this);
+    _signalsFuture1 = fetchSignals('crypto');
+    _signalsFuture2 = fetchSignals('forex');
+    _signalsFuture3 = fetchSignals('stocks');
   }
 
   @override
@@ -48,6 +66,170 @@ class _MainAppState extends State<MainApp> with TickerProviderStateMixin {
     homeTab?.dispose();
     signalTab?.dispose();
     super.dispose();
+  }
+
+  Future<void> _initializePrefs() async {
+    prefs = await SharedPreferences.getInstance();
+    userName = await getUserName();
+    userBalance = await getUserBalance();
+    setState(() {});
+  }
+
+  List<Map<String, dynamic>> courses = [];
+  List<Map<String, dynamic>> news = [];
+
+  Future<void> fetchCourses() async {
+    final String? accessToken = await storage.read(key: 'accessToken');
+    final response = await http.get(
+      Uri.parse('https://script.teendev.dev/signal/api/courses'),
+      headers: {
+        'Authorization': 'Bearer $accessToken',
+        'Content-Type': 'application/json',
+      },
+    );
+
+    if (response.statusCode == 200) {
+      setState(() {
+        courses = List<Map<String, dynamic>>.from(json.decode(response.body));
+      });
+      print("Courses Loaded");
+    } else if (response.statusCode == 400 || response.statusCode == 404) {
+      final message = json.decode(response.body)['message'];
+      print('Error: $message');
+    }
+  }
+
+  Future<void> fetchNews() async {
+    final String? accessToken = await storage.read(key: 'accessToken');
+    final response = await http.get(
+      Uri.parse('https://script.teendev.dev/signal/api/news'),
+      headers: {
+        'Authorization': 'Bearer $accessToken',
+        'Content-Type': 'application/json',
+      },
+    );
+
+    if (response.statusCode == 200) {
+      setState(() {
+        news = List<Map<String, dynamic>>.from(json.decode(response.body));
+      });
+      print("News Loaded");
+    } else if (response.statusCode == 400 || response.statusCode == 404) {
+      final message = json.decode(response.body)['message'];
+      print('Error: $message');
+    }
+  }
+
+  Future<List<dynamic>> fetchSignals(String type) async {
+    final String? accessToken = await storage.read(key: 'accessToken');
+    final response = await http.get(
+      Uri.parse('https://script.teendev.dev/signal/api/signal?type=$type'),
+      headers: {'Authorization': 'Bearer $accessToken'},
+    );
+
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body);
+    } else if (response.statusCode == 401) {
+      throw Exception('Unauthorized access');
+    } else if (response.statusCode == 404) {
+      throw Exception('No signals available');
+    } else if (response.statusCode == 422) {
+      throw Exception('Validation error');
+    } else {
+      throw Exception('Failed to load signals');
+    }
+  }
+
+  Future<void> _logout() async {
+    final String? accessToken = await storage.read(key: 'accessToken');
+
+    if (accessToken == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('You are not logged in.'),
+        ),
+      );
+      return;
+    }
+
+    final response = await http.post(
+      Uri.parse('https://script.teendev.dev/signal/api/logout'),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $accessToken',
+      },
+    );
+
+    final responseData = json.decode(response.body);
+
+    if (response.statusCode == 200) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Logged out successfully!'),
+        ),
+      );
+
+      // Clear the stored data
+      await storage.delete(key: 'accessToken');
+      await prefs.remove('user');
+
+      // Navigate to the login screen
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (context) => const IntroPage(),
+        ),
+      );
+    } else if (response.statusCode == 401) {
+      final String message = responseData['message'];
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error: $message'),
+        ),
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('An unexpected error occurred.'),
+        ),
+      );
+    }
+  }
+
+  void _showLogoutConfirmationDialog() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Confirm Logout'),
+          content: const Text('Are you sure you want to log out?'),
+          actions: <Widget>[
+            TextButton(
+              child: const Text(
+                'Cancel',
+                style: TextStyle(color: Colors.black, fontFamily: 'Inter'),
+              ),
+              onPressed: () {
+                Navigator.of(context).pop(); // Dismiss the dialog
+              },
+            ),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.red,
+              ),
+              onPressed: () {
+                Navigator.of(context).pop(); // Dismiss the dialog
+                _logout(); // Call the logout method
+              },
+              child: const Text(
+                'Logout',
+                style: TextStyle(color: Colors.black, fontFamily: 'Inter'),
+              ),
+            ),
+          ],
+        );
+      },
+    );
   }
 
   void _showPopupMenu(BuildContext context) async {
@@ -169,9 +351,28 @@ class _MainAppState extends State<MainApp> with TickerProviderStateMixin {
     }
   }
 
+  Future<String?> getUserName() async {
+    final String? userJson = prefs.getString('user');
+    if (userJson != null) {
+      final Map<String, dynamic> userMap = jsonDecode(userJson);
+      return userMap['name'];
+    } else {
+      return null;
+    }
+  }
+
+  Future<String?> getUserBalance() async {
+    final String? userJson = prefs.getString('user');
+    if (userJson != null) {
+      final Map<String, dynamic> userMap = jsonDecode(userJson);
+      return userMap['balance'];
+    } else {
+      return null;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    // final posts = Provider.of<PostProvider>(context).posts;
     return PopScope(
       canPop: false,
       onPopInvokedWithResult: (didPop, dynamic result) {
@@ -233,15 +434,18 @@ class _MainAppState extends State<MainApp> with TickerProviderStateMixin {
                         'images/ProfileImg.png',
                       ),
                       SizedBox(width: MediaQuery.of(context).size.width * 0.03),
-                      const Text(
-                        'Maryland, Simone',
-                        style: TextStyle(
-                          fontFamily: 'GolosText',
-                          fontSize: 16.0,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white,
-                        ),
-                      ),
+                      if (userName != null)
+                        Text(
+                          userName!,
+                          style: const TextStyle(
+                            fontFamily: 'GolosText',
+                            fontSize: 16.0,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                          ),
+                        )
+                      else
+                        const CircularProgressIndicator(color: Colors.black),
                     ]),
                   ),
                   ListTile(
@@ -424,8 +628,8 @@ class _MainAppState extends State<MainApp> with TickerProviderStateMixin {
                       ),
                     ),
                     onTap: () {
-                      Navigator.pop(context); // Close the drawer
-                      // Navigate to home or any action you want
+                      Navigator.pop(context);
+                      _showLogoutConfirmationDialog();
                     },
                   ),
                 ],
@@ -585,14 +789,18 @@ class _MainAppState extends State<MainApp> with TickerProviderStateMixin {
                             SizedBox(
                                 width:
                                     MediaQuery.of(context).size.width * 0.03),
-                            const Text(
-                              'Maryland, Simone',
-                              style: TextStyle(
-                                fontFamily: 'GolosText',
-                                fontSize: 16.0,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
+                            if (userName != null)
+                              Text(
+                                userName!,
+                                style: const TextStyle(
+                                  fontFamily: 'GolosText',
+                                  fontSize: 16.0,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              )
+                            else
+                              const CircularProgressIndicator(
+                                  color: Colors.black),
                           ]),
                           SizedBox(
                               height:
@@ -645,16 +853,20 @@ class _MainAppState extends State<MainApp> with TickerProviderStateMixin {
                                                   .size
                                                   .height *
                                               0.02),
-                                      const Text(
-                                        "\$0.00",
-                                        overflow: TextOverflow.ellipsis,
-                                        style: TextStyle(
-                                          fontFamily: 'Inconsolata',
-                                          fontSize: 40,
-                                          fontWeight: FontWeight.bold,
-                                          color: Colors.white,
-                                        ),
-                                      ),
+                                      if (userBalance != null)
+                                        Text(
+                                          "\$$userBalance",
+                                          overflow: TextOverflow.ellipsis,
+                                          style: const TextStyle(
+                                            fontFamily: 'Inconsolata',
+                                            fontSize: 40,
+                                            fontWeight: FontWeight.bold,
+                                            color: Colors.white,
+                                          ),
+                                        )
+                                      else
+                                        const CircularProgressIndicator(
+                                            color: Colors.white),
                                     ],
                                   ),
                                 ),
@@ -860,15 +1072,17 @@ class _MainAppState extends State<MainApp> with TickerProviderStateMixin {
                             child: TabBarView(
                               controller: homeTab,
                               children: [
-                                ListView(
-                                  children: [
-                                    newsCard(),
-                                  ],
+                                ListView.builder(
+                                  itemCount: news.length,
+                                  itemBuilder: (context, index) {
+                                    return newsCard(news[index]);
+                                  },
                                 ),
-                                ListView(
-                                  children: [
-                                    courseCard(),
-                                  ],
+                                ListView.builder(
+                                  itemCount: courses.length,
+                                  itemBuilder: (context, index) {
+                                    return courseCard(courses[index]);
+                                  },
                                 ),
                               ],
                             ),
@@ -956,367 +1170,224 @@ class _MainAppState extends State<MainApp> with TickerProviderStateMixin {
                     child: TabBarView(
                       controller: signalTab,
                       children: [
-                        ListView(
-                          children: [
-                            Container(
-                              padding: const EdgeInsets.all(12.0),
-                              decoration: BoxDecoration(
-                                color: Colors.white,
-                                borderRadius: BorderRadius.circular(15),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: Colors.grey.withOpacity(0.5),
-                                    spreadRadius: 3,
-                                    blurRadius: 5,
-                                  ),
-                                ],
-                              ),
-                              child: const Column(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceEvenly,
-                                children: [
-                                  Row(
-                                    children: [
-                                      Expanded(
-                                        flex: 5,
-                                        child: Text(
-                                          'Trades last 7 days: ----',
-                                          style: TextStyle(
-                                            fontFamily: 'Inconsolata',
-                                            fontWeight: FontWeight.bold,
-                                            fontSize: 15,
-                                            color: Colors.black,
-                                          ),
+                        FutureBuilder<List<dynamic>>(
+                          future: _signalsFuture1,
+                          builder: (context, snapshot) {
+                            if (snapshot.connectionState ==
+                                ConnectionState.waiting) {
+                              return const Center(
+                                  child: CircularProgressIndicator(
+                                      color: Colors.black));
+                            } else if (snapshot.hasError) {
+                              return Center(
+                                  child: Text('Error: ${snapshot.error}'));
+                            } else if (!snapshot.hasData ||
+                                snapshot.data!.isEmpty) {
+                              return const Center(
+                                  child: Text('No signals available'));
+                            }
+
+                            List<dynamic> signalsList = snapshot.data!;
+                            return ListView.builder(
+                              itemCount: signalsList.length +
+                                  1, // +1 for the stats container
+                              itemBuilder: (context, index) {
+                                if (index == 0) {
+                                  return Container(
+                                    padding: const EdgeInsets.all(12.0),
+                                    decoration: BoxDecoration(
+                                      color: Colors.white,
+                                      borderRadius: BorderRadius.circular(15),
+                                      boxShadow: [
+                                        BoxShadow(
+                                          color: Colors.grey.withOpacity(0.5),
+                                          spreadRadius: 3,
+                                          blurRadius: 5,
                                         ),
-                                      ),
-                                      Spacer(),
-                                      Expanded(
-                                        flex: 2,
-                                        child: Text(
-                                          'Win rate: ----',
-                                          textAlign: TextAlign.end,
-                                          style: TextStyle(
-                                            fontFamily: 'Inconsolata',
-                                            fontWeight: FontWeight.bold,
-                                            fontSize: 15,
-                                            color: Colors.black,
-                                          ),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                  Row(
-                                    children: [
-                                      Expanded(
-                                        flex: 5,
-                                        child: Text(
-                                          'Trades last 14 days: ----',
-                                          style: TextStyle(
-                                            fontFamily: 'Inconsolata',
-                                            fontWeight: FontWeight.bold,
-                                            fontSize: 15,
-                                            color: Colors.black,
-                                          ),
-                                        ),
-                                      ),
-                                      Spacer(),
-                                      Expanded(
-                                        flex: 2,
-                                        child: Text(
-                                          'Win rate: ----',
-                                          textAlign: TextAlign.end,
-                                          style: TextStyle(
-                                            fontFamily: 'Inconsolata',
-                                            fontWeight: FontWeight.bold,
-                                            fontSize: 15,
-                                            color: Colors.black,
-                                          ),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                  Row(
-                                    children: [
-                                      Expanded(
-                                        flex: 5,
-                                        child: Text(
-                                          'Trades last 30 days: ----',
-                                          style: TextStyle(
-                                            fontFamily: 'Inconsolata',
-                                            fontWeight: FontWeight.bold,
-                                            fontSize: 15,
-                                            color: Colors.black,
-                                          ),
-                                        ),
-                                      ),
-                                      Spacer(),
-                                      Expanded(
-                                        flex: 2,
-                                        child: Text(
-                                          'Win rate: ----',
-                                          textAlign: TextAlign.end,
-                                          style: TextStyle(
-                                            fontFamily: 'Inconsolata',
-                                            fontWeight: FontWeight.bold,
-                                            fontSize: 15,
-                                            color: Colors.black,
-                                          ),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ],
-                              ),
-                            ),
-                            SizedBox(
-                                height:
-                                    MediaQuery.of(context).size.height * 0.03),
-                            signals('images/cryptocurrency-color_usdt.png',
-                                'USDT', usdtCurrentPriceDropDownActiveTab1),
-                            SizedBox(
-                                height:
-                                    MediaQuery.of(context).size.height * 0.03),
-                            signals('images/logos_bitcoin.png', 'BTC',
-                                btcCurrentPriceDropDownActiveTab1),
-                          ],
+                                      ],
+                                    ),
+                                    child: Column(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceEvenly,
+                                      children: [
+                                        buildStatRow('Trades last 7 days: ----',
+                                            'Win rate: ----'),
+                                        buildStatRow(
+                                            'Trades last 14 days: ----',
+                                            'Win rate: ----'),
+                                        buildStatRow(
+                                            'Trades last 30 days: ----',
+                                            'Win rate: ----'),
+                                      ],
+                                    ),
+                                  );
+                                }
+
+                                final signal = signalsList[index -
+                                    1]; // -1 to adjust for the stats container
+
+                                Map<String, dynamic> targetsMap =
+                                    jsonDecode(signal['targets']);
+
+                                return signals(
+                                  img: signal['coin_image'],
+                                  name: signal['coin'],
+                                  entryPrice: signal['entry_price'],
+                                  stopLoss: signal['stop_loss'],
+                                  currentPrice: signal['current_price'],
+                                  targets: targetsMap,
+                                  createdAt: signal['created_at'],
+                                  varNameNotifier: ValueNotifier<bool>(false),
+                                );
+                              },
+                            );
+                          },
                         ),
-                        ListView(
-                          children: [
-                            Container(
-                              padding: const EdgeInsets.all(12.0),
-                              decoration: BoxDecoration(
-                                color: Colors.white,
-                                borderRadius: BorderRadius.circular(15),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: Colors.grey.withOpacity(0.5),
-                                    spreadRadius: 3,
-                                    blurRadius: 5,
-                                  ),
-                                ],
-                              ),
-                              child: const Column(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceEvenly,
-                                children: [
-                                  Row(
-                                    children: [
-                                      Expanded(
-                                        flex: 5,
-                                        child: Text(
-                                          'Trades last 7 days: ----',
-                                          style: TextStyle(
-                                            fontFamily: 'Inconsolata',
-                                            fontWeight: FontWeight.bold,
-                                            fontSize: 15,
-                                            color: Colors.black,
-                                          ),
+                        FutureBuilder<List<dynamic>>(
+                          future: _signalsFuture2,
+                          builder: (context, snapshot) {
+                            if (snapshot.connectionState ==
+                                ConnectionState.waiting) {
+                              return const Center(
+                                  child: CircularProgressIndicator(
+                                      color: Colors.black));
+                            } else if (snapshot.hasError) {
+                              return Center(
+                                  child: Text('Error: ${snapshot.error}'));
+                            } else if (!snapshot.hasData ||
+                                snapshot.data!.isEmpty) {
+                              return const Center(
+                                  child: Text('No signals available'));
+                            }
+
+                            List<dynamic> signalsList = snapshot.data!;
+                            return ListView.builder(
+                              itemCount: signalsList.length +
+                                  1, // +1 for the stats container
+                              itemBuilder: (context, index) {
+                                if (index == 0) {
+                                  return Container(
+                                    padding: const EdgeInsets.all(12.0),
+                                    decoration: BoxDecoration(
+                                      color: Colors.white,
+                                      borderRadius: BorderRadius.circular(15),
+                                      boxShadow: [
+                                        BoxShadow(
+                                          color: Colors.grey.withOpacity(0.5),
+                                          spreadRadius: 3,
+                                          blurRadius: 5,
                                         ),
-                                      ),
-                                      Spacer(),
-                                      Expanded(
-                                        flex: 2,
-                                        child: Text(
-                                          'Win rate: ----',
-                                          textAlign: TextAlign.end,
-                                          style: TextStyle(
-                                            fontFamily: 'Inconsolata',
-                                            fontWeight: FontWeight.bold,
-                                            fontSize: 15,
-                                            color: Colors.black,
-                                          ),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                  Row(
-                                    children: [
-                                      Expanded(
-                                        flex: 5,
-                                        child: Text(
-                                          'Trades last 14 days: ----',
-                                          style: TextStyle(
-                                            fontFamily: 'Inconsolata',
-                                            fontWeight: FontWeight.bold,
-                                            fontSize: 15,
-                                            color: Colors.black,
-                                          ),
-                                        ),
-                                      ),
-                                      Spacer(),
-                                      Expanded(
-                                        flex: 2,
-                                        child: Text(
-                                          'Win rate: ----',
-                                          textAlign: TextAlign.end,
-                                          style: TextStyle(
-                                            fontFamily: 'Inconsolata',
-                                            fontWeight: FontWeight.bold,
-                                            fontSize: 15,
-                                            color: Colors.black,
-                                          ),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                  Row(
-                                    children: [
-                                      Expanded(
-                                        flex: 5,
-                                        child: Text(
-                                          'Trades last 30 days: ----',
-                                          style: TextStyle(
-                                            fontFamily: 'Inconsolata',
-                                            fontWeight: FontWeight.bold,
-                                            fontSize: 15,
-                                            color: Colors.black,
-                                          ),
-                                        ),
-                                      ),
-                                      Spacer(),
-                                      Expanded(
-                                        flex: 2,
-                                        child: Text(
-                                          'Win rate: ----',
-                                          textAlign: TextAlign.end,
-                                          style: TextStyle(
-                                            fontFamily: 'Inconsolata',
-                                            fontWeight: FontWeight.bold,
-                                            fontSize: 15,
-                                            color: Colors.black,
-                                          ),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ],
-                              ),
-                            ),
-                            SizedBox(
-                                height:
-                                    MediaQuery.of(context).size.height * 0.03),
-                            signals('images/cryptocurrency-color_usdt.png',
-                                'USDT', usdtCurrentPriceDropDownActiveTab2),
-                          ],
+                                      ],
+                                    ),
+                                    child: Column(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceEvenly,
+                                      children: [
+                                        buildStatRow('Trades last 7 days: ----',
+                                            'Win rate: ----'),
+                                        buildStatRow(
+                                            'Trades last 14 days: ----',
+                                            'Win rate: ----'),
+                                        buildStatRow(
+                                            'Trades last 30 days: ----',
+                                            'Win rate: ----'),
+                                      ],
+                                    ),
+                                  );
+                                }
+
+                                final signal = signalsList[index -
+                                    1]; // -1 to adjust for the stats container
+
+                                Map<String, dynamic> targetsMap =
+                                    jsonDecode(signal['targets']);
+
+                                return signals(
+                                  img: signal['coin_image'],
+                                  name: signal['coin'],
+                                  entryPrice: signal['entry_price'],
+                                  stopLoss: signal['stop_loss'],
+                                  currentPrice: signal['current_price'],
+                                  targets: targetsMap,
+                                  createdAt: signal['created_at'],
+                                  varNameNotifier: ValueNotifier<bool>(false),
+                                );
+                              },
+                            );
+                          },
                         ),
-                        ListView(
-                          children: [
-                            Container(
-                              padding: const EdgeInsets.all(12.0),
-                              decoration: BoxDecoration(
-                                color: Colors.white,
-                                borderRadius: BorderRadius.circular(15),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: Colors.grey.withOpacity(0.5),
-                                    spreadRadius: 3,
-                                    blurRadius: 5,
-                                  ),
-                                ],
-                              ),
-                              child: const Column(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceEvenly,
-                                children: [
-                                  Row(
-                                    children: [
-                                      Expanded(
-                                        flex: 5,
-                                        child: Text(
-                                          'Trades last 7 days: ----',
-                                          style: TextStyle(
-                                            fontFamily: 'Inconsolata',
-                                            fontWeight: FontWeight.bold,
-                                            fontSize: 15,
-                                            color: Colors.black,
-                                          ),
+                        FutureBuilder<List<dynamic>>(
+                          future: _signalsFuture3,
+                          builder: (context, snapshot) {
+                            if (snapshot.connectionState ==
+                                ConnectionState.waiting) {
+                              return const Center(
+                                  child: CircularProgressIndicator(
+                                      color: Colors.black));
+                            } else if (snapshot.hasError) {
+                              return Center(
+                                  child: Text('Error: ${snapshot.error}'));
+                            } else if (!snapshot.hasData ||
+                                snapshot.data!.isEmpty) {
+                              return const Center(
+                                  child: Text('No signals available'));
+                            }
+
+                            List<dynamic> signalsList = snapshot.data!;
+                            return ListView.builder(
+                              itemCount: signalsList.length +
+                                  1, // +1 for the stats container
+                              itemBuilder: (context, index) {
+                                if (index == 0) {
+                                  return Container(
+                                    padding: const EdgeInsets.all(12.0),
+                                    decoration: BoxDecoration(
+                                      color: Colors.white,
+                                      borderRadius: BorderRadius.circular(15),
+                                      boxShadow: [
+                                        BoxShadow(
+                                          color: Colors.grey.withOpacity(0.5),
+                                          spreadRadius: 3,
+                                          blurRadius: 5,
                                         ),
-                                      ),
-                                      Spacer(),
-                                      Expanded(
-                                        flex: 2,
-                                        child: Text(
-                                          'Win rate: ----',
-                                          textAlign: TextAlign.end,
-                                          style: TextStyle(
-                                            fontFamily: 'Inconsolata',
-                                            fontWeight: FontWeight.bold,
-                                            fontSize: 15,
-                                            color: Colors.black,
-                                          ),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                  Row(
-                                    children: [
-                                      Expanded(
-                                        flex: 5,
-                                        child: Text(
-                                          'Trades last 14 days: ----',
-                                          style: TextStyle(
-                                            fontFamily: 'Inconsolata',
-                                            fontWeight: FontWeight.bold,
-                                            fontSize: 15,
-                                            color: Colors.black,
-                                          ),
-                                        ),
-                                      ),
-                                      Spacer(),
-                                      Expanded(
-                                        flex: 2,
-                                        child: Text(
-                                          'Win rate: ----',
-                                          textAlign: TextAlign.end,
-                                          style: TextStyle(
-                                            fontFamily: 'Inconsolata',
-                                            fontWeight: FontWeight.bold,
-                                            fontSize: 15,
-                                            color: Colors.black,
-                                          ),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                  Row(
-                                    children: [
-                                      Expanded(
-                                        flex: 5,
-                                        child: Text(
-                                          'Trades last 30 days: ----',
-                                          style: TextStyle(
-                                            fontFamily: 'Inconsolata',
-                                            fontWeight: FontWeight.bold,
-                                            fontSize: 15,
-                                            color: Colors.black,
-                                          ),
-                                        ),
-                                      ),
-                                      Spacer(),
-                                      Expanded(
-                                        flex: 2,
-                                        child: Text(
-                                          'Win rate: ----',
-                                          textAlign: TextAlign.end,
-                                          style: TextStyle(
-                                            fontFamily: 'Inconsolata',
-                                            fontWeight: FontWeight.bold,
-                                            fontSize: 15,
-                                            color: Colors.black,
-                                          ),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ],
-                              ),
-                            ),
-                            SizedBox(
-                                height:
-                                    MediaQuery.of(context).size.height * 0.03),
-                            signals('images/cryptocurrency-color_usdt.png',
-                                'USDT', usdtCurrentPriceDropDownActiveTab3),
-                          ],
+                                      ],
+                                    ),
+                                    child: Column(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceEvenly,
+                                      children: [
+                                        buildStatRow('Trades last 7 days: ----',
+                                            'Win rate: ----'),
+                                        buildStatRow(
+                                            'Trades last 14 days: ----',
+                                            'Win rate: ----'),
+                                        buildStatRow(
+                                            'Trades last 30 days: ----',
+                                            'Win rate: ----'),
+                                      ],
+                                    ),
+                                  );
+                                }
+
+                                final signal = signalsList[index -
+                                    1]; // -1 to adjust for the stats container
+
+                                Map<String, dynamic> targetsMap =
+                                    jsonDecode(signal['targets']);
+
+                                return signals(
+                                  img: signal['coin_image'],
+                                  name: signal['coin'],
+                                  entryPrice: signal['entry_price'],
+                                  stopLoss: signal['stop_loss'],
+                                  currentPrice: signal['current_price'],
+                                  targets: targetsMap,
+                                  createdAt: signal['created_at'],
+                                  varNameNotifier: ValueNotifier<bool>(false),
+                                );
+                              },
+                            );
+                          },
                         ),
                       ],
                     ),
@@ -1346,14 +1417,14 @@ class _MainAppState extends State<MainApp> with TickerProviderStateMixin {
                 ),
                 SizedBox(height: MediaQuery.of(context).size.height * 0.02),
                 Expanded(
-                  child: ListView(
-                    children: [
-                      Padding(
-                        padding: const EdgeInsets.only(
-                            left: 20.0, right: 20.0, bottom: 20.0),
-                        child: newsCard(),
-                      ),
-                    ],
+                  child: ListView.builder(
+                    itemCount: news.length,
+                    itemBuilder: (context, index) {
+                      return Padding(
+                          padding:
+                              const EdgeInsets.only(left: 20.0, right: 20.0),
+                          child: newsCard(news[index]));
+                    },
                   ),
                 ),
               ],
@@ -1382,10 +1453,11 @@ class _MainAppState extends State<MainApp> with TickerProviderStateMixin {
                 Expanded(
                   child: Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                    child: ListView(
-                      children: [
-                        courseCard(),
-                      ],
+                    child: ListView.builder(
+                      itemCount: courses.length,
+                      itemBuilder: (context, index) {
+                        return courseCard(courses[index]);
+                      },
                     ),
                   ),
                 ),
@@ -1425,16 +1497,19 @@ class _MainAppState extends State<MainApp> with TickerProviderStateMixin {
                       ),
                     ),
                     SizedBox(height: MediaQuery.of(context).size.height * 0.05),
-                    const Center(
-                      child: Text(
-                        'Maryland, Simone',
-                        style: TextStyle(
-                          fontFamily: 'Inter',
-                          fontWeight: FontWeight.bold,
-                          fontSize: 15,
-                          color: Colors.black,
-                        ),
-                      ),
+                    Center(
+                      child: userName != null
+                          ? Text(
+                              userName!,
+                              style: const TextStyle(
+                                fontFamily: 'Inter',
+                                fontWeight: FontWeight.bold,
+                                fontSize: 15,
+                                color: Colors.black,
+                              ),
+                            )
+                          : const CircularProgressIndicator(
+                              color: Colors.black),
                     ),
                     SizedBox(height: MediaQuery.of(context).size.height * 0.01),
                     Row(
@@ -1689,40 +1764,47 @@ class _MainAppState extends State<MainApp> with TickerProviderStateMixin {
                       ),
                     ),
                     SizedBox(height: MediaQuery.of(context).size.height * 0.05),
-                    Container(
-                      height: (50 / MediaQuery.of(context).size.height) *
-                          MediaQuery.of(context).size.height,
-                      padding: const EdgeInsets.all(10.0),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(5),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.grey.withOpacity(0.5),
-                            spreadRadius: 3,
-                            blurRadius: 5,
-                          ),
-                        ],
-                      ),
-                      child: Row(
-                        children: [
-                          SizedBox(
-                              width: MediaQuery.of(context).size.width * 0.02),
-                          Image.asset(
-                            'images/material-symbols-light_logout-sharp-black.png',
-                          ),
-                          SizedBox(
-                              width: MediaQuery.of(context).size.width * 0.04),
-                          const Text(
-                            'Log out',
-                            style: TextStyle(
-                              fontFamily: 'Inter',
-                              fontSize: 15,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.black,
+                    InkWell(
+                      onTap: () {
+                        _showLogoutConfirmationDialog();
+                      },
+                      child: Container(
+                        height: (50 / MediaQuery.of(context).size.height) *
+                            MediaQuery.of(context).size.height,
+                        padding: const EdgeInsets.all(10.0),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(5),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.grey.withOpacity(0.5),
+                              spreadRadius: 3,
+                              blurRadius: 5,
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
+                        child: Row(
+                          children: [
+                            SizedBox(
+                                width:
+                                    MediaQuery.of(context).size.width * 0.02),
+                            Image.asset(
+                              'images/material-symbols-light_logout-sharp-black.png',
+                            ),
+                            SizedBox(
+                                width:
+                                    MediaQuery.of(context).size.width * 0.04),
+                            const Text(
+                              'Log out',
+                              style: TextStyle(
+                                fontFamily: 'Inter',
+                                fontSize: 15,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.black,
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                     ),
                     SizedBox(height: MediaQuery.of(context).size.height * 0.05),
@@ -1742,6 +1824,39 @@ class _MainAppState extends State<MainApp> with TickerProviderStateMixin {
     });
   }
 
+  Widget buildStatRow(String leftText, String rightText) {
+    return Row(
+      children: [
+        Expanded(
+          flex: 5,
+          child: Text(
+            leftText,
+            style: const TextStyle(
+              fontFamily: 'Inconsolata',
+              fontWeight: FontWeight.bold,
+              fontSize: 15,
+              color: Colors.black,
+            ),
+          ),
+        ),
+        const Spacer(),
+        Expanded(
+          flex: 2,
+          child: Text(
+            rightText,
+            textAlign: TextAlign.end,
+            style: const TextStyle(
+              fontFamily: 'Inconsolata',
+              fontWeight: FontWeight.bold,
+              fontSize: 15,
+              color: Colors.black,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
   Widget _buildTab(String name) {
     return Tab(
       child: Container(
@@ -1757,214 +1872,20 @@ class _MainAppState extends State<MainApp> with TickerProviderStateMixin {
     );
   }
 
-  Widget newsCard() {
+  Widget newsCard(Map<String, dynamic> newsItem) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 20.0),
-      child: Container(
-        height: 170,
-        padding: const EdgeInsets.all(12.0),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(15),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.grey.withOpacity(0.5),
-              spreadRadius: 3,
-              blurRadius: 5,
+      child: InkWell(
+        onTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => NewsDetails(newsId: newsItem['id']),
             ),
-          ],
-        ),
-        child: Column(
-          children: [
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Image.asset(
-                  'images/Pexels Photo by Tima Miroshnichenko.png',
-                  width: 120,
-                  height: 115,
-                  fit: BoxFit.cover,
-                ),
-                const Spacer(),
-                Expanded(
-                  flex: 20,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        '18 August 2024',
-                        style: TextStyle(
-                          fontFamily: 'Inter',
-                          fontWeight: FontWeight.bold,
-                          fontSize: 14.0,
-                          color: Colors.black,
-                        ),
-                      ),
-                      SizedBox(
-                        height: MediaQuery.of(context).size.height * 0.02,
-                      ),
-                      const Text(
-                        '3 Noteworthy events added to the Cryptocurrency space, Finance Manager relates with its traders for better.',
-                        overflow: TextOverflow.ellipsis,
-                        softWrap: true,
-                        maxLines: 3,
-                        style: TextStyle(
-                          fontSize: 12,
-                          fontFamily: 'Inter',
-                          fontWeight: FontWeight.bold,
-                          color: Colors.black,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-            SizedBox(
-              height: MediaQuery.of(context).size.height * 0.02,
-            ),
-            Row(
-              children: [
-                Image.asset(
-                  'images/bi_eye.png',
-                ),
-                SizedBox(width: MediaQuery.of(context).size.width * 0.01),
-                const Text(
-                  '10K',
-                  overflow: TextOverflow.ellipsis,
-                  softWrap: true,
-                  maxLines: 3,
-                  style: TextStyle(
-                    fontSize: 12,
-                    fontFamily: 'Inter',
-                    fontWeight: FontWeight.bold,
-                    color: Colors.black,
-                  ),
-                ),
-                SizedBox(width: MediaQuery.of(context).size.width * 0.03),
-                Image.asset(
-                  'images/BTC-Tag.png',
-                ),
-                Image.asset(
-                  'images/BNB-Tag.png',
-                ),
-                Image.asset(
-                  'images/FLX-Tag.png',
-                ),
-              ],
-            )
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget courseCard() {
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        double cardWidth = constraints.maxWidth;
-
-        return InkWell(
-          onTap: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => CardDetails(key: UniqueKey()),
-              ),
-            );
-          },
-          child: Card(
-            shadowColor: Colors.grey,
-            margin: const EdgeInsets.all(8.0),
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(8.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Container(
-                    width: cardWidth,
-                    height: MediaQuery.of(context).size.height *
-                        0.3, // Adjust height as needed
-                    child: Image.asset(
-                      'images/Pexels Photo by Tima Miroshnichenko.png',
-                      fit: BoxFit.cover,
-                    ),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Text(
-                          'What is Forex Trading about?',
-                          style: TextStyle(
-                            fontFamily: 'Inter',
-                            fontWeight: FontWeight.bold,
-                            fontSize: 17.0,
-                            color: Colors.black,
-                          ),
-                        ),
-                        SizedBox(height: 8), // Adjust spacing
-                        const Text(
-                          'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.',
-                          overflow: TextOverflow.ellipsis,
-                          softWrap: true,
-                          maxLines: 3,
-                          style: TextStyle(
-                            fontSize: 15,
-                            fontFamily: 'Inter',
-                            fontWeight: FontWeight.bold,
-                            color: Colors.grey,
-                          ),
-                        ),
-                        SizedBox(height: 8), // Adjust spacing
-                        Row(
-                          children: [
-                            Image.asset(
-                              'images/Pexels Photo by Pixabay.png',
-                            ),
-                            SizedBox(width: 8), // Adjust spacing
-                            const Expanded(
-                              child: Text(
-                                '[Article Writer’s Name]',
-                                overflow: TextOverflow.ellipsis,
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  fontFamily: 'Inter',
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                            ),
-                            const Spacer(),
-                            const Text(
-                              '37 minutes ago',
-                              style: TextStyle(
-                                fontFamily: 'Inter',
-                                fontSize: 16.0,
-                                color: Colors.grey,
-                              ),
-                            ),
-                          ],
-                        ),
-                        SizedBox(height: 8), // Adjust spacing
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        );
-      },
-    );
-  }
-
-  Widget signals(String img, String name, ValueNotifier<bool> varNameNotifier) {
-    return ValueListenableBuilder<bool>(
-      valueListenable: varNameNotifier,
-      builder: (context, varName, _) {
-        return Container(
-          padding: const EdgeInsets.only(top: 12.0, bottom: 12.0),
+          );
+        },
+        child: Container(
+          padding: const EdgeInsets.all(12.0),
           decoration: BoxDecoration(
             color: Colors.white,
             borderRadius: BorderRadius.circular(15),
@@ -1978,547 +1899,652 @@ class _MainAppState extends State<MainApp> with TickerProviderStateMixin {
           ),
           child: Column(
             children: [
-              const Padding(
-                padding: EdgeInsets.symmetric(horizontal: 25.0),
-                child: Row(
-                  children: [
-                    Expanded(
-                      flex: 5,
-                      child: Text(
-                        'Opened',
-                        style: TextStyle(
-                          fontFamily: 'Inconsolata',
-                          fontWeight: FontWeight.bold,
-                          fontSize: 18,
-                          color: Colors.black,
-                        ),
-                      ),
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  SizedBox(
+                    width: 120,
+                    height: 115,
+                    child: Image.network(
+                      newsItem['images'],
+                      fit: BoxFit.cover,
                     ),
-                    Spacer(),
-                    Expanded(
-                      flex: 5,
-                      child: Text(
-                        'Jan-18, 1:40 PM',
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(
-                          fontFamily: 'Inconsolata',
-                          fontWeight: FontWeight.bold,
-                          fontSize: 15,
-                          color: Colors.black,
+                  ),
+                  const Spacer(),
+                  Expanded(
+                    flex: 10,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          newsItem['created_at'],
+                          style: const TextStyle(
+                            fontFamily: 'Inter',
+                            fontWeight: FontWeight.bold,
+                            fontSize: 14.0,
+                            color: Colors.black,
+                          ),
                         ),
-                      ),
+                        SizedBox(
+                          height: MediaQuery.of(context).size.height * 0.01,
+                        ),
+                        Text(
+                          newsItem['title'],
+                          overflow: TextOverflow.ellipsis,
+                          softWrap: true,
+                          maxLines: 3,
+                          style: const TextStyle(
+                            fontSize: 12,
+                            fontFamily: 'Inter',
+                            fontWeight: FontWeight.bold,
+                            color: Colors.black,
+                          ),
+                        ),
+                      ],
                     ),
-                  ],
-                ),
+                  ),
+                ],
               ),
               SizedBox(
-                height: MediaQuery.of(context).size.height * 0.02,
+                height: MediaQuery.of(context).size.height * 0.01,
               ),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 25.0),
-                child: Row(
-                  children: [
-                    Image.asset(
-                      img,
+              Row(
+                children: [
+                  Image.asset(
+                    'images/bi_eye.png',
+                    width: 20,
+                    height: 20,
+                  ),
+                  SizedBox(width: MediaQuery.of(context).size.width * 0.01),
+                  const Text(
+                    '10K', // Placeholder text
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontFamily: 'Inter',
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black,
                     ),
-                    SizedBox(width: MediaQuery.of(context).size.width * 0.03),
-                    Container(
-                      decoration: BoxDecoration(
+                  ),
+                  SizedBox(width: MediaQuery.of(context).size.width * 0.03),
+                  Expanded(
+                    child: Text(
+                      newsItem['tags'],
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        fontSize: 12,
+                        fontFamily: 'Inter',
                         color: Colors.black,
-                        borderRadius: BorderRadius.circular(10),
                       ),
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 12, vertical: 6),
-                      child: const Text(
-                        'LONG',
-                        style: TextStyle(
-                          fontSize: 15,
-                          fontFamily: 'Inconsolata',
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white,
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget courseCard(Map<String, dynamic> course) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        double cardWidth = constraints.maxWidth;
+
+        return InkWell(
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => CardDetails(course: course['id']),
+              ),
+            );
+          },
+          child: Card(
+            shadowColor: Colors.grey,
+            margin: const EdgeInsets.all(8.0),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(8.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  SizedBox(
+                    width: cardWidth,
+                    height: MediaQuery.of(context).size.height * 0.3,
+                    child: Image.network(
+                      course['images'],
+                      fit: BoxFit.cover,
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          course['title'],
+                          style: const TextStyle(
+                            fontFamily: 'Inter',
+                            fontWeight: FontWeight.bold,
+                            fontSize: 17.0,
+                            color: Colors.black,
+                          ),
+                        ),
+                        SizedBox(
+                            height: 8 /
+                                MediaQuery.of(context).size.height *
+                                MediaQuery.of(context).size.height),
+                        Text(
+                          course['article'],
+                          overflow: TextOverflow.ellipsis,
+                          softWrap: true,
+                          maxLines: 3,
+                          style: const TextStyle(
+                            fontSize: 15,
+                            fontFamily: 'Inter',
+                            fontWeight: FontWeight.bold,
+                            color: Colors.grey,
+                          ),
+                        ),
+                        SizedBox(
+                            height: 8 /
+                                MediaQuery.of(context).size.height *
+                                MediaQuery.of(context).size.height),
+                        Row(
+                          children: [
+                            Image.asset(
+                              'images/Pexels Photo by Pixabay.png',
+                            ),
+                            SizedBox(
+                                width: 8 /
+                                    MediaQuery.of(context).size.width *
+                                    MediaQuery.of(context).size.width),
+                            Expanded(
+                              child: Text(
+                                course['username'],
+                                overflow: TextOverflow.ellipsis,
+                                style: const TextStyle(
+                                  fontSize: 16,
+                                  fontFamily: 'Inter',
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                            const Spacer(),
+                            Text(
+                              course['created_at'],
+                              style: const TextStyle(
+                                fontFamily: 'Inter',
+                                fontSize: 16.0,
+                                color: Colors.grey,
+                              ),
+                            ),
+                          ],
+                        ),
+                        SizedBox(
+                            height: 8 /
+                                MediaQuery.of(context).size.height *
+                                MediaQuery.of(context).size.height),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget signals({
+    required String img,
+    required String name,
+    required String entryPrice,
+    required String stopLoss,
+    required String currentPrice,
+    required Map<String, dynamic> targets,
+    required String createdAt,
+    required ValueNotifier<bool> varNameNotifier,
+  }) {
+    return ValueListenableBuilder<bool>(
+      valueListenable: varNameNotifier,
+      builder: (context, varName, _) {
+        return Padding(
+          padding: const EdgeInsets.only(top: 10.0, bottom: 10.0),
+          child: Container(
+            padding: const EdgeInsets.only(top: 12.0, bottom: 12.0),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(15),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.grey.withOpacity(0.5),
+                  spreadRadius: 3,
+                  blurRadius: 5,
+                ),
+              ],
+            ),
+            child: Column(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 25.0),
+                  child: Row(
+                    children: [
+                      const Expanded(
+                        flex: 5,
+                        child: Text(
+                          'Opened',
+                          style: TextStyle(
+                            fontFamily: 'Inconsolata',
+                            fontWeight: FontWeight.bold,
+                            fontSize: 18,
+                            color: Colors.black,
+                          ),
                         ),
                       ),
-                    ),
-                    SizedBox(width: MediaQuery.of(context).size.width * 0.02),
-                    const SizedBox(
-                      height: 35,
-                      child: VerticalDivider(
-                        color: Colors.black,
-                        thickness: 2.0,
+                      const Spacer(),
+                      Expanded(
+                        flex: 5,
+                        child: Text(
+                          createdAt,
+                          overflow: TextOverflow.ellipsis,
+                          textAlign: TextAlign.end,
+                          style: const TextStyle(
+                            fontFamily: 'Inconsolata',
+                            fontWeight: FontWeight.bold,
+                            fontSize: 15,
+                            color: Colors.black,
+                          ),
+                        ),
                       ),
-                    ),
-                    SizedBox(width: MediaQuery.of(context).size.width * 0.02),
-                    Text(
-                      name,
-                      style: const TextStyle(
-                        fontSize: 15,
-                        fontFamily: 'Inconsolata',
-                        fontWeight: FontWeight.bold,
-                        color: Colors.black,
+                    ],
+                  ),
+                ),
+                SizedBox(
+                  height: MediaQuery.of(context).size.height * 0.02,
+                ),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 25.0),
+                  child: Row(
+                    children: [
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(35),
+                        child: Container(
+                          width: (55 / MediaQuery.of(context).size.width) *
+                              MediaQuery.of(context).size.width,
+                          height: (55 / MediaQuery.of(context).size.height) *
+                              MediaQuery.of(context).size.height,
+                          color: Colors.grey,
+                          child: Image.network(
+                            img,
+                            fit: BoxFit.cover,
+                          ),
+                        ),
                       ),
-                    ),
-                    const Spacer(),
-                    Expanded(
-                      flex: 5,
-                      child: Container(
+                      SizedBox(width: MediaQuery.of(context).size.width * 0.03),
+                      Container(
                         decoration: BoxDecoration(
                           color: Colors.black,
                           borderRadius: BorderRadius.circular(10),
                         ),
                         padding: const EdgeInsets.symmetric(
                             horizontal: 12, vertical: 6),
-                        child: Row(
+                        child: const Text(
+                          'LONG',
+                          style: TextStyle(
+                            fontSize: 15,
+                            fontFamily: 'Inconsolata',
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ),
+                      SizedBox(width: MediaQuery.of(context).size.width * 0.02),
+                      const SizedBox(
+                        height: 35,
+                        child: VerticalDivider(
+                          color: Colors.black,
+                          thickness: 2.0,
+                        ),
+                      ),
+                      SizedBox(width: MediaQuery.of(context).size.width * 0.02),
+                      Expanded(
+                        flex: 5,
+                        child: Text(
+                          name,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                            fontSize: 15,
+                            fontFamily: 'Inconsolata',
+                            fontWeight: FontWeight.bold,
+                            color: Colors.black,
+                          ),
+                        ),
+                      ),
+                      const Spacer(),
+                      Expanded(
+                        flex: 5,
+                        child: Container(
+                          decoration: BoxDecoration(
+                            color: Colors.black,
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 12, vertical: 6),
+                          child: Row(
+                            children: [
+                              const Expanded(
+                                flex: 5,
+                                child: Text(
+                                  'In progress',
+                                  overflow: TextOverflow.ellipsis,
+                                  style: TextStyle(
+                                    fontSize: 15,
+                                    fontFamily: 'Inconsolata',
+                                    color: Colors.white,
+                                  ),
+                                ),
+                              ),
+                              Image.asset(
+                                'images/carbon_in-progress.png',
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                SizedBox(
+                  height: MediaQuery.of(context).size.height * 0.02,
+                ),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 25.0),
+                  child: Row(
+                    children: [
+                      const Expanded(
+                        child: Text(
+                          'Entry price',
+                          style: TextStyle(
+                            fontFamily: 'Inconsolata',
+                            fontSize: 13,
+                            color: Colors.black,
+                          ),
+                        ),
+                      ),
+                      const Spacer(),
+                      Expanded(
+                        child: Text(
+                          entryPrice,
+                          overflow: TextOverflow.ellipsis,
+                          textAlign: TextAlign.end,
+                          style: const TextStyle(
+                            fontFamily: 'Inconsolata',
+                            fontSize: 13,
+                            color: Colors.black,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                SizedBox(
+                  height: MediaQuery.of(context).size.height * 0.02,
+                ),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 25.0),
+                  child: Row(
+                    children: [
+                      const Expanded(
+                        flex: 5,
+                        child: Text(
+                          'Stop Loss 40.0%',
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            fontFamily: 'Inconsolata',
+                            fontSize: 13,
+                            color: Colors.black,
+                          ),
+                        ),
+                      ),
+                      const Spacer(),
+                      Expanded(
+                        child: Text(
+                          stopLoss,
+                          overflow: TextOverflow.ellipsis,
+                          textAlign: TextAlign.end,
+                          style: const TextStyle(
+                            fontFamily: 'Inconsolata',
+                            fontSize: 13,
+                            color: Colors.black,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                SizedBox(
+                  height: MediaQuery.of(context).size.height * 0.02,
+                ),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 10.0),
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(10),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.grey.withOpacity(0.5),
+                          spreadRadius: 3,
+                          blurRadius: 5,
+                        ),
+                      ],
+                    ),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 20, vertical: 10),
+                    child: Column(
+                      children: [
+                        Row(
                           children: [
                             const Expanded(
                               flex: 5,
                               child: Text(
-                                'In progress',
+                                'Current Price',
                                 overflow: TextOverflow.ellipsis,
                                 style: TextStyle(
                                   fontSize: 15,
+                                  fontWeight: FontWeight.bold,
                                   fontFamily: 'Inconsolata',
+                                  color: Colors.black,
+                                ),
+                              ),
+                            ),
+                            const Spacer(),
+                            Expanded(
+                              flex: 3,
+                              child: Text(
+                                currentPrice,
+                                overflow: TextOverflow.ellipsis,
+                                textAlign: TextAlign.center,
+                                style: const TextStyle(
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.bold,
+                                  fontFamily: 'Inconsolata',
+                                  color: Colors.black,
+                                ),
+                              ),
+                            ),
+                            const Spacer(),
+                            const Expanded(
+                              flex: 4,
+                              child: Text(
+                                '-35.5%',
+                                overflow: TextOverflow.ellipsis,
+                                style: TextStyle(
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.bold,
+                                  fontFamily: 'Inconsolata',
+                                  color: Color(0xFFFF0000),
+                                ),
+                              ),
+                            ),
+                            GestureDetector(
+                              onTap: () {
+                                varNameNotifier.value = !varNameNotifier.value;
+                              },
+                              child: Image.asset(
+                                varName
+                                    ? 'images/material-symbols_arrow-drop-down-upwards.png'
+                                    : 'images/material-symbols_arrow-drop-down.png',
+                              ),
+                            ),
+                          ],
+                        ),
+                        if (varName)
+                          ...targets.entries.map(
+                            (entry) => Padding(
+                              padding: const EdgeInsets.only(top: 10.0),
+                              child: Container(
+                                decoration: BoxDecoration(
                                   color: Colors.white,
+                                  borderRadius: BorderRadius.circular(10),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.grey.withOpacity(0.5),
+                                      spreadRadius: 3,
+                                      blurRadius: 5,
+                                    ),
+                                  ],
+                                ),
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 20, vertical: 6),
+                                child: Row(
+                                  children: [
+                                    Expanded(
+                                      flex: 2,
+                                      child: Text(
+                                        entry.key,
+                                        overflow: TextOverflow.ellipsis,
+                                        style: const TextStyle(
+                                          fontFamily: 'Inconsolata',
+                                          fontSize: 15,
+                                          color: Colors.black,
+                                        ),
+                                      ),
+                                    ),
+                                    Expanded(
+                                      flex: 2,
+                                      child: Text(
+                                        entry.value.toString(),
+                                        textAlign: TextAlign.end,
+                                        overflow: TextOverflow.ellipsis,
+                                        style: const TextStyle(
+                                          fontFamily: 'Inconsolata',
+                                          fontSize: 15,
+                                          color: Colors.black,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
                                 ),
                               ),
                             ),
-                            Image.asset(
-                              'images/carbon_in-progress.png',
-                            ),
-                          ],
-                        ),
-                      ),
+                          ),
+                      ],
                     ),
-                  ],
-                ),
-              ),
-              SizedBox(
-                height: MediaQuery.of(context).size.height * 0.02,
-              ),
-              const Padding(
-                padding: EdgeInsets.symmetric(horizontal: 25.0),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: Text(
-                        'Entry price',
-                        style: TextStyle(
-                          fontFamily: 'Inconsolata',
-                          fontSize: 13,
-                          color: Colors.black,
-                        ),
-                      ),
-                    ),
-                    Spacer(),
-                    Expanded(
-                      child: Text(
-                        '0.14',
-                        overflow: TextOverflow.ellipsis,
-                        textAlign: TextAlign.end,
-                        style: TextStyle(
-                          fontFamily: 'Inconsolata',
-                          fontSize: 13,
-                          color: Colors.black,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              SizedBox(
-                height: MediaQuery.of(context).size.height * 0.02,
-              ),
-              const Padding(
-                padding: EdgeInsets.symmetric(horizontal: 25.0),
-                child: Row(
-                  children: [
-                    Expanded(
-                      flex: 5,
-                      child: Text(
-                        'Stop Loss 40.0%',
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(
-                          fontFamily: 'Inconsolata',
-                          fontSize: 13,
-                          color: Colors.black,
-                        ),
-                      ),
-                    ),
-                    Spacer(),
-                    Expanded(
-                      child: Text(
-                        '0.1',
-                        overflow: TextOverflow.ellipsis,
-                        textAlign: TextAlign.end,
-                        style: TextStyle(
-                          fontFamily: 'Inconsolata',
-                          fontSize: 13,
-                          color: Colors.black,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              SizedBox(
-                height: MediaQuery.of(context).size.height * 0.02,
-              ),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 10.0),
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(10),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.grey.withOpacity(0.5),
-                        spreadRadius: 3,
-                        blurRadius: 5,
-                      ),
-                    ],
                   ),
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-                  child: Column(
+                ),
+                SizedBox(
+                  height: MediaQuery.of(context).size.height * 0.02,
+                ),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 25.0),
+                  child: Row(
                     children: [
-                      Row(
-                        children: [
-                          const Expanded(
-                            flex: 5,
-                            child: Text(
-                              'Current Price',
-                              overflow: TextOverflow.ellipsis,
-                              style: TextStyle(
-                                fontSize: 15,
-                                fontWeight: FontWeight.bold,
-                                fontFamily: 'Inconsolata',
-                                color: Colors.black,
+                      Expanded(
+                        flex: 10,
+                        child: Container(
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(10),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.grey.withOpacity(0.5),
+                                spreadRadius: 3,
+                                blurRadius: 5,
                               ),
-                            ),
+                            ],
                           ),
-                          const Spacer(),
-                          const Expanded(
-                            flex: 3,
-                            child: Text(
-                              '0.0903',
-                              overflow: TextOverflow.ellipsis,
-                              style: TextStyle(
-                                fontSize: 15,
-                                fontWeight: FontWeight.bold,
-                                fontFamily: 'Inconsolata',
-                                color: Colors.black,
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 20, vertical: 6),
+                          child: Row(
+                            children: [
+                              const Expanded(
+                                flex: 10,
+                                child: Text(
+                                  'View Steps',
+                                  overflow: TextOverflow.ellipsis,
+                                  style: TextStyle(
+                                    fontSize: 15,
+                                    fontWeight: FontWeight.bold,
+                                    fontFamily: 'Inconsolata',
+                                    color: Colors.black,
+                                  ),
+                                ),
                               ),
-                            ),
-                          ),
-                          const Spacer(),
-                          const Expanded(
-                            flex: 4,
-                            child: Text(
-                              '-35.5%',
-                              overflow: TextOverflow.ellipsis,
-                              style: TextStyle(
-                                fontSize: 15,
-                                fontWeight: FontWeight.bold,
-                                fontFamily: 'Inconsolata',
-                                color: Color(0xFFFF0000),
+                              Image.asset(
+                                'images/material-symbols_arrow-drop-down.png',
                               ),
-                            ),
+                            ],
                           ),
-                          GestureDetector(
-                            onTap: () {
-                              varNameNotifier.value = !varNameNotifier.value;
-                            },
-                            child: Image.asset(
-                              varName
-                                  ? 'images/material-symbols_arrow-drop-down-upwards.png'
-                                  : 'images/material-symbols_arrow-drop-down.png',
-                            ),
-                          ),
-                        ],
+                        ),
                       ),
-                      if (varName)
-                        Padding(
-                          padding: const EdgeInsets.only(top: 10.0),
-                          child: Container(
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                              borderRadius: BorderRadius.circular(10),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Colors.grey.withOpacity(0.5),
-                                  spreadRadius: 3,
-                                  blurRadius: 5,
-                                ),
-                              ],
-                            ),
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 20, vertical: 6),
-                            child: const Row(
-                              children: [
-                                Expanded(
-                                  flex: 2,
-                                  child: Text(
-                                    'Target 1',
-                                    overflow: TextOverflow.ellipsis,
-                                    style: TextStyle(
-                                      fontSize: 15,
-                                      fontWeight: FontWeight.bold,
-                                      fontFamily: 'Inconsolata',
-                                      color: Colors.black,
-                                    ),
+                      const Spacer(),
+                      Expanded(
+                        flex: 10,
+                        child: Container(
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(10),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.grey.withOpacity(0.5),
+                                spreadRadius: 3,
+                                blurRadius: 5,
+                              ),
+                            ],
+                          ),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 20, vertical: 6),
+                          child: Row(
+                            children: [
+                              const Expanded(
+                                flex: 10,
+                                child: Text(
+                                  'View Charts',
+                                  overflow: TextOverflow.ellipsis,
+                                  style: TextStyle(
+                                    fontSize: 15,
+                                    fontWeight: FontWeight.bold,
+                                    fontFamily: 'Inconsolata',
+                                    color: Colors.black,
                                   ),
                                 ),
-                                Spacer(),
-                                Expanded(
-                                  flex: 2,
-                                  child: Text(
-                                    '0.15',
-                                    overflow: TextOverflow.ellipsis,
-                                    style: TextStyle(
-                                      fontSize: 15,
-                                      fontWeight: FontWeight.bold,
-                                      fontFamily: 'Inconsolata',
-                                      color: Colors.black,
-                                    ),
-                                  ),
-                                ),
-                                Spacer(),
-                                Expanded(
-                                  flex: 2,
-                                  child: Text(
-                                    '6.67%',
-                                    overflow: TextOverflow.ellipsis,
-                                    style: TextStyle(
-                                      fontSize: 15,
-                                      fontWeight: FontWeight.bold,
-                                      fontFamily: 'Inconsolata',
-                                      color: Color(0xFFFF0000),
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
+                              ),
+                              Image.asset(
+                                'images/material-symbols_pie-chart.png',
+                              ),
+                            ],
                           ),
                         ),
-                      if (varName)
-                        Padding(
-                          padding: const EdgeInsets.only(top: 10.0),
-                          child: Container(
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                              borderRadius: BorderRadius.circular(10),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Colors.grey.withOpacity(0.5),
-                                  spreadRadius: 3,
-                                  blurRadius: 5,
-                                ),
-                              ],
-                            ),
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 20, vertical: 6),
-                            child: const Row(
-                              children: [
-                                Expanded(
-                                  flex: 2,
-                                  child: Text(
-                                    'Target 2',
-                                    overflow: TextOverflow.ellipsis,
-                                    style: TextStyle(
-                                      fontSize: 15,
-                                      fontWeight: FontWeight.bold,
-                                      fontFamily: 'Inconsolata',
-                                      color: Colors.black,
-                                    ),
-                                  ),
-                                ),
-                                Spacer(),
-                                Expanded(
-                                  flex: 2,
-                                  child: Text(
-                                    '0.15',
-                                    overflow: TextOverflow.ellipsis,
-                                    style: TextStyle(
-                                      fontSize: 15,
-                                      fontWeight: FontWeight.bold,
-                                      fontFamily: 'Inconsolata',
-                                      color: Colors.black,
-                                    ),
-                                  ),
-                                ),
-                                Spacer(),
-                                Expanded(
-                                  flex: 2,
-                                  child: Text(
-                                    '6.67%',
-                                    overflow: TextOverflow.ellipsis,
-                                    style: TextStyle(
-                                      fontSize: 15,
-                                      fontWeight: FontWeight.bold,
-                                      fontFamily: 'Inconsolata',
-                                      color: Color(0xFFFF0000),
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      if (varName)
-                        Padding(
-                          padding: const EdgeInsets.only(top: 10.0),
-                          child: Container(
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                              borderRadius: BorderRadius.circular(10),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Colors.grey.withOpacity(0.5),
-                                  spreadRadius: 3,
-                                  blurRadius: 5,
-                                ),
-                              ],
-                            ),
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 20, vertical: 6),
-                            child: const Row(
-                              children: [
-                                Expanded(
-                                  flex: 2,
-                                  child: Text(
-                                    'Target 3',
-                                    overflow: TextOverflow.ellipsis,
-                                    style: TextStyle(
-                                      fontSize: 15,
-                                      fontWeight: FontWeight.bold,
-                                      fontFamily: 'Inconsolata',
-                                      color: Colors.black,
-                                    ),
-                                  ),
-                                ),
-                                Spacer(),
-                                Expanded(
-                                  flex: 2,
-                                  child: Text(
-                                    '0.15',
-                                    overflow: TextOverflow.ellipsis,
-                                    style: TextStyle(
-                                      fontSize: 15,
-                                      fontWeight: FontWeight.bold,
-                                      fontFamily: 'Inconsolata',
-                                      color: Colors.black,
-                                    ),
-                                  ),
-                                ),
-                                Spacer(),
-                                Expanded(
-                                  flex: 2,
-                                  child: Text(
-                                    '6.67%',
-                                    overflow: TextOverflow.ellipsis,
-                                    style: TextStyle(
-                                      fontSize: 15,
-                                      fontWeight: FontWeight.bold,
-                                      fontFamily: 'Inconsolata',
-                                      color: Color(0xFFFF0000),
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
+                      ),
                     ],
                   ),
                 ),
-              ),
-              SizedBox(
-                height: MediaQuery.of(context).size.height * 0.02,
-              ),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 25.0),
-                child: Row(
-                  children: [
-                    Expanded(
-                      flex: 10,
-                      child: Container(
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(10),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.grey.withOpacity(0.5),
-                              spreadRadius: 3,
-                              blurRadius: 5,
-                            ),
-                          ],
-                        ),
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 20, vertical: 6),
-                        child: Row(
-                          children: [
-                            const Expanded(
-                              flex: 10,
-                              child: Text(
-                                'View Steps',
-                                overflow: TextOverflow.ellipsis,
-                                style: TextStyle(
-                                  fontSize: 15,
-                                  fontWeight: FontWeight.bold,
-                                  fontFamily: 'Inconsolata',
-                                  color: Colors.black,
-                                ),
-                              ),
-                            ),
-                            Image.asset(
-                              'images/material-symbols_arrow-drop-down.png',
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                    const Spacer(),
-                    Expanded(
-                      flex: 10,
-                      child: Container(
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(10),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.grey.withOpacity(0.5),
-                              spreadRadius: 3,
-                              blurRadius: 5,
-                            ),
-                          ],
-                        ),
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 20, vertical: 6),
-                        child: Row(
-                          children: [
-                            const Expanded(
-                              flex: 10,
-                              child: Text(
-                                'View Charts',
-                                overflow: TextOverflow.ellipsis,
-                                style: TextStyle(
-                                  fontSize: 15,
-                                  fontWeight: FontWeight.bold,
-                                  fontFamily: 'Inconsolata',
-                                  color: Colors.black,
-                                ),
-                              ),
-                            ),
-                            Image.asset(
-                              'images/material-symbols_pie-chart.png',
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
+              ],
+            ),
           ),
         );
       },

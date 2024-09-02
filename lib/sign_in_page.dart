@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:signal_app/main_app.dart';
 import 'package:signal_app/sign_up_page.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class SignInPage extends StatefulWidget {
   const SignInPage({
@@ -19,6 +23,137 @@ class _SignInPageState extends State<SignInPage> with WidgetsBindingObserver {
   final TextEditingController emailOrPhoneNumberController =
       TextEditingController();
   final TextEditingController passwordController = TextEditingController();
+  final storage = const FlutterSecureStorage();
+  late SharedPreferences prefs;
+  bool isLoading = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _initializePrefs();
+  }
+
+  Future<void> _initializePrefs() async {
+    prefs = await SharedPreferences.getInstance();
+  }
+
+  Future<void> _submitForm() async {
+    if (prefs == null) {
+      await _initializePrefs();
+    }
+    final String emailOrPhoneNumber = emailOrPhoneNumberController.text.trim();
+    final String password = passwordController.text.trim();
+
+    if (emailOrPhoneNumber.isEmpty || password.isEmpty) {
+      // Show an error message if any field is empty
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('All fields are required.'),
+        ),
+      );
+      return;
+    }
+
+    // Validate email format
+    final RegExp emailRegex = RegExp(r'^[^@]+@[^@]+\.[^@]+$');
+    if (!emailRegex.hasMatch(emailOrPhoneNumber)) {
+      // Show an error message if email is invalid
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please enter a valid email address.'),
+        ),
+      );
+      return;
+    }
+
+    // Validate password length
+    if (password.length < 6) {
+      // Show an error message if password is too short
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Password must be at least 6 characters.'),
+        ),
+      );
+      return;
+    }
+
+    setState(() {
+      isLoading = true;
+    });
+
+    // Send the POST request
+    final response = await http.post(
+      Uri.parse('https://script.teendev.dev/signal/api/login'),
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode({
+        'email': emailOrPhoneNumber,
+        'password': password,
+      }),
+    );
+
+    final responseData = json.decode(response.body);
+
+    print('Response Data: $responseData');
+
+    if (response.statusCode == 200) {
+      // The responseData['user'] is a Map, not a String, so handle it accordingly
+      final Map<String, dynamic> user = responseData['user'];
+      final String accessToken = responseData['access_token'];
+
+      await storage.write(key: 'accessToken', value: accessToken);
+      await prefs.setString(
+          'user', jsonEncode(user)); // Store user as a JSON string
+
+      // Handle the successful response here
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Sign in successful!'),
+        ),
+      );
+
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => MainApp(key: UniqueKey()),
+        ),
+      );
+    } else if (response.statusCode == 400) {
+      setState(() {
+        isLoading = false;
+      });
+      final String error = responseData['error'];
+      final String data = responseData['data'];
+
+      // Handle validation error
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error: $error - $data'),
+        ),
+      );
+    } else if (response.statusCode == 401) {
+      setState(() {
+        isLoading = false;
+      });
+      final String error = responseData['error'];
+
+      // Handle invalid credentials
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error: $error'),
+        ),
+      );
+    } else {
+      setState(() {
+        isLoading = false;
+      });
+      // Handle other unexpected responses
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('An unexpected error occurred.'),
+        ),
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -191,12 +326,9 @@ class _SignInPageState extends State<SignInPage> with WidgetsBindingObserver {
                       padding: const EdgeInsets.symmetric(horizontal: 20.0),
                       child: ElevatedButton(
                         onPressed: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => MainApp(key: UniqueKey()),
-                            ),
-                          );
+                          if (isLoading == false) {
+                            _submitForm();
+                          }
                         },
                         style: ButtonStyle(
                           backgroundColor:
@@ -226,13 +358,19 @@ class _SignInPageState extends State<SignInPage> with WidgetsBindingObserver {
                             ),
                           ),
                         ),
-                        child: const Text(
-                          'Sign in',
-                          style: TextStyle(
-                            fontFamily: 'Inter',
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
+                        child: isLoading
+                            ? const Center(
+                                child: CircularProgressIndicator(
+                                  color: Colors.white,
+                                ),
+                              )
+                            : const Text(
+                                'Sign in',
+                                style: TextStyle(
+                                  fontFamily: 'Inter',
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
                       ),
                     ),
                     SizedBox(height: MediaQuery.of(context).size.height * 0.02),

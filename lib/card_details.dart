@@ -1,16 +1,72 @@
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 class CardDetails extends StatefulWidget {
-  const CardDetails({
-    super.key,
-  });
+  final int course;
+
+  const CardDetails({super.key, required this.course});
 
   @override
-  // ignore: library_private_types_in_public_api
-  _CardDetailsState createState() => _CardDetailsState();
+  CardDetailsState createState() => CardDetailsState();
 }
 
-class _CardDetailsState extends State<CardDetails> {
+class CardDetailsState extends State<CardDetails> {
+  Map<String, dynamic>? courseDetails;
+  String? errorMessage;
+  final storage = const FlutterSecureStorage();
+
+  @override
+  void initState() {
+    super.initState();
+    print(widget.course);
+    fetchCourseDetails(widget.course);
+  }
+
+  Future<void> fetchCourseDetails(int id) async {
+    try {
+      final String? accessToken = await storage.read(key: 'accessToken');
+      final response = await http.get(
+        Uri.parse('https://script.teendev.dev/signal/api/courses/$id?id=$id'),
+        headers: {
+          'Authorization': 'Bearer $accessToken',
+          'Content-Type': 'application/json',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        setState(() {
+          courseDetails = json.decode(response.body);
+          errorMessage = null;
+        });
+      } else if (response.statusCode == 401) {
+        setState(() {
+          errorMessage = json.decode(response.body)['message'];
+        });
+      } else if (response.statusCode == 404) {
+        setState(() {
+          errorMessage = 'No Course found!';
+        });
+      } else if (response.statusCode == 422) {
+        setState(() {
+          errorMessage = json.decode(response.body)['message'];
+        });
+      } else {
+        setState(() {
+          errorMessage = 'An unexpected error occurred.';
+        });
+        print('Unexpected error: ${response.statusCode}');
+        print('Response body: ${response.body}');
+      }
+    } catch (e) {
+      setState(() {
+        errorMessage = 'An error occurred: $e';
+      });
+      print('Exception caught: $e');
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return OrientationBuilder(
@@ -42,71 +98,87 @@ class _CardDetailsState extends State<CardDetails> {
                       ),
                       SizedBox(
                           height: MediaQuery.of(context).size.height * 0.05),
-                      const Center(
-                        child: Text(
-                          'What is Forex Trading about?',
-                          style: TextStyle(
-                            fontFamily: 'Inter',
-                            fontWeight: FontWeight.bold,
-                            fontSize: 22.0,
-                            color: Colors.black,
+                      if (errorMessage != null) ...[
+                        Center(
+                          child: Text(
+                            errorMessage!,
+                            style: const TextStyle(
+                              color: Colors.red,
+                              fontSize: 18.0,
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
                         ),
-                      ),
-                      SizedBox(
-                          height: MediaQuery.of(context).size.height * 0.03),
-                      Image.asset(
-                        'images/Pexels Photo by Tima Miroshnichenko.png',
-                        width: double
-                            .infinity, // Adjust the height to leave space for text
-                        fit: BoxFit
-                            .cover, // Ensure the image covers the space well
-                      ),
-                      SizedBox(
-                        height: MediaQuery.of(context).size.height * 0.03,
-                      ),
-                      Row(
-                        children: [
-                          Image.asset(
-                            'images/Pexels Photo by Pixabay.png',
+                      ] else if (courseDetails != null) ...[
+                        Center(
+                          child: Text(
+                            courseDetails!['title'],
+                            style: const TextStyle(
+                              fontFamily: 'Inter',
+                              fontWeight: FontWeight.bold,
+                              fontSize: 22.0,
+                              color: Colors.black,
+                            ),
                           ),
-                          SizedBox(
-                            width: MediaQuery.of(context).size.width * 0.01,
-                          ),
-                          const Expanded(
-                            child: Text(
-                              '[Article Writer’s Name]',
-                              overflow: TextOverflow.ellipsis,
-                              style: TextStyle(
-                                fontSize: 12,
-                                fontFamily: 'Inter',
-                                fontWeight: FontWeight.bold,
+                        ),
+                        SizedBox(
+                            height: MediaQuery.of(context).size.height * 0.03),
+                        Image.network(
+                          courseDetails!['images'],
+                          width: double.infinity,
+                          fit: BoxFit.cover,
+                        ),
+                        SizedBox(
+                          height: MediaQuery.of(context).size.height * 0.03,
+                        ),
+                        Row(
+                          children: [
+                            const CircleAvatar(
+                              backgroundImage: NetworkImage(
+                                'https://via.placeholder.com/150', // Placeholder for author's image
                               ),
                             ),
-                          ),
-                          const Spacer(),
-                          const Text(
-                            '37 minutes ago',
-                            style: TextStyle(
-                              fontFamily: 'Inter',
-                              fontSize:
-                                  12.0, // Reduced font size to fit content
-                              color: Colors.grey,
+                            SizedBox(
+                              width: MediaQuery.of(context).size.width * 0.01,
                             ),
-                          ),
-                        ],
-                      ),
-                      SizedBox(
-                        height: MediaQuery.of(context).size.height * 0.03,
-                      ),
-                      const Text(
-                        "'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.''But I must explain to you how all this mistaken idea of denouncing pleasure and praising pain was born and I will give you a complete account of the system, and expound the actual teachings of the great explorer of the truth, the master-builder of human happiness. No one rejects, dislikes, or avoids pleasure itself, because it is pleasure, but because those who do not know how to pursue pleasure rationally encounter consequences that are extremely painful. Nor again is there anyone who loves or pursues or desires to obtain pain of itself, because it is pain, but because occasionally circumstances occur in which toil and pain can procure him some great pleasure. To take a trivial example, which of us ever undertakes laborious physical exercise, except to obtain some advantage from it? But who has any right to find fault with a man who chooses to enjoy a pleasure that has no annoying consequences, or one who avoids a pain that produces no resultant pleasure?'",
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontFamily: 'Inter',
-                          fontWeight: FontWeight.bold,
+                            Expanded(
+                              child: Text(
+                                courseDetails!['username'],
+                                overflow: TextOverflow.ellipsis,
+                                style: const TextStyle(
+                                  fontSize: 12,
+                                  fontFamily: 'Inter',
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                            const Spacer(),
+                            Text(
+                              courseDetails!['created_at'],
+                              style: const TextStyle(
+                                fontFamily: 'Inter',
+                                fontSize: 12.0,
+                                color: Colors.grey,
+                              ),
+                            ),
+                          ],
                         ),
-                      ),
+                        SizedBox(
+                          height: MediaQuery.of(context).size.height * 0.03,
+                        ),
+                        Text(
+                          courseDetails!['article'],
+                          style: const TextStyle(
+                            fontSize: 16,
+                            fontFamily: 'Inter',
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ] else ...[
+                        const Center(
+                            child:
+                                CircularProgressIndicator(color: Colors.black)),
+                      ],
                     ],
                   ),
                 ),

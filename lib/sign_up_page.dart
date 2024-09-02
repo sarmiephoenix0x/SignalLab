@@ -1,6 +1,10 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:signal_app/sign_in_page.dart';
+import 'package:http/http.dart' as http;
 import 'package:signal_app/sign_up_otp.dart';
+import 'package:signal_app/main_app.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class SignUpPage extends StatefulWidget {
   const SignUpPage({
@@ -29,6 +33,160 @@ class _SignUpPageState extends State<SignUpPage> with WidgetsBindingObserver {
   bool _isPasswordVisible2 = false;
 
   bool dropDownTapped = false;
+
+  final storage = const FlutterSecureStorage();
+  late SharedPreferences prefs;
+  bool isLoading = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _initializePrefs();
+  }
+
+  Future<void> _initializePrefs() async {
+    prefs = await SharedPreferences.getInstance();
+  }
+
+  Future<void> _registerUser() async {
+    if (prefs == null) {
+      await _initializePrefs();
+    }
+    final String email = emailController.text.trim();
+    final String password = passwordController.text.trim();
+    final String passwordConfirmation = password2Controller.text.trim();
+    final String name = userNameController.text.trim();
+    final String phoneNumber = phoneNumberController.text.trim();
+
+    if (name.isEmpty ||
+        email.isEmpty ||
+        phoneNumber.isEmpty ||
+        password.isEmpty ||
+        passwordConfirmation.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('All fields are required.'),
+        ),
+      );
+      return;
+    }
+
+    final RegExp emailRegex = RegExp(r'^[^@]+@[^@]+\.[^@]+$');
+    if (!emailRegex.hasMatch(email)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please enter a valid email address.'),
+        ),
+      );
+      return;
+    }
+
+    if (password.length < 6) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Password must be at least 6 characters.'),
+        ),
+      );
+      return;
+    }
+
+    if (password != passwordConfirmation) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Passwords do not match.'),
+        ),
+      );
+      return;
+    }
+
+    if (phoneNumber.length < 11) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Phone number must be at least 11 characters.'),
+        ),
+      );
+      return;
+    }
+
+    setState(() {
+      isLoading = true;
+    });
+
+    final response = await http.post(
+      Uri.parse('https://script.teendev.dev/signal/api/register'),
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode({
+        'name': name,
+        'email': email,
+        'phone_number': phoneNumber,
+        'password': password,
+        'password_confirmation': passwordConfirmation,
+      }),
+    );
+    final Map<String, dynamic> responseData = jsonDecode(response.body);
+
+    print('Response Data: $responseData');
+
+    if (response.statusCode == 201) {
+      // The responseData['user'] is a Map, not a String, so handle it accordingly
+      final Map<String, dynamic> user = responseData['user'];
+      final String accessToken = responseData['access_token'];
+
+      await storage.write(key: 'accessToken', value: accessToken);
+      await prefs.setString(
+          'user', jsonEncode(user)); // Store user as a JSON string
+
+      // Handle successful response
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Sign up successful! Welcome, ${user['name']}'),
+        ),
+      );
+
+      // Navigate to the main app or another page
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => MainApp(key: UniqueKey()),
+        ),
+      );
+    } else if (response.statusCode == 400) {
+      setState(() {
+        isLoading = false;
+      });
+      final Map<String, dynamic> responseData = jsonDecode(response.body);
+      final String error = responseData['error'];
+      final List<dynamic> data = responseData['data']['email'];
+
+      // Handle validation error
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error: $error - $data'),
+        ),
+      );
+    } else {
+      setState(() {
+        isLoading = false;
+      });
+      // Handle other unexpected responses
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('An unexpected error occurred.'),
+        ),
+      );
+    }
+  }
+
+  @override
+  void dispose() {
+    // Clean up the controllers when the widget is disposed
+    userNameController.dispose();
+    emailController.dispose();
+    phoneNumberController.dispose();
+    passwordController.dispose();
+    password2Controller.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -249,7 +407,7 @@ class _SignUpPageState extends State<SignUpPage> with WidgetsBindingObserver {
                                 counterText: '',
                               ),
                               keyboardType: TextInputType.phone,
-                              maxLength: 10,
+                              maxLength: 11,
                               cursorColor: Colors.black,
                             ),
                           ),
@@ -372,13 +530,9 @@ class _SignUpPageState extends State<SignUpPage> with WidgetsBindingObserver {
                       padding: const EdgeInsets.symmetric(horizontal: 20.0),
                       child: ElevatedButton(
                         onPressed: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) =>
-                                  SignUpOTPPage(key: UniqueKey()),
-                            ),
-                          );
+                          if (isLoading == false) {
+                            _registerUser();
+                          }
                         },
                         style: ButtonStyle(
                           backgroundColor:
@@ -408,13 +562,19 @@ class _SignUpPageState extends State<SignUpPage> with WidgetsBindingObserver {
                             ),
                           ),
                         ),
-                        child: const Text(
-                          'Sign up',
-                          style: TextStyle(
-                            fontFamily: 'Inter',
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
+                        child: isLoading
+                            ? const Center(
+                                child: CircularProgressIndicator(
+                                  color: Colors.white,
+                                ),
+                              )
+                            : const Text(
+                                'Sign up',
+                                style: TextStyle(
+                                  fontFamily: 'Inter',
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
                       ),
                     ),
                     SizedBox(height: MediaQuery.of(context).size.height * 0.02),

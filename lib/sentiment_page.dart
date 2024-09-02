@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:signal_app/events_details.dart';
+// import 'package:signal_app/sentiments_details.dart';
 import 'package:signal_app/sentiment_page_view_coin.dart';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 class SentimentPage extends StatefulWidget {
   const SentimentPage({
@@ -21,7 +24,6 @@ class _SentimentPageState extends State<SentimentPage>
   String trendImg = 'images/lets-icons_up-white.png';
   String todayImg = 'images/wpf_today-black.png';
   String resultImg = 'images/carbon_result-new.png';
-  late List<ValueNotifier<List<ValueNotifier<bool>>>> tabStateNotifiers;
   OverlayEntry? _overlayEntry;
   ValueNotifier<bool> varNameNotifier = ValueNotifier<bool>(false);
   ValueNotifier<bool> varNameNotifier2 = ValueNotifier<bool>(false);
@@ -31,29 +33,21 @@ class _SentimentPageState extends State<SentimentPage>
   ValueNotifier<bool> varNameNotifier6 = ValueNotifier<bool>(false);
   ValueNotifier<bool> varNameNotifier7 = ValueNotifier<bool>(false);
   ValueNotifier<bool> varNameNotifier8 = ValueNotifier<bool>(false);
+  List<dynamic> sentiments = [];
+  final storage = const FlutterSecureStorage();
+  bool loading = true;
 
   @override
   void initState() {
     super.initState();
     tabController = TabController(length: 6, vsync: this);
     tabController!.addListener(_handleTabSelection);
-    tabStateNotifiers = List.generate(
-      6,
-      (tabIndex) => ValueNotifier<List<ValueNotifier<bool>>>(
-        List.generate(10, (index) => ValueNotifier<bool>(false)),
-      ),
-    );
+    fetchSentiments();
   }
 
   @override
   void dispose() {
     tabController?.dispose();
-    for (final notifier in tabStateNotifiers) {
-      for (final item in notifier.value) {
-        item.dispose();
-      }
-      notifier.dispose();
-    }
     super.dispose();
   }
 
@@ -226,6 +220,33 @@ class _SentimentPageState extends State<SentimentPage>
     _overlayEntry = null;
   }
 
+  Future<void> fetchSentiments() async {
+    setState(() {
+      loading = true;
+    });
+    final String? accessToken = await storage.read(key: 'accessToken');
+    const url = 'https://script.teendev.dev/signal/api/sentiments';
+    final response = await http.get(
+      Uri.parse(url),
+      headers: {
+        'Authorization': 'Bearer $accessToken',
+      },
+    );
+
+    if (response.statusCode == 200) {
+      setState(() {
+        sentiments = json.decode(response.body);
+        loading = false;
+      });
+    } else {
+      setState(() {
+        loading = false; // Failed to load data
+      });
+      // Handle the error accordingly
+      print('Failed to load sentiments');
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return OrientationBuilder(
@@ -303,29 +324,86 @@ class _SentimentPageState extends State<SentimentPage>
                       Expanded(
                         child: TabBarView(
                           controller: tabController,
-                          children: List.generate(
-                            6,
-                            (tabIndex) => ValueListenableBuilder<
-                                List<ValueNotifier<bool>>>(
-                              valueListenable: tabStateNotifiers[tabIndex],
-                              builder: (context, dropdownStates, child) {
-                                return ListView.builder(
-                                  itemCount: dropdownStates.length,
-                                  itemBuilder: (context, index) {
-                                    return cryptoCard(
-                                      dropdownStateNotifier:
-                                          dropdownStates[index],
-                                      toggleDropDown: () {
-                                        dropdownStates[index].value =
-                                            !dropdownStates[index].value;
-                                      },
-                                      context: context,
-                                    );
-                                  },
-                                );
-                              },
-                            ),
-                          ),
+                          children: [
+                            if (loading)
+                              const Center(
+                                child: CircularProgressIndicator(
+                                    color: Colors.black),
+                              )
+                            else
+                              ListView.builder(
+                                itemCount: sentiments.length,
+                                itemBuilder: (context, index) {
+                                  return cryptoCard(ValueNotifier<bool>(false),
+                                      sentiments[index]);
+                                },
+                              ),
+                            if (loading)
+                              const Center(
+                                child: CircularProgressIndicator(
+                                    color: Colors.black),
+                              )
+                            else
+                              ListView.builder(
+                                itemCount: sentiments.length,
+                                itemBuilder: (context, index) {
+                                  return cryptoCard(ValueNotifier<bool>(false),
+                                      sentiments[index]);
+                                },
+                              ),
+                            if (loading)
+                              const Center(
+                                child: CircularProgressIndicator(
+                                    color: Colors.black),
+                              )
+                            else
+                              ListView.builder(
+                                itemCount: sentiments.length,
+                                itemBuilder: (context, index) {
+                                  return cryptoCard(ValueNotifier<bool>(false),
+                                      sentiments[index]);
+                                },
+                              ),
+                            if (loading)
+                              const Center(
+                                child: CircularProgressIndicator(
+                                    color: Colors.black),
+                              )
+                            else
+                              ListView.builder(
+                                itemCount: sentiments.length,
+                                itemBuilder: (context, index) {
+                                  return cryptoCard(ValueNotifier<bool>(false),
+                                      sentiments[index]);
+                                },
+                              ),
+                            if (loading)
+                              const Center(
+                                child: CircularProgressIndicator(
+                                    color: Colors.black),
+                              )
+                            else
+                              ListView.builder(
+                                itemCount: sentiments.length,
+                                itemBuilder: (context, index) {
+                                  return cryptoCard(ValueNotifier<bool>(false),
+                                      sentiments[index]);
+                                },
+                              ),
+                            if (loading)
+                              const Center(
+                                child: CircularProgressIndicator(
+                                    color: Colors.black),
+                              )
+                            else
+                              ListView.builder(
+                                itemCount: sentiments.length,
+                                itemBuilder: (context, index) {
+                                  return cryptoCard(ValueNotifier<bool>(false),
+                                      sentiments[index]);
+                                },
+                              ),
+                          ],
                         ),
                       ),
                     ],
@@ -411,17 +489,54 @@ class _SentimentPageState extends State<SentimentPage>
     );
   }
 
-  Widget cryptoCard({
-    required ValueNotifier<bool> dropdownStateNotifier,
-    required VoidCallback toggleDropDown,
-    required BuildContext context,
-  }) {
+  Widget cryptoCard(ValueNotifier<bool> dropdownStateNotifier,
+      Map<String, dynamic> sentiment) {
+    int totalVotes =
+        int.parse(sentiment['upvotes']) + int.parse(sentiment['downvotes']);
+    double upvotePercentage =
+        totalVotes > 0 ? int.parse(sentiment['upvotes']) / totalVotes : 0.0;
     final screenWidth = MediaQuery.of(context).size.width;
     final screenHeight = MediaQuery.of(context).size.height;
 
+    Future<void> vote(String type) async {
+      final String? accessToken = await storage.read(key: 'accessToken');
+      final response = await http.post(
+        Uri.parse('https://script.teendev.dev/signal/api/vote'),
+        headers: {
+          'Authorization': 'Bearer $accessToken',
+          'Content-Type': 'application/json',
+        },
+        body: jsonEncode({
+          'type': type,
+          'id': sentiment['id'],
+        }),
+      );
+
+      if (response.statusCode == 200) {
+        // Handle success
+        print("Successfully ${type == 'upvote' ? 'Upvoted' : 'Downvoted'}");
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+                'Successfully ${type == 'upvote' ? 'Upvoted' : 'Downvoted'}'),
+          ),
+        );
+        await fetchSentiments();
+      } else if (response.statusCode == 400) {
+        // Handle bad request
+        print("Something isn't right");
+      } else if (response.statusCode == 401) {
+        // Handle unauthorized
+        print("Unauthorized");
+      } else if (response.statusCode == 422) {
+        // Handle validation errors
+        print("Validation error: ${response.body}");
+      }
+    }
+
     return ValueListenableBuilder<bool>(
       valueListenable: dropdownStateNotifier,
-      builder: (context, dropdownState, child) {
+      builder: (context, dropdownState, _) {
         return Padding(
           padding: EdgeInsets.symmetric(
             horizontal: screenWidth * 0.03,
@@ -432,7 +547,11 @@ class _SentimentPageState extends State<SentimentPage>
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => SentimentViewCoin(key: UniqueKey()),
+                  builder: (context) => SentimentViewCoin(
+                      key: UniqueKey(),
+                      sentimentId: sentiment['id'],
+                      sentimentTitle: sentiment['title'],
+                      sentimentImg: sentiment['image']),
                 ),
               );
             },
@@ -455,11 +574,19 @@ class _SentimentPageState extends State<SentimentPage>
                   Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Image.asset(
-                        'images/logos_bitcoin.png',
-                        width: screenWidth * 0.10,
-                        height: screenWidth * 0.10, // Maintain aspect ratio
-                        fit: BoxFit.cover,
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(35),
+                        child: Container(
+                          width: (48 / MediaQuery.of(context).size.width) *
+                              MediaQuery.of(context).size.width,
+                          height: (48 / MediaQuery.of(context).size.height) *
+                              MediaQuery.of(context).size.height,
+                          color: Colors.grey,
+                          child: Image.network(
+                            sentiment['image'],
+                            fit: BoxFit.cover,
+                          ),
+                        ),
                       ),
                       SizedBox(width: screenWidth * 0.02),
                       Flexible(
@@ -467,7 +594,9 @@ class _SentimentPageState extends State<SentimentPage>
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              'Bitcoin (BTC)',
+                              sentiment['title'],
+                              overflow: TextOverflow.ellipsis,
+                              maxLines: 1,
                               style: TextStyle(
                                 fontFamily: 'Inconsolata',
                                 fontWeight: FontWeight.bold,
@@ -476,7 +605,7 @@ class _SentimentPageState extends State<SentimentPage>
                               ),
                             ),
                             Text(
-                              '18 August 2024',
+                              sentiment['created_at'],
                               style: TextStyle(
                                 fontSize: screenWidth * 0.03,
                                 fontFamily: 'Inconsolata',
@@ -485,53 +614,67 @@ class _SentimentPageState extends State<SentimentPage>
                               ),
                             ),
                             SizedBox(height: screenHeight * 0.01),
-                            Row(
-                              children: [
-                                Text(
-                                  '151MM Token Unlock ',
-                                  style: TextStyle(
-                                    fontFamily: 'Inconsolata',
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: screenWidth * 0.04,
-                                    color: Colors.black,
-                                  ),
-                                ),
-                                Image.asset(
-                                  'images/lets-icons_up.png',
-                                  width: screenWidth * 0.04,
-                                  height: screenWidth * 0.04,
-                                  fit: BoxFit.cover,
-                                ),
-                                SizedBox(width: screenWidth * 0.01),
-                                Image.asset(
-                                  'images/noto_fire.png',
-                                  width: screenWidth * 0.04,
-                                  height: screenWidth * 0.04,
-                                  fit: BoxFit.cover,
-                                ),
-                                SizedBox(width: screenWidth * 0.01),
-                                Image.asset(
-                                  'images/noto_crown.png',
-                                  width: screenWidth * 0.04,
-                                  height: screenWidth * 0.04,
-                                  fit: BoxFit.cover,
-                                ),
-                              ],
+                            // Row(
+                            //   children: [
+                            //     Text(
+                            //       '151MM Token Unlock ',
+                            //       style: TextStyle(
+                            //         fontFamily: 'Inconsolata',
+                            //         fontWeight: FontWeight.bold,
+                            //         fontSize: screenWidth * 0.04,
+                            //         color: Colors.black,
+                            //       ),
+                            //     ),
+                            //     Image.asset(
+                            //       'images/lets-icons_up.png',
+                            //       width: screenWidth * 0.04,
+                            //       height: screenWidth * 0.04,
+                            //       fit: BoxFit.cover,
+                            //     ),
+                            //     SizedBox(width: screenWidth * 0.01),
+                            //     Image.asset(
+                            //       'images/noto_fire.png',
+                            //       width: screenWidth * 0.04,
+                            //       height: screenWidth * 0.04,
+                            //       fit: BoxFit.cover,
+                            //     ),
+                            //     SizedBox(width: screenWidth * 0.01),
+                            //     Image.asset(
+                            //       'images/noto_crown.png',
+                            //       width: screenWidth * 0.04,
+                            //       height: screenWidth * 0.04,
+                            //       fit: BoxFit.cover,
+                            //     ),
+                            //   ],
+                            // ),
+                            Text(
+                              sentiment['sub_text'],
+                              maxLines: 2, // Limits sub_text to two lines
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(
+                                fontFamily: 'Inconsolata',
+                                fontWeight: FontWeight.bold,
+                                fontSize: screenWidth * 0.04,
+                                color: Colors.black,
+                              ),
                             ),
                             Row(
+                              mainAxisAlignment: MainAxisAlignment.start,
                               children: [
                                 Text(
-                                  '95% | 20k votes ',
-                                  style: TextStyle(
+                                  '${(upvotePercentage * 100).toStringAsFixed(1)}% | $totalVotes votes ',
+                                  style: const TextStyle(
                                     fontFamily: 'Inconsolata',
-                                    fontSize: screenWidth * 0.04,
+                                    fontSize: 15,
                                     color: Colors.black,
                                   ),
                                 ),
                                 Stack(
                                   children: [
                                     Container(
-                                      width: screenWidth * 0.08,
+                                      width: MediaQuery.of(context).size.width *
+                                          0.2 *
+                                          upvotePercentage,
                                       height: 5,
                                       decoration: BoxDecoration(
                                         color: const Color(0xFF0000FF),
@@ -539,7 +682,8 @@ class _SentimentPageState extends State<SentimentPage>
                                       ),
                                     ),
                                     Container(
-                                      width: screenWidth * 0.16,
+                                      width: MediaQuery.of(context).size.width *
+                                          0.2,
                                       height: 5,
                                       decoration: BoxDecoration(
                                         border: Border.all(
@@ -564,7 +708,10 @@ class _SentimentPageState extends State<SentimentPage>
                                   ),
                                 ),
                                 GestureDetector(
-                                  onTap: toggleDropDown,
+                                  onTap: () {
+                                    dropdownStateNotifier.value =
+                                        !dropdownStateNotifier.value;
+                                  },
                                   child: Image.asset(
                                     dropdownState
                                         ? 'images/material-symbols_arrow-drop-down-upwards.png'
@@ -596,10 +743,10 @@ class _SentimentPageState extends State<SentimentPage>
                                     horizontal: screenWidth * 0.04,
                                     vertical: 6,
                                   ),
-                                  child: const Text(
-                                    'Bitcoin (BTC) is the most traded cryptocurrency in the market giving it a high market cap, and also best to invest in.',
+                                  child: Text(
+                                    sentiment['insight'],
                                     softWrap: true,
-                                    style: TextStyle(
+                                    style: const TextStyle(
                                       fontSize: 15,
                                       fontWeight: FontWeight.bold,
                                       fontFamily: 'Inconsolata',
@@ -612,22 +759,25 @@ class _SentimentPageState extends State<SentimentPage>
                         ),
                       ),
                       SizedBox(width: screenWidth * 0.02),
-                      Column(
-                        children: [
-                          Image.asset(
-                            'images/Thumbs-up.png',
-                            width: screenWidth * 0.07,
-                            height: screenWidth * 0.07,
-                            fit: BoxFit.cover,
-                          ),
-                          SizedBox(height: screenHeight * 0.02),
-                          Image.asset(
-                            'images/Thumbs-down.png',
-                            width: screenWidth * 0.07,
-                            height: screenWidth * 0.07,
-                            fit: BoxFit.cover,
-                          ),
-                        ],
+                      SizedBox(
+                        height: MediaQuery.of(context).size.height * 0.15,
+                        child: Column(
+                          children: [
+                            GestureDetector(
+                              onTap: () => vote('upvote'),
+                              child: Image.asset(
+                                'images/Thumbs-up.png',
+                              ),
+                            ),
+                            const Spacer(),
+                            GestureDetector(
+                              onTap: () => vote('downvote'),
+                              child: Image.asset(
+                                'images/Thumbs-down.png',
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                     ],
                   ),
