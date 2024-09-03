@@ -1305,16 +1305,16 @@ class _MainAppState extends State<MainApp> with TickerProviderStateMixin {
                                     color: Colors.black,
                                   ),
                                 ),
-                                Spacer(),
+                                const Spacer(),
                                 InkWell(
                                   onTap: () {
                                     if (_eduIndex == 0) {
                                       setState(() {
-                                        _currentBottomIndex = 0;
+                                        _currentBottomIndex = 2;
                                       });
                                     } else if (_eduIndex == 1) {
                                       setState(() {
-                                        _currentBottomIndex = 1;
+                                        _currentBottomIndex = 3;
                                       });
                                     }
                                   },
