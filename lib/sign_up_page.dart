@@ -144,7 +144,7 @@ class _SignUpPageState extends State<SignUpPage> with WidgetsBindingObserver {
       );
 
       // Navigate to the main app or another page
-      Navigator.push(
+      Navigator.pushReplacement(
         context,
         MaterialPageRoute(
           builder: (context) => MainApp(key: UniqueKey()),
@@ -577,40 +577,40 @@ class _SignUpPageState extends State<SignUpPage> with WidgetsBindingObserver {
                               ),
                       ),
                     ),
-                    SizedBox(height: MediaQuery.of(context).size.height * 0.02),
-                    const Center(
-                      child: Text(
-                        '- Or -',
-                        style: TextStyle(
-                          fontFamily: 'Inter',
-                          fontSize: 13.0,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.grey,
-                        ),
-                      ),
-                    ),
-                    SizedBox(height: MediaQuery.of(context).size.height * 0.02),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Image.asset(
-                            'images/flat-color-icons_google.png',
-                          ),
-                          SizedBox(
-                              width: MediaQuery.of(context).size.width * 0.05),
-                          Image.asset(
-                            'images/logos_facebook.png',
-                          ),
-                          SizedBox(
-                              width: MediaQuery.of(context).size.width * 0.05),
-                          Image.asset(
-                            'images/bi_apple.png',
-                          ),
-                        ],
-                      ),
-                    ),
+                    // SizedBox(height: MediaQuery.of(context).size.height * 0.02),
+                    // const Center(
+                    //   child: Text(
+                    //     '- Or -',
+                    //     style: TextStyle(
+                    //       fontFamily: 'Inter',
+                    //       fontSize: 13.0,
+                    //       fontWeight: FontWeight.bold,
+                    //       color: Colors.grey,
+                    //     ),
+                    //   ),
+                    // ),
+                    // SizedBox(height: MediaQuery.of(context).size.height * 0.02),
+                    // Padding(
+                    //   padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                    //   child: Row(
+                    //     mainAxisAlignment: MainAxisAlignment.center,
+                    //     children: [
+                    //       Image.asset(
+                    //         'images/flat-color-icons_google.png',
+                    //       ),
+                    //       SizedBox(
+                    //           width: MediaQuery.of(context).size.width * 0.05),
+                    //       Image.asset(
+                    //         'images/logos_facebook.png',
+                    //       ),
+                    //       SizedBox(
+                    //           width: MediaQuery.of(context).size.width * 0.05),
+                    //       Image.asset(
+                    //         'images/bi_apple.png',
+                    //       ),
+                    //     ],
+                    //   ),
+                    // ),
                   ],
                 ),
               ),

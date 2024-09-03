@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:signal_app/events_details.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:connectivity_plus/connectivity_plus.dart';
+import 'dart:async';
 
 class EventsPage extends StatefulWidget {
   const EventsPage({
@@ -22,6 +25,8 @@ class _EventsPageState extends State<EventsPage> with TickerProviderStateMixin {
   List<dynamic> events = [];
   final storage = const FlutterSecureStorage();
   bool loading = true;
+  final ScrollController _scrollController = ScrollController();
+  bool _isRefreshing = false;
 
   @override
   void initState() {
@@ -29,6 +34,16 @@ class _EventsPageState extends State<EventsPage> with TickerProviderStateMixin {
     tabController = TabController(length: 8, vsync: this);
     tabController!.addListener(_handleTabSelection);
     fetchEvents();
+    _scrollController.addListener(() {
+      if (_scrollController.offset <= 0) {
+        if (_isRefreshing) {
+          // Logic to cancel refresh if needed
+          setState(() {
+            _isRefreshing = false;
+          });
+        }
+      }
+    });
   }
 
   @override
@@ -86,6 +101,130 @@ class _EventsPageState extends State<EventsPage> with TickerProviderStateMixin {
     }
   }
 
+  Future<void> _refreshData() async {
+    setState(() {
+      _isRefreshing = true;
+    });
+
+    try {
+      // Check for internet connection
+      var connectivityResult = await (Connectivity().checkConnectivity());
+      if (connectivityResult == ConnectivityResult.none) {
+        _showNoInternetDialog(context);
+        setState(() {
+          _isRefreshing = false;
+        });
+        return;
+      }
+
+      // Set a timeout for the entire refresh operation
+      await Future.any([
+        Future.delayed(Duration(seconds: 15), () {
+          throw TimeoutException('The operation took too long.');
+        }),
+        _performDataFetch(),
+      ]);
+    } catch (e) {
+      if (e is TimeoutException) {
+        _showTimeoutDialog(context);
+      } else {
+        _showErrorDialog(context, e.toString());
+      }
+    } finally {
+      setState(() {
+        _isRefreshing = false;
+      });
+    }
+  }
+
+  Future<void> _performDataFetch() async {
+    await fetchEvents();
+  }
+
+  void _showNoInternetDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('No Internet Connection'),
+          content: const Text(
+            'It looks like you are not connected to the internet. Please check your connection and try again.',
+            style: TextStyle(fontSize: 16),
+          ),
+          actions: <Widget>[
+            TextButton(
+              child: const Text('Retry', style: TextStyle(color: Colors.blue)),
+              onPressed: () {
+                Navigator.of(context).pop();
+                _refreshData();
+              },
+            ),
+            TextButton(
+              child: const Text('Cancel', style: TextStyle(color: Colors.red)),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _showTimeoutDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Request Timed Out'),
+          content: const Text(
+            'The operation took too long to complete. Please try again later.',
+            style: TextStyle(fontSize: 16),
+          ),
+          actions: <Widget>[
+            TextButton(
+              child: Text('Retry', style: TextStyle(color: Colors.blue)),
+              onPressed: () {
+                Navigator.of(context).pop();
+                _refreshData();
+              },
+            ),
+            TextButton(
+              child: const Text('Cancel', style: TextStyle(color: Colors.red)),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _showErrorDialog(BuildContext context, String error) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Error'),
+          content: Text(
+            'An error occurred: $error',
+            style: TextStyle(fontSize: 16),
+          ),
+          actions: <Widget>[
+            TextButton(
+              child: const Text('Close', style: TextStyle(color: Colors.red)),
+              onPressed: () {
+                Navigator.of(context).pop();
+                _refreshData();
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return OrientationBuilder(
@@ -94,14 +233,26 @@ class _EventsPageState extends State<EventsPage> with TickerProviderStateMixin {
           body: Center(
             child: SizedBox(
               height: orientation == Orientation.portrait
-                  ? MediaQuery.of(context).size.height
-                  : MediaQuery.of(context).size.height * 1.5,
+                  ? MediaQuery
+                  .of(context)
+                  .size
+                  .height
+                  : MediaQuery
+                  .of(context)
+                  .size
+                  .height * 1.5,
               child: SizedBox(
-                height: MediaQuery.of(context).size.height,
+                height: MediaQuery
+                    .of(context)
+                    .size
+                    .height,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    SizedBox(height: MediaQuery.of(context).size.height * 0.1),
+                    SizedBox(height: MediaQuery
+                        .of(context)
+                        .size
+                        .height * 0.1),
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 20.0),
                       child: Row(
@@ -113,7 +264,10 @@ class _EventsPageState extends State<EventsPage> with TickerProviderStateMixin {
                             child: Image.asset('images/tabler_arrow-back.png'),
                           ),
                           SizedBox(
-                              width: MediaQuery.of(context).size.width * 0.02),
+                              width: MediaQuery
+                                  .of(context)
+                                  .size
+                                  .width * 0.02),
                           const Text(
                             'Events',
                             style: TextStyle(
@@ -130,7 +284,10 @@ class _EventsPageState extends State<EventsPage> with TickerProviderStateMixin {
                       ),
                     ),
                     SizedBox(
-                      height: MediaQuery.of(context).size.height * 0.03,
+                      height: MediaQuery
+                          .of(context)
+                          .size
+                          .height * 0.03,
                     ),
                     _latestInfoTabBar(),
                     Expanded(
@@ -143,11 +300,16 @@ class _EventsPageState extends State<EventsPage> with TickerProviderStateMixin {
                                   color: Colors.black),
                             )
                           else
-                            ListView.builder(
-                              itemCount: events.length,
-                              itemBuilder: (context, index) {
-                                return cryptoCard(events[index]);
-                              },
+                            RefreshIndicator(
+                              onRefresh: _refreshData,
+                              color: Colors.black,
+                              child: ListView.builder(
+                                controller: _scrollController,
+                                itemCount: events.length,
+                                itemBuilder: (context, index) {
+                                  return cryptoCard(events[index]);
+                                },
+                              ),
                             ),
                           if (loading)
                             const Center(
@@ -155,11 +317,16 @@ class _EventsPageState extends State<EventsPage> with TickerProviderStateMixin {
                                   color: Colors.black),
                             )
                           else
-                            ListView.builder(
-                              itemCount: events.length,
-                              itemBuilder: (context, index) {
-                                return cryptoCard(events[index]);
-                              },
+                            RefreshIndicator(
+                              onRefresh: _refreshData,
+                              color: Colors.black,
+                              child: ListView.builder(
+                                controller: _scrollController,
+                                itemCount: events.length,
+                                itemBuilder: (context, index) {
+                                  return cryptoCard(events[index]);
+                                },
+                              ),
                             ),
                           if (loading)
                             const Center(
@@ -167,11 +334,16 @@ class _EventsPageState extends State<EventsPage> with TickerProviderStateMixin {
                                   color: Colors.black),
                             )
                           else
-                            ListView.builder(
-                              itemCount: events.length,
-                              itemBuilder: (context, index) {
-                                return cryptoCard(events[index]);
-                              },
+                            RefreshIndicator(
+                              onRefresh: _refreshData,
+                              color: Colors.black,
+                              child: ListView.builder(
+                                controller: _scrollController,
+                                itemCount: events.length,
+                                itemBuilder: (context, index) {
+                                  return cryptoCard(events[index]);
+                                },
+                              ),
                             ),
                           if (loading)
                             const Center(
@@ -179,11 +351,16 @@ class _EventsPageState extends State<EventsPage> with TickerProviderStateMixin {
                                   color: Colors.black),
                             )
                           else
-                            ListView.builder(
-                              itemCount: events.length,
-                              itemBuilder: (context, index) {
-                                return cryptoCard(events[index]);
-                              },
+                            RefreshIndicator(
+                              onRefresh: _refreshData,
+                              color: Colors.black,
+                              child: ListView.builder(
+                                controller: _scrollController,
+                                itemCount: events.length,
+                                itemBuilder: (context, index) {
+                                  return cryptoCard(events[index]);
+                                },
+                              ),
                             ),
                           if (loading)
                             const Center(
@@ -191,11 +368,16 @@ class _EventsPageState extends State<EventsPage> with TickerProviderStateMixin {
                                   color: Colors.black),
                             )
                           else
-                            ListView.builder(
-                              itemCount: events.length,
-                              itemBuilder: (context, index) {
-                                return cryptoCard(events[index]);
-                              },
+                            RefreshIndicator(
+                              onRefresh: _refreshData,
+                              color: Colors.black,
+                              child: ListView.builder(
+                                controller: _scrollController,
+                                itemCount: events.length,
+                                itemBuilder: (context, index) {
+                                  return cryptoCard(events[index]);
+                                },
+                              ),
                             ),
                           if (loading)
                             const Center(
@@ -203,11 +385,16 @@ class _EventsPageState extends State<EventsPage> with TickerProviderStateMixin {
                                   color: Colors.black),
                             )
                           else
-                            ListView.builder(
-                              itemCount: events.length,
-                              itemBuilder: (context, index) {
-                                return cryptoCard(events[index]);
-                              },
+                            RefreshIndicator(
+                              onRefresh: _refreshData,
+                              color: Colors.black,
+                              child: ListView.builder(
+                                controller: _scrollController,
+                                itemCount: events.length,
+                                itemBuilder: (context, index) {
+                                  return cryptoCard(events[index]);
+                                },
+                              ),
                             ),
                           if (loading)
                             const Center(
@@ -215,11 +402,16 @@ class _EventsPageState extends State<EventsPage> with TickerProviderStateMixin {
                                   color: Colors.black),
                             )
                           else
-                            ListView.builder(
-                              itemCount: events.length,
-                              itemBuilder: (context, index) {
-                                return cryptoCard(events[index]);
-                              },
+                            RefreshIndicator(
+                              onRefresh: _refreshData,
+                              color: Colors.black,
+                              child: ListView.builder(
+                                controller: _scrollController,
+                                itemCount: events.length,
+                                itemBuilder: (context, index) {
+                                  return cryptoCard(events[index]);
+                                },
+                              ),
                             ),
                           if (loading)
                             const Center(
@@ -227,11 +419,16 @@ class _EventsPageState extends State<EventsPage> with TickerProviderStateMixin {
                                   color: Colors.black),
                             )
                           else
-                            ListView.builder(
-                              itemCount: events.length,
-                              itemBuilder: (context, index) {
-                                return cryptoCard(events[index]);
-                              },
+                            RefreshIndicator(
+                              onRefresh: _refreshData,
+                              color: Colors.black,
+                              child: ListView.builder(
+                                controller: _scrollController,
+                                itemCount: events.length,
+                                itemBuilder: (context, index) {
+                                  return cryptoCard(events[index]);
+                                },
+                              ),
                             ),
                         ],
                       ),
@@ -257,7 +454,7 @@ class _EventsPageState extends State<EventsPage> with TickerProviderStateMixin {
           ),
           indicatorSize: TabBarIndicatorSize.label,
           indicatorPadding:
-              const EdgeInsets.only(left: 2.1, right: 2.1, bottom: 6.6, top: 5),
+          const EdgeInsets.only(left: 2.1, right: 2.1, bottom: 6.6, top: 5),
           dividerHeight: 0,
           tabAlignment: TabAlignment.start,
           controller: tabController!,
@@ -305,7 +502,10 @@ class _EventsPageState extends State<EventsPage> with TickerProviderStateMixin {
               Image.asset(
                 img,
               ),
-            SizedBox(width: MediaQuery.of(context).size.width * 0.01),
+            SizedBox(width: MediaQuery
+                .of(context)
+                .size
+                .width * 0.01),
             Text(
               label,
               style: const TextStyle(
@@ -321,12 +521,39 @@ class _EventsPageState extends State<EventsPage> with TickerProviderStateMixin {
   }
 
   Widget cryptoCard(Map<String, dynamic> event) {
-    int totalVotes =
-        int.parse(event['upvotes']) + int.parse(event['downvotes']);
-    double upvotePercentage =
-        totalVotes > 0 ? int.parse(event['upvotes']) / totalVotes : 0.0;
+    int upvotes = event['upvotes'] is int ? event['upvotes'] : int.parse(event['upvotes']);
+    int downvotes = event['downvotes'] is int ? event['downvotes'] : int.parse(event['downvotes']);
+    int totalVotes = upvotes + downvotes;
+    double upvotePercentage = totalVotes > 0 ? upvotes / totalVotes : 0.0;
+    final screenWidth = MediaQuery.of(context).size.width;
+    final screenHeight = MediaQuery.of(context).size.height;
 
+    // Function to check if the user has already voted
+    Future<bool> hasVoted(String eventId) async {
+      final prefs = await SharedPreferences.getInstance();
+      return prefs.getBool('hasVoted_$eventId') ?? false;
+    }
+
+// Function to set the voting status
+    Future<void> setVoted(String eventId, String voteType) async {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setBool('hasVoted_$eventId', true);
+      await prefs.setString('voteType_$eventId', voteType);
+    }
+
+// Modified vote function
     Future<void> vote(String type) async {
+      final String eventId = event['id'].toString(); // Ensure ID is a string
+
+      if (await hasVoted(eventId)) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('You have already voted on this event.'),
+          ),
+        );
+        return;
+      }
+
       final String? accessToken = await storage.read(key: 'accessToken');
       final response = await http.post(
         Uri.parse('https://script.teendev.dev/signal/api/vote'),
@@ -341,23 +568,32 @@ class _EventsPageState extends State<EventsPage> with TickerProviderStateMixin {
       );
 
       if (response.statusCode == 200) {
-        // Handle success
-        print("Successfully ${type == 'upvote' ? 'Upvoted' : 'Downvoted'}");
+        // Update local vote status and event counts
+        await setVoted(eventId, type);
+        if (type == 'upvote') {
+          event['upvotes'] = (int.parse(event['upvotes']) + 1).toString();
+        } else {
+          event['downvotes'] = (int.parse(event['downvotes']) + 1).toString();
+        }
+
+        // Recalculate the vote percentage
+        totalVotes =
+            int.parse(event['upvotes']) + int.parse(event['downvotes']);
+        upvotePercentage =
+        totalVotes > 0 ? int.parse(event['upvotes']) / totalVotes : 0.0;
+
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
                 'Successfully ${type == 'upvote' ? 'Upvoted' : 'Downvoted'}'),
           ),
         );
-        await fetchEvents();
+        setState(() {});
       } else if (response.statusCode == 400) {
-        // Handle bad request
         print("Something isn't right");
       } else if (response.statusCode == 401) {
-        // Handle unauthorized
         print("Unauthorized");
       } else if (response.statusCode == 422) {
-        // Handle validation errors
         print("Validation error: ${response.body}");
       }
     }
@@ -395,10 +631,22 @@ class _EventsPageState extends State<EventsPage> with TickerProviderStateMixin {
                   ClipRRect(
                     borderRadius: BorderRadius.circular(35),
                     child: Container(
-                      width: (48 / MediaQuery.of(context).size.width) *
-                          MediaQuery.of(context).size.width,
-                      height: (48 / MediaQuery.of(context).size.height) *
-                          MediaQuery.of(context).size.height,
+                      width: (48 / MediaQuery
+                          .of(context)
+                          .size
+                          .width) *
+                          MediaQuery
+                              .of(context)
+                              .size
+                              .width,
+                      height: (48 / MediaQuery
+                          .of(context)
+                          .size
+                          .height) *
+                          MediaQuery
+                              .of(context)
+                              .size
+                              .height,
                       color: Colors.grey,
                       child: Image.network(
                         event['image'],
@@ -406,7 +654,10 @@ class _EventsPageState extends State<EventsPage> with TickerProviderStateMixin {
                       ),
                     ),
                   ),
-                  SizedBox(width: MediaQuery.of(context).size.width * 0.03),
+                  SizedBox(width: MediaQuery
+                      .of(context)
+                      .size
+                      .width * 0.03),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -432,7 +683,10 @@ class _EventsPageState extends State<EventsPage> with TickerProviderStateMixin {
                           ),
                         ),
                         SizedBox(
-                          height: MediaQuery.of(context).size.height * 0.02,
+                          height: MediaQuery
+                              .of(context)
+                              .size
+                              .height * 0.02,
                         ),
                         Text(
                           event['sub_text'],
@@ -448,36 +702,38 @@ class _EventsPageState extends State<EventsPage> with TickerProviderStateMixin {
                           mainAxisAlignment: MainAxisAlignment.start,
                           children: [
                             Text(
-                              '${(upvotePercentage * 100).toStringAsFixed(1)}% | $totalVotes votes ',
+                              'Upvotes: ${event['upvotes']} | Downvotes: ${event['downvotes']}',
                               style: const TextStyle(
                                 fontFamily: 'Inconsolata',
                                 fontSize: 15,
                                 color: Colors.black,
                               ),
                             ),
-                            Stack(
-                              children: [
-                                Container(
-                                  width: MediaQuery.of(context).size.width *
-                                      0.2 *
-                                      upvotePercentage,
-                                  height: 5,
-                                  decoration: BoxDecoration(
-                                    color: const Color(0xFF0000FF),
-                                    borderRadius: BorderRadius.circular(0),
-                                  ),
-                                ),
-                                Container(
-                                  width:
-                                      MediaQuery.of(context).size.width * 0.2,
-                                  height: 5,
-                                  decoration: BoxDecoration(
-                                    border: Border.all(
-                                        width: 0.5, color: Colors.black),
-                                    borderRadius: BorderRadius.circular(0),
-                                  ),
-                                ),
-                              ],
+
+                          ],
+                        ),
+                        SizedBox(height: screenHeight * 0.02),
+                        Stack(
+                          children: [
+                            Container(
+                              width: MediaQuery.of(context).size.width *
+                                  0.2 *
+                                  upvotePercentage,
+                              height: 5,
+                              decoration: BoxDecoration(
+                                color: const Color(0xFF0000FF),
+                                borderRadius: BorderRadius.circular(0),
+                              ),
+                            ),
+                            Container(
+                              width: MediaQuery.of(context).size.width *
+                                  0.2,
+                              height: 5,
+                              decoration: BoxDecoration(
+                                border: Border.all(
+                                    width: 0.5, color: Colors.black),
+                                borderRadius: BorderRadius.circular(0),
+                              ),
                             ),
                           ],
                         ),
@@ -485,7 +741,10 @@ class _EventsPageState extends State<EventsPage> with TickerProviderStateMixin {
                     ),
                   ),
                   SizedBox(
-                    height: MediaQuery.of(context).size.height * 0.15,
+                    height: MediaQuery
+                        .of(context)
+                        .size
+                        .height * 0.15,
                     child: Column(
                       children: [
                         GestureDetector(

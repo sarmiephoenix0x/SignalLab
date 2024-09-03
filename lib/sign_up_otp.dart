@@ -232,7 +232,7 @@ class _SignUpOTPPageState extends State<SignUpOTPPage> {
                       padding: const EdgeInsets.symmetric(horizontal: 20.0),
                       child: ElevatedButton(
                         onPressed: () {
-                          Navigator.push(
+                          Navigator.pushReplacement(
                             context,
                             MaterialPageRoute(
                               builder: (context) => MainApp(key: UniqueKey()),

@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:connectivity_plus/connectivity_plus.dart';
+import 'dart:async';
 
 class NewsDetails extends StatefulWidget {
   final int newsId;
@@ -19,6 +21,8 @@ class NewsDetailsState extends State<NewsDetails> {
   final FocusNode _commentFocusNode = FocusNode();
 
   final TextEditingController commentController = TextEditingController();
+  final ScrollController _scrollController = ScrollController();
+  bool _isRefreshing = false;
 
   void _showPopupMenu(BuildContext context) async {
     final RenderBox renderBox =
@@ -143,6 +147,16 @@ class NewsDetailsState extends State<NewsDetails> {
   void initState() {
     super.initState();
     _newsFuture = fetchNewsDetails(widget.newsId);
+      _scrollController.addListener(() {
+        if (_scrollController.offset <= 0) {
+          if (_isRefreshing) {
+            // Logic to cancel refresh if needed
+            setState(() {
+              _isRefreshing = false;
+            });
+          }
+        }
+      });
   }
 
   Future<Map<String, dynamic>?> fetchNewsDetails(int id) async {
@@ -183,6 +197,16 @@ class NewsDetailsState extends State<NewsDetails> {
       print('An unexpected error occurred: $e');
       return null;
     }
+  }
+
+  Future<void> _refreshData() async {
+    setState(() {
+      _isRefreshing = true;
+    });
+    _newsFuture = fetchNewsDetails(widget.newsId);
+    setState(() {
+      _isRefreshing = false;
+    });
   }
 
   @override
@@ -306,6 +330,10 @@ class NewsDetailsState extends State<NewsDetails> {
                                       style: const TextStyle(
                                           fontSize: 16, fontFamily: 'Inter'),
                                     ),
+                                  ),
+                                  SizedBox(
+                                    height: MediaQuery.of(context).size.height *
+                                        0.1,
                                   ),
                                 ],
                               ),

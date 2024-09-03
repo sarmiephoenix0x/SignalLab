@@ -1,10 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
 // import 'package:signal_app/sentiments_details.dart';
 import 'package:signal_app/sentiment_page_view_coin.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:connectivity_plus/connectivity_plus.dart';
+import 'dart:async';
 
 class SentimentPage extends StatefulWidget {
   const SentimentPage({
@@ -36,6 +40,8 @@ class _SentimentPageState extends State<SentimentPage>
   List<dynamic> sentiments = [];
   final storage = const FlutterSecureStorage();
   bool loading = true;
+  final ScrollController _scrollController = ScrollController();
+  bool _isRefreshing = false;
 
   @override
   void initState() {
@@ -43,6 +49,16 @@ class _SentimentPageState extends State<SentimentPage>
     tabController = TabController(length: 6, vsync: this);
     tabController!.addListener(_handleTabSelection);
     fetchSentiments();
+    _scrollController.addListener(() {
+      if (_scrollController.offset <= 0) {
+        if (_isRefreshing) {
+          // Logic to cancel refresh if needed
+          setState(() {
+            _isRefreshing = false;
+          });
+        }
+      }
+    });
   }
 
   @override
@@ -93,7 +109,8 @@ class _SentimentPageState extends State<SentimentPage>
         child: GestureDetector(
           onTap: _removeOverlay, // Close the overlay on tap outside
           child: Material(
-            color: Colors.black.withOpacity(0.5), // Semi-transparent background
+            color: Colors.black.withOpacity(0.5),
+            // Semi-transparent background
             child: Center(
               child: GestureDetector(
                 onTap: () {
@@ -117,8 +134,8 @@ class _SentimentPageState extends State<SentimentPage>
                   ),
                   child: SingleChildScrollView(
                     child: Column(
-                      mainAxisSize: MainAxisSize
-                          .min, // Makes container adjust height based on content
+                      mainAxisSize: MainAxisSize.min,
+                      // Makes container adjust height based on content
                       children: [
                         const Text(
                           'Filter',
@@ -247,6 +264,130 @@ class _SentimentPageState extends State<SentimentPage>
     }
   }
 
+  Future<void> _refreshData() async {
+    setState(() {
+      _isRefreshing = true;
+    });
+
+    try {
+      // Check for internet connection
+      var connectivityResult = await (Connectivity().checkConnectivity());
+      if (connectivityResult == ConnectivityResult.none) {
+        _showNoInternetDialog(context);
+        setState(() {
+          _isRefreshing = false;
+        });
+        return;
+      }
+
+      // Set a timeout for the entire refresh operation
+      await Future.any([
+        Future.delayed(const Duration(seconds: 15), () {
+          throw TimeoutException('The operation took too long.');
+        }),
+        _performDataFetch(),
+      ]);
+    } catch (e) {
+      if (e is TimeoutException) {
+        _showTimeoutDialog(context);
+      } else {
+        _showErrorDialog(context, e.toString());
+      }
+    } finally {
+      setState(() {
+        _isRefreshing = false;
+      });
+    }
+  }
+
+  Future<void> _performDataFetch() async {
+    await fetchSentiments();
+  }
+
+  void _showNoInternetDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('No Internet Connection'),
+          content: const Text(
+            'It looks like you are not connected to the internet. Please check your connection and try again.',
+            style: TextStyle(fontSize: 16),
+          ),
+          actions: <Widget>[
+            TextButton(
+              child: const Text('Retry', style: TextStyle(color: Colors.blue)),
+              onPressed: () {
+                Navigator.of(context).pop();
+                _refreshData();
+              },
+            ),
+            TextButton(
+              child: const Text('Cancel', style: TextStyle(color: Colors.red)),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _showTimeoutDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Request Timed Out'),
+          content: const Text(
+            'The operation took too long to complete. Please try again later.',
+            style: TextStyle(fontSize: 16),
+          ),
+          actions: <Widget>[
+            TextButton(
+              child: const Text('Retry', style: TextStyle(color: Colors.blue)),
+              onPressed: () {
+                Navigator.of(context).pop();
+                _refreshData();
+              },
+            ),
+            TextButton(
+              child: const Text('Cancel', style: TextStyle(color: Colors.red)),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _showErrorDialog(BuildContext context, String error) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Error'),
+          content: Text(
+            'An error occurred: $error',
+            style: const TextStyle(fontSize: 16),
+          ),
+          actions: <Widget>[
+            TextButton(
+              child: const Text('Close', style: TextStyle(color: Colors.red)),
+              onPressed: () {
+                Navigator.of(context).pop();
+                _refreshData();
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return OrientationBuilder(
@@ -331,12 +472,18 @@ class _SentimentPageState extends State<SentimentPage>
                                     color: Colors.black),
                               )
                             else
-                              ListView.builder(
-                                itemCount: sentiments.length,
-                                itemBuilder: (context, index) {
-                                  return cryptoCard(ValueNotifier<bool>(false),
-                                      sentiments[index]);
-                                },
+                              RefreshIndicator(
+                                onRefresh: _refreshData,
+                                color: Colors.black,
+                                child: ListView.builder(
+                                  controller: _scrollController,
+                                  itemCount: sentiments.length,
+                                  itemBuilder: (context, index) {
+                                    return cryptoCard(
+                                        ValueNotifier<bool>(false),
+                                        sentiments[index]);
+                                  },
+                                ),
                               ),
                             if (loading)
                               const Center(
@@ -344,12 +491,18 @@ class _SentimentPageState extends State<SentimentPage>
                                     color: Colors.black),
                               )
                             else
-                              ListView.builder(
-                                itemCount: sentiments.length,
-                                itemBuilder: (context, index) {
-                                  return cryptoCard(ValueNotifier<bool>(false),
-                                      sentiments[index]);
-                                },
+                              RefreshIndicator(
+                                onRefresh: _refreshData,
+                                color: Colors.black,
+                                child: ListView.builder(
+                                  controller: _scrollController,
+                                  itemCount: sentiments.length,
+                                  itemBuilder: (context, index) {
+                                    return cryptoCard(
+                                        ValueNotifier<bool>(false),
+                                        sentiments[index]);
+                                  },
+                                ),
                               ),
                             if (loading)
                               const Center(
@@ -357,12 +510,18 @@ class _SentimentPageState extends State<SentimentPage>
                                     color: Colors.black),
                               )
                             else
-                              ListView.builder(
-                                itemCount: sentiments.length,
-                                itemBuilder: (context, index) {
-                                  return cryptoCard(ValueNotifier<bool>(false),
-                                      sentiments[index]);
-                                },
+                              RefreshIndicator(
+                                onRefresh: _refreshData,
+                                color: Colors.black,
+                                child: ListView.builder(
+                                  controller: _scrollController,
+                                  itemCount: sentiments.length,
+                                  itemBuilder: (context, index) {
+                                    return cryptoCard(
+                                        ValueNotifier<bool>(false),
+                                        sentiments[index]);
+                                  },
+                                ),
                               ),
                             if (loading)
                               const Center(
@@ -370,12 +529,18 @@ class _SentimentPageState extends State<SentimentPage>
                                     color: Colors.black),
                               )
                             else
-                              ListView.builder(
-                                itemCount: sentiments.length,
-                                itemBuilder: (context, index) {
-                                  return cryptoCard(ValueNotifier<bool>(false),
-                                      sentiments[index]);
-                                },
+                              RefreshIndicator(
+                                onRefresh: _refreshData,
+                                color: Colors.black,
+                                child: ListView.builder(
+                                  controller: _scrollController,
+                                  itemCount: sentiments.length,
+                                  itemBuilder: (context, index) {
+                                    return cryptoCard(
+                                        ValueNotifier<bool>(false),
+                                        sentiments[index]);
+                                  },
+                                ),
                               ),
                             if (loading)
                               const Center(
@@ -383,12 +548,18 @@ class _SentimentPageState extends State<SentimentPage>
                                     color: Colors.black),
                               )
                             else
-                              ListView.builder(
-                                itemCount: sentiments.length,
-                                itemBuilder: (context, index) {
-                                  return cryptoCard(ValueNotifier<bool>(false),
-                                      sentiments[index]);
-                                },
+                              RefreshIndicator(
+                                onRefresh: _refreshData,
+                                color: Colors.black,
+                                child: ListView.builder(
+                                  controller: _scrollController,
+                                  itemCount: sentiments.length,
+                                  itemBuilder: (context, index) {
+                                    return cryptoCard(
+                                        ValueNotifier<bool>(false),
+                                        sentiments[index]);
+                                  },
+                                ),
                               ),
                             if (loading)
                               const Center(
@@ -396,12 +567,18 @@ class _SentimentPageState extends State<SentimentPage>
                                     color: Colors.black),
                               )
                             else
-                              ListView.builder(
-                                itemCount: sentiments.length,
-                                itemBuilder: (context, index) {
-                                  return cryptoCard(ValueNotifier<bool>(false),
-                                      sentiments[index]);
-                                },
+                              RefreshIndicator(
+                                onRefresh: _refreshData,
+                                color: Colors.black,
+                                child: ListView.builder(
+                                  controller: _scrollController,
+                                  itemCount: sentiments.length,
+                                  itemBuilder: (context, index) {
+                                    return cryptoCard(
+                                        ValueNotifier<bool>(false),
+                                        sentiments[index]);
+                                  },
+                                ),
                               ),
                           ],
                         ),
@@ -491,14 +668,39 @@ class _SentimentPageState extends State<SentimentPage>
 
   Widget cryptoCard(ValueNotifier<bool> dropdownStateNotifier,
       Map<String, dynamic> sentiment) {
-    int totalVotes =
-        int.parse(sentiment['upvotes']) + int.parse(sentiment['downvotes']);
-    double upvotePercentage =
-        totalVotes > 0 ? int.parse(sentiment['upvotes']) / totalVotes : 0.0;
+    int upvotes = sentiment['upvotes'] is int ? sentiment['upvotes'] : int.parse(sentiment['upvotes']);
+    int downvotes = sentiment['downvotes'] is int ? sentiment['downvotes'] : int.parse(sentiment['downvotes']);
+    int totalVotes = upvotes + downvotes;
+    double upvotePercentage = totalVotes > 0 ? upvotes / totalVotes : 0.0;
     final screenWidth = MediaQuery.of(context).size.width;
     final screenHeight = MediaQuery.of(context).size.height;
 
+    // Function to check if the user has already voted
+    Future<bool> hasVoted(String sentimentId) async {
+      final prefs = await SharedPreferences.getInstance();
+      return prefs.getBool('hasVoted_$sentimentId') ?? false;
+    }
+
+// Function to set the voting status
+    Future<void> setVoted(String sentimentId, String voteType) async {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setBool('hasVoted_$sentimentId', true);
+      await prefs.setString('voteType_$sentimentId', voteType);
+    }
+
+// Modified vote function
     Future<void> vote(String type) async {
+      final String sentimentId = sentiment['id'].toString(); // Ensure ID is a string
+
+      if (await hasVoted(sentimentId)) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('You have already voted on this sentiment.'),
+          ),
+        );
+        return;
+      }
+
       final String? accessToken = await storage.read(key: 'accessToken');
       final response = await http.post(
         Uri.parse('https://script.teendev.dev/signal/api/vote'),
@@ -513,23 +715,32 @@ class _SentimentPageState extends State<SentimentPage>
       );
 
       if (response.statusCode == 200) {
-        // Handle success
-        print("Successfully ${type == 'upvote' ? 'Upvoted' : 'Downvoted'}");
+        // Update local vote status and sentiment counts
+        await setVoted(sentimentId, type);
+        if (type == 'upvote') {
+          sentiment['upvotes'] = (int.parse(sentiment['upvotes']) + 1).toString();
+        } else {
+          sentiment['downvotes'] = (int.parse(sentiment['downvotes']) + 1).toString();
+        }
+
+        // Recalculate the vote percentage
+        totalVotes =
+            int.parse(sentiment['upvotes']) + int.parse(sentiment['downvotes']);
+        upvotePercentage =
+        totalVotes > 0 ? int.parse(sentiment['upvotes']) / totalVotes : 0.0;
+
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
                 'Successfully ${type == 'upvote' ? 'Upvoted' : 'Downvoted'}'),
           ),
         );
-        await fetchSentiments();
+        setState(() {});
       } else if (response.statusCode == 400) {
-        // Handle bad request
         print("Something isn't right");
       } else if (response.statusCode == 401) {
-        // Handle unauthorized
         print("Unauthorized");
       } else if (response.statusCode == 422) {
-        // Handle validation errors
         print("Validation error: ${response.body}");
       }
     }
@@ -662,36 +873,38 @@ class _SentimentPageState extends State<SentimentPage>
                               mainAxisAlignment: MainAxisAlignment.start,
                               children: [
                                 Text(
-                                  '${(upvotePercentage * 100).toStringAsFixed(1)}% | $totalVotes votes ',
+                                  'Upvotes: ${sentiment['upvotes']} | Downvotes: ${sentiment['downvotes']}',
                                   style: const TextStyle(
                                     fontFamily: 'Inconsolata',
                                     fontSize: 15,
                                     color: Colors.black,
                                   ),
                                 ),
-                                Stack(
-                                  children: [
-                                    Container(
-                                      width: MediaQuery.of(context).size.width *
-                                          0.2 *
-                                          upvotePercentage,
-                                      height: 5,
-                                      decoration: BoxDecoration(
-                                        color: const Color(0xFF0000FF),
-                                        borderRadius: BorderRadius.circular(0),
-                                      ),
-                                    ),
-                                    Container(
-                                      width: MediaQuery.of(context).size.width *
-                                          0.2,
-                                      height: 5,
-                                      decoration: BoxDecoration(
-                                        border: Border.all(
-                                            width: 0.5, color: Colors.black),
-                                        borderRadius: BorderRadius.circular(0),
-                                      ),
-                                    ),
-                                  ],
+
+                              ],
+                            ),
+                            SizedBox(height: screenHeight * 0.02),
+                            Stack(
+                              children: [
+                                Container(
+                                  width: MediaQuery.of(context).size.width *
+                                      0.2 *
+                                      upvotePercentage,
+                                  height: 5,
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFF0000FF),
+                                    borderRadius: BorderRadius.circular(0),
+                                  ),
+                                ),
+                                Container(
+                                  width: MediaQuery.of(context).size.width *
+                                      0.2,
+                                  height: 5,
+                                  decoration: BoxDecoration(
+                                    border: Border.all(
+                                        width: 0.5, color: Colors.black),
+                                    borderRadius: BorderRadius.circular(0),
+                                  ),
                                 ),
                               ],
                             ),

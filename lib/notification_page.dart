@@ -3,11 +3,11 @@ import 'package:intl/intl.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:connectivity_plus/connectivity_plus.dart';
+import 'dart:async';
 
 class NotificationPage extends StatefulWidget {
-  const NotificationPage({
-    super.key,
-  });
+  const NotificationPage({super.key});
 
   @override
   NotificationPageState createState() => NotificationPageState();
@@ -16,11 +16,23 @@ class NotificationPage extends StatefulWidget {
 class NotificationPageState extends State<NotificationPage> {
   late Future<List<Map<String, dynamic>>> _notificationsFuture;
   final storage = const FlutterSecureStorage();
+  final ScrollController _scrollController = ScrollController();
+  bool _isRefreshing = false;
 
   @override
   void initState() {
     super.initState();
     _notificationsFuture = fetchNotifications();
+    _scrollController.addListener(() {
+      if (_scrollController.offset <= 0) {
+        if (_isRefreshing) {
+          // Logic to cancel refresh if needed
+          setState(() {
+            _isRefreshing = false;
+          });
+        }
+      }
+    });
   }
 
   Future<List<Map<String, dynamic>>> fetchNotifications() async {
@@ -48,12 +60,18 @@ class NotificationPageState extends State<NotificationPage> {
 
   DateTime parseRelativeDate(String relativeDate) {
     final now = DateTime.now();
+    final dateFormats = {
+      'day': const Duration(days: 1),
+      'hours': const Duration(hours: 1),
+      'minutes': const Duration(minutes: 1),
+    };
 
-    if (relativeDate.contains("day")) {
-      final daysAgo = int.parse(relativeDate.split(" ")[0]);
-      return now.subtract(Duration(days: daysAgo));
+    for (var format in dateFormats.keys) {
+      if (relativeDate.contains(format)) {
+        final amount = int.parse(relativeDate.split(" ")[0]);
+        return now.subtract(dateFormats[format]! * amount);
+      }
     }
-    // Handle other cases (e.g., hours ago, minutes ago) if necessary
 
     return now; // Fallback to current date if parsing fails
   }
@@ -76,81 +94,258 @@ class NotificationPageState extends State<NotificationPage> {
     }
   }
 
+  Future<void> _refreshData() async {
+    setState(() {
+      _isRefreshing = true;
+    });
+
+    try {
+      // Check for internet connection
+      var connectivityResult = await (Connectivity().checkConnectivity());
+      if (connectivityResult == ConnectivityResult.none) {
+        _showNoInternetDialog(context);
+        setState(() {
+          _isRefreshing = false;
+        });
+        return;
+      }
+
+      // Set a timeout for the entire refresh operation
+      await Future.any([
+        Future.delayed(const Duration(seconds: 15), () {
+          throw TimeoutException('The operation took too long.');
+        }),
+        _performDataFetch(),
+      ]);
+
+    } catch (e) {
+      if (e is TimeoutException) {
+        _showTimeoutDialog(context);
+      } else {
+        _showErrorDialog(context, e.toString());
+      }
+    } finally {
+      setState(() {
+        _isRefreshing = false;
+      });
+    }
+  }
+
+  Future<void> _performDataFetch() async {
+    _notificationsFuture = fetchNotifications();
+  }
+
+  void _showNoInternetDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('No Internet Connection'),
+          content: const Text(
+            'It looks like you are not connected to the internet. Please check your connection and try again.',
+            style: TextStyle(fontSize: 16),
+          ),
+          actions: <Widget>[
+            TextButton(
+              child: const Text('Retry', style: TextStyle(color: Colors.blue)),
+              onPressed: () {
+                Navigator.of(context).pop();
+                _refreshData();
+              },
+            ),
+            TextButton(
+              child: const Text('Cancel', style: TextStyle(color: Colors.red)),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _showTimeoutDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Request Timed Out'),
+          content: const Text(
+            'The operation took too long to complete. Please try again later.',
+            style: TextStyle(fontSize: 16),
+          ),
+          actions: <Widget>[
+            TextButton(
+              child: const Text('Retry', style: TextStyle(color: Colors.blue)),
+              onPressed: () {
+                Navigator.of(context).pop();
+                _refreshData();
+              },
+            ),
+            TextButton(
+              child: const Text('Cancel', style: TextStyle(color: Colors.red)),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _showErrorDialog(BuildContext context, String error) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Error'),
+          content: Text(
+            'An error occurred: $error',
+            style: const TextStyle(fontSize: 16),
+          ),
+          actions: <Widget>[
+            TextButton(
+              child: const Text('Close', style: TextStyle(color: Colors.red)),
+              onPressed: () {
+                Navigator.of(context).pop();
+                _refreshData();
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+
+
   @override
   Widget build(BuildContext context) {
     return OrientationBuilder(
       builder: (context, orientation) {
         return Scaffold(
-          body: FutureBuilder<List<Map<String, dynamic>>>(
-            future: _notificationsFuture,
-            builder: (context, snapshot) {
-              if (snapshot.connectionState == ConnectionState.waiting) {
-                return const Center(
-                    child: CircularProgressIndicator(color: Colors.black));
-              } else if (snapshot.hasError) {
-                return Center(child: Text('Error: ${snapshot.error}'));
-              } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                return const Center(child: Text('No notifications available'));
-              }
-
-              List<Map<String, dynamic>> notifications = snapshot.data!;
-              Map<String, List<Map<String, dynamic>>> groupedNotifications = {};
-
-              for (var notification in notifications) {
-                String formattedDate = formatDate(notification['created_at']);
-                if (groupedNotifications.containsKey(formattedDate)) {
-                  groupedNotifications[formattedDate]!.add(notification);
-                } else {
-                  groupedNotifications[formattedDate] = [notification];
+          body: RefreshIndicator(
+            onRefresh: _refreshData,
+            color: Colors.black,
+            child: FutureBuilder<List<Map<String, dynamic>>>(
+              future: _notificationsFuture,
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Center(
+                      child: CircularProgressIndicator(color: Colors.black));
+                } else if (snapshot.hasError) {
+                  return Center(child: Text('Error: ${snapshot.error}'));
+                } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                  return const Center(
+                      child: Text('No notifications available'));
                 }
-              }
 
-              return SingleChildScrollView(
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: groupedNotifications.entries.map((entry) {
-                      return Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          SizedBox(
-                              height:
-                                  MediaQuery.of(context).size.height * 0.05),
-                          Text(
-                            entry.key,
-                            style: const TextStyle(
-                              fontFamily: 'Inter',
-                              fontWeight: FontWeight.bold,
-                              fontSize: 22.0,
-                              color: Colors.black,
+                List<Map<String, dynamic>> notifications = snapshot.data!;
+                Map<String, List<Map<String, dynamic>>> groupedNotifications = {
+                };
+
+                for (var notification in notifications) {
+                  String formattedDate = formatDate(notification['created_at']);
+                  if (groupedNotifications.containsKey(formattedDate)) {
+                    groupedNotifications[formattedDate]!.add(notification);
+                  } else {
+                    groupedNotifications[formattedDate] = [notification];
+                  }
+                }
+
+                return SingleChildScrollView(
+                  controller: _scrollController,
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        SizedBox(
+                          height: MediaQuery
+                              .of(context)
+                              .size
+                              .height * 0.1,
+                        ),
+                        Row(
+                          children: [
+                            InkWell(
+                              onTap: () {
+                                Navigator.pop(context);
+                              },
+                              child: Image.asset(
+                                  'images/tabler_arrow-back.png'),
                             ),
-                          ),
-                          SizedBox(
-                              height:
-                                  MediaQuery.of(context).size.height * 0.02),
-                          Column(
-                            children: entry.value.map((notification) {
-                              return Padding(
-                                padding: const EdgeInsets.only(bottom: 15.0),
-                                child: notificationWidget(
-                                  'images/iconamoon_news-thin_active.png',
-                                  notification['message'],
-                                  notification['created_at'],
+                            const Spacer(),
+                            const Text(
+                              'Notification',
+                              style: TextStyle(
+                                fontFamily: 'Inter',
+                                fontWeight: FontWeight.bold,
+                                fontSize: 22.0,
+                                color: Colors.black,
+                              ),
+                            ),
+                            SizedBox(
+                                width: MediaQuery
+                                    .of(context)
+                                    .size
+                                    .width * 0.1),
+                            const Spacer(),
+                          ],
+                        ),
+                        SizedBox(
+                          height: MediaQuery
+                              .of(context)
+                              .size
+                              .height * 0.05,
+                        ),
+                        ...groupedNotifications.entries.map((entry) {
+                          return Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                entry.key,
+                                style: const TextStyle(
+                                  fontFamily: 'Inter',
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 22.0,
+                                  color: Colors.black,
                                 ),
-                              );
-                            }).toList(),
-                          ),
-                        ],
-                      );
-                    }).toList(),
+                              ),
+                              SizedBox(
+                                height: MediaQuery
+                                    .of(context)
+                                    .size
+                                    .height * 0.02,
+                              ),
+                              Column(
+                                children: entry.value.map((notification) {
+                                  return Padding(
+                                    padding: const EdgeInsets.only(
+                                        bottom: 15.0),
+                                    child: notificationWidget(
+                                      'images/iconamoon_news-thin_active.png',
+                                      notification['message'],
+                                      notification['created_at'],
+                                    ),
+                                  );
+                                }).toList(),
+                              ),
+                            ],
+                          );
+                        }).toList(),
+                      ],
+                    ),
                   ),
-                ),
-              );
-            },
+                );
+              },
+
+            ),
           ),
         );
-      },
+      }
     );
   }
 
@@ -158,9 +353,7 @@ class NotificationPageState extends State<NotificationPage> {
     return Row(
       children: [
         SizedBox(width: MediaQuery.of(context).size.width * 0.02),
-        Image.asset(
-          img,
-        ),
+        Image.asset(img),
         SizedBox(width: MediaQuery.of(context).size.width * 0.02),
         Expanded(
           child: Column(

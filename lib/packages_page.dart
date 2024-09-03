@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:connectivity_plus/connectivity_plus.dart';
+import 'dart:async';
 
 class PackagesPage extends StatefulWidget {
   const PackagesPage({
@@ -11,6 +13,148 @@ class PackagesPage extends StatefulWidget {
 }
 
 class _PackagesPageState extends State<PackagesPage> {
+  final ScrollController _scrollController = ScrollController();
+  bool _isRefreshing = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _scrollController.addListener(() {
+      if (_scrollController.offset <= 0) {
+        if (_isRefreshing) {
+          // Logic to cancel refresh if needed
+          setState(() {
+            _isRefreshing = false;
+          });
+        }
+      }
+    });
+  }
+
+  Future<void> _refreshData() async {
+    setState(() {
+      _isRefreshing = true;
+    });
+
+    try {
+      // Check for internet connection
+      var connectivityResult = await (Connectivity().checkConnectivity());
+      if (connectivityResult == ConnectivityResult.none) {
+        _showNoInternetDialog(context);
+        setState(() {
+          _isRefreshing = false;
+        });
+        return;
+      }
+
+      // Set a timeout for the entire refresh operation
+      await Future.any([
+        Future.delayed(const Duration(seconds: 15), () {
+          throw TimeoutException('The operation took too long.');
+        }),
+        _performDataFetch(),
+      ]);
+    } catch (e) {
+      if (e is TimeoutException) {
+        _showTimeoutDialog(context);
+      } else {
+        _showErrorDialog(context, e.toString());
+      }
+    } finally {
+      setState(() {
+        _isRefreshing = false;
+      });
+    }
+  }
+
+  Future<void> _performDataFetch() async {
+    //Put the method to call here
+  }
+
+  void _showNoInternetDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('No Internet Connection'),
+          content: const Text(
+            'It looks like you are not connected to the internet. Please check your connection and try again.',
+            style: TextStyle(fontSize: 16),
+          ),
+          actions: <Widget>[
+            TextButton(
+              child: const Text('Retry', style: TextStyle(color: Colors.blue)),
+              onPressed: () {
+                Navigator.of(context).pop();
+                _refreshData();
+              },
+            ),
+            TextButton(
+              child: const Text('Cancel', style: TextStyle(color: Colors.red)),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _showTimeoutDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Request Timed Out'),
+          content: const Text(
+            'The operation took too long to complete. Please try again later.',
+            style: TextStyle(fontSize: 16),
+          ),
+          actions: <Widget>[
+            TextButton(
+              child: const Text('Retry', style: TextStyle(color: Colors.blue)),
+              onPressed: () {
+                Navigator.of(context).pop();
+                _refreshData();
+              },
+            ),
+            TextButton(
+              child: const Text('Cancel', style: TextStyle(color: Colors.red)),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _showErrorDialog(BuildContext context, String error) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Error'),
+          content: Text(
+            'An error occurred: $error',
+            style: const TextStyle(fontSize: 16),
+          ),
+          actions: <Widget>[
+            TextButton(
+              child: const Text('Close', style: TextStyle(color: Colors.red)),
+              onPressed: () {
+                Navigator.of(context).pop();
+                _refreshData();
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return OrientationBuilder(

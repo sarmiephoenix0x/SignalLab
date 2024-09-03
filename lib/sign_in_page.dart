@@ -6,6 +6,8 @@ import 'dart:convert';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'forgot_password_page.dart';
+
 class SignInPage extends StatefulWidget {
   const SignInPage({
     super.key,
@@ -111,7 +113,7 @@ class _SignInPageState extends State<SignInPage> with WidgetsBindingObserver {
         ),
       );
 
-      Navigator.push(
+      Navigator.pushReplacement(
         context,
         MaterialPageRoute(
           builder: (context) => MainApp(key: UniqueKey()),
@@ -298,12 +300,22 @@ class _SignInPageState extends State<SignInPage> with WidgetsBindingObserver {
                         obscuringCharacter: "*",
                       ),
                     ),
-                    const Row(
+                    Row(
                       children: [
-                        Spacer(),
+                        const Spacer(),
                         Padding(
-                          padding: EdgeInsets.symmetric(horizontal: 20.0),
-                          child: Text(
+                          padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                          child: InkWell(
+                            onTap:(){
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) =>
+                                      ForgotPassword(key: UniqueKey()),
+                                ),
+                              );
+                            },
+                            child:const Text(
                             'Forgot password?',
                             textAlign: TextAlign.start,
                             style: TextStyle(
@@ -314,6 +326,7 @@ class _SignInPageState extends State<SignInPage> with WidgetsBindingObserver {
                               fontSize: 12.0,
                               color: Colors.grey,
                             ),
+                          ),
                           ),
                         ),
                       ],
@@ -386,28 +399,28 @@ class _SignInPageState extends State<SignInPage> with WidgetsBindingObserver {
                       ),
                     ),
                     SizedBox(height: MediaQuery.of(context).size.height * 0.02),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Image.asset(
-                            'images/flat-color-icons_google.png',
-                          ),
-                          SizedBox(
-                              width: MediaQuery.of(context).size.width * 0.05),
-                          Image.asset(
-                            'images/logos_facebook.png',
-                          ),
-                          SizedBox(
-                              width: MediaQuery.of(context).size.width * 0.05),
-                          Image.asset(
-                            'images/bi_apple.png',
-                          ),
-                        ],
-                      ),
-                    ),
-                    SizedBox(height: MediaQuery.of(context).size.height * 0.01),
+                    // Padding(
+                    //   padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                    //   child: Row(
+                    //     mainAxisAlignment: MainAxisAlignment.center,
+                    //     children: [
+                    //       Image.asset(
+                    //         'images/flat-color-icons_google.png',
+                    //       ),
+                    //       SizedBox(
+                    //           width: MediaQuery.of(context).size.width * 0.05),
+                    //       Image.asset(
+                    //         'images/logos_facebook.png',
+                    //       ),
+                    //       SizedBox(
+                    //           width: MediaQuery.of(context).size.width * 0.05),
+                    //       Image.asset(
+                    //         'images/bi_apple.png',
+                    //       ),
+                    //     ],
+                    //   ),
+                    // ),
+                    // SizedBox(height: MediaQuery.of(context).size.height * 0.01),
                     const Center(
                       child: Text(
                         "Don't have an account?",

@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:connectivity_plus/connectivity_plus.dart';
+import 'dart:async';
 
 class CardDetails extends StatefulWidget {
   final int course;
@@ -16,12 +18,24 @@ class CardDetailsState extends State<CardDetails> {
   Map<String, dynamic>? courseDetails;
   String? errorMessage;
   final storage = const FlutterSecureStorage();
+  final ScrollController _scrollController = ScrollController();
+  bool _isRefreshing = false;
 
   @override
   void initState() {
     super.initState();
     print(widget.course);
     fetchCourseDetails(widget.course);
+      _scrollController.addListener(() {
+        if (_scrollController.offset <= 0) {
+          if (_isRefreshing) {
+            // Logic to cancel refresh if needed
+            setState(() {
+              _isRefreshing = false;
+            });
+          }
+        }
+      });
   }
 
   Future<void> fetchCourseDetails(int id) async {
@@ -65,6 +79,16 @@ class CardDetailsState extends State<CardDetails> {
       });
       print('Exception caught: $e');
     }
+  }
+
+  Future<void> _refreshData() async {
+    setState(() {
+      _isRefreshing = true;
+    });
+    await fetchCourseDetails(widget.course);
+    setState(() {
+      _isRefreshing = false;
+    });
   }
 
   @override
