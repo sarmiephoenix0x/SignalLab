@@ -5,8 +5,6 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'dart:async';
 
-import 'package:shared_preferences/shared_preferences.dart';
-
 class SentimentViewCoin extends StatefulWidget {
   final int sentimentId;
   final String sentimentTitle;
@@ -26,7 +24,7 @@ class SentimentViewCoin extends StatefulWidget {
 class _SentimentViewCoinState extends State<SentimentViewCoin>
     with TickerProviderStateMixin {
   TabController? tabController;
-  String _errorMessage = '';
+  String? errorMessage;
   final storage = const FlutterSecureStorage();
   List<dynamic> sentiments = [];
   bool loading = true;
@@ -59,41 +57,52 @@ class _SentimentViewCoinState extends State<SentimentViewCoin>
   Future<void> _fetchSentimentDetails(int id) async {
     setState(() {
       loading = true;
+      errorMessage = null; // Reset error message before fetch
     });
-    final String? accessToken = await storage.read(key: 'accessToken');
-    final url = 'https://script.teendev.dev/signal/api/sentiment?id=$id';
 
-    final response = await http.get(
-      Uri.parse(url),
-      headers: {'Authorization': 'Bearer $accessToken'},
-    );
+    try {
+      final String? accessToken = await storage.read(key: 'accessToken');
+      final url = 'https://script.teendev.dev/signal/api/sentiment?id=$id';
 
-    if (response.statusCode == 200) {
+      final response = await http.get(
+        Uri.parse(url),
+        headers: {'Authorization': 'Bearer $accessToken'},
+      );
+
+      if (response.statusCode == 200) {
+        setState(() {
+          final responseData = json.decode(response.body);
+          sentiments =
+              responseData is List<dynamic> ? responseData : [responseData];
+          loading = false;
+        });
+      } else if (response.statusCode == 401) {
+        setState(() {
+          loading = false;
+          errorMessage = 'Unauthorized. Please check your token.';
+        });
+        print(errorMessage);
+      } else if (response.statusCode == 422) {
+        final errorResponse = jsonDecode(response.body);
+        setState(() {
+          loading = false;
+          errorMessage = 'Validation Error: ${errorResponse['message']}';
+        });
+        print(errorMessage);
+      } else {
+        setState(() {
+          loading = false;
+          errorMessage = 'Unexpected error occurred.';
+        });
+        print(errorMessage);
+      }
+    } catch (e) {
       setState(() {
-        final responseData = json.decode(response.body);
-        sentiments =
-            responseData is List<dynamic> ? responseData : [responseData];
         loading = false;
+        errorMessage =
+            'Failed to load data. Please check your network connection.';
       });
-    } else if (response.statusCode == 401) {
-      setState(() {
-        loading = false;
-        _errorMessage = 'Unauthorized. Please check your token.';
-      });
-      print(_errorMessage);
-    } else if (response.statusCode == 422) {
-      final errorResponse = jsonDecode(response.body);
-      setState(() {
-        loading = false;
-        _errorMessage = 'Validation Error: ${errorResponse['message']}';
-      });
-      print(_errorMessage);
-    } else {
-      setState(() {
-        loading = false;
-        _errorMessage = 'Unexpected error occurred.';
-      });
-      print(_errorMessage);
+      print('Exception: $e');
     }
   }
 
@@ -143,7 +152,7 @@ class _SentimentViewCoinState extends State<SentimentViewCoin>
       builder: (BuildContext context) {
         return AlertDialog(
           title: const Text('No Internet Connection'),
-          content: Text(
+          content: const Text(
             'It looks like you are not connected to the internet. Please check your connection and try again.',
             style: TextStyle(fontSize: 16),
           ),
@@ -173,7 +182,7 @@ class _SentimentViewCoinState extends State<SentimentViewCoin>
       builder: (BuildContext context) {
         return AlertDialog(
           title: const Text('Request Timed Out'),
-          content: Text(
+          content: const Text(
             'The operation took too long to complete. Please try again later.',
             style: TextStyle(fontSize: 16),
           ),
@@ -297,6 +306,35 @@ class _SentimentViewCoinState extends State<SentimentViewCoin>
                             const Center(
                               child: CircularProgressIndicator(
                                   color: Colors.black),
+                            )
+                          else if (errorMessage != null)
+                            Center(
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Text(
+                                    errorMessage!,
+                                    textAlign: TextAlign.center,
+                                    style: const TextStyle(
+                                      fontFamily: 'Inconsolata',
+                                      color: Colors.red,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 16),
+                                  ElevatedButton(
+                                    onPressed: _refreshData,
+                                    child: const Text(
+                                      'Retry',
+                                      style: TextStyle(
+                                        fontFamily: 'Inconsolata',
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 18,
+                                        color: Colors.black,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
                             )
                           else
                             RefreshIndicator(
@@ -1443,6 +1481,35 @@ class _SentimentViewCoinState extends State<SentimentViewCoin>
                               child: CircularProgressIndicator(
                                   color: Colors.black),
                             )
+                          else if (errorMessage != null)
+                            Center(
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Text(
+                                    errorMessage!,
+                                    textAlign: TextAlign.center,
+                                    style: const TextStyle(
+                                      fontFamily: 'Inconsolata',
+                                      color: Colors.red,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 16),
+                                  ElevatedButton(
+                                    onPressed: _refreshData,
+                                    child: const Text(
+                                      'Retry',
+                                      style: TextStyle(
+                                        fontFamily: 'Inconsolata',
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 18,
+                                        color: Colors.black,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            )
                           else
                             RefreshIndicator(
                               onRefresh: _refreshData,
@@ -1524,40 +1591,23 @@ class _SentimentViewCoinState extends State<SentimentViewCoin>
 
   Widget cryptoCard(ValueNotifier<bool> dropdownStateNotifier,
       Map<String, dynamic> sentiment) {
-    int upvotes = sentiment['upvotes'] is int ? sentiment['upvotes'] : int.parse(sentiment['upvotes']);
-    int downvotes = sentiment['downvotes'] is int ? sentiment['downvotes'] : int.parse(sentiment['downvotes']);
-    int totalVotes = upvotes + downvotes;
-    double upvotePercentage = totalVotes > 0 ? upvotes / totalVotes : 0.0;
     final screenWidth = MediaQuery.of(context).size.width;
     final screenHeight = MediaQuery.of(context).size.height;
 
-    // Function to check if the user has already voted
-    Future<bool> hasVoted(String sentimentId) async {
-      final prefs = await SharedPreferences.getInstance();
-      return prefs.getBool('hasVoted_$sentimentId') ?? false;
-    }
+    int upvotes = sentiment['upvotes'] is int
+        ? sentiment['upvotes']
+        : int.parse(sentiment['upvotes']);
+    int downvotes = sentiment['downvotes'] is int
+        ? sentiment['downvotes']
+        : int.parse(sentiment['downvotes']);
+    int totalVotes = upvotes + downvotes;
+    double upvotePercentage = totalVotes > 0 ? upvotes / totalVotes : 0.0;
 
-// Function to set the voting status
-    Future<void> setVoted(String sentimentId, String voteType) async {
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.setBool('hasVoted_$sentimentId', true);
-      await prefs.setString('voteType_$sentimentId', voteType);
-    }
-
-// Modified vote function
     Future<void> vote(String type) async {
-      final String sentimentId = sentiment['id'].toString(); // Ensure ID is a string
-
-      if (await hasVoted(sentimentId)) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('You have already voted on this sentiment.'),
-          ),
-        );
-        return;
-      }
-
+      final String sentimentId =
+          sentiment['id'].toString(); // Ensure ID is a string
       final String? accessToken = await storage.read(key: 'accessToken');
+
       final response = await http.post(
         Uri.parse('https://script.teendev.dev/signal/api/vote'),
         headers: {
@@ -1566,38 +1616,44 @@ class _SentimentViewCoinState extends State<SentimentViewCoin>
         },
         body: jsonEncode({
           'type': type,
-          'id': sentiment['id'],
+          'group': 'sentiment', // Specify the group if needed
+          'id': sentimentId,
         }),
       );
 
+      final responseBody = jsonDecode(response.body);
+
       if (response.statusCode == 200) {
-        // Update local vote status and sentiment counts
-        await setVoted(sentimentId, type);
+        // Update sentiment counts based on the type of vote
         if (type == 'upvote') {
-          sentiment['upvotes'] = (int.parse(sentiment['upvotes']) + 1).toString();
+          sentiment['upvotes'] =
+              (int.parse(sentiment['upvotes']) + 1).toString();
         } else {
-          sentiment['downvotes'] = (int.parse(sentiment['downvotes']) + 1).toString();
+          sentiment['downvotes'] =
+              (int.parse(sentiment['downvotes']) + 1).toString();
         }
 
-        // Recalculate the vote percentage
-        totalVotes =
-            int.parse(sentiment['upvotes']) + int.parse(sentiment['downvotes']);
+        // Recalculate the vote percentage after updating votes
+        int updatedUpvotes = int.parse(sentiment['upvotes']);
+        int updatedDownvotes = int.parse(sentiment['downvotes']);
+        int updatedTotalVotes = updatedUpvotes + updatedDownvotes;
         upvotePercentage =
-        totalVotes > 0 ? int.parse(sentiment['upvotes']) / totalVotes : 0.0;
+            updatedTotalVotes > 0 ? updatedUpvotes / updatedTotalVotes : 0.0;
 
+        // Show success message
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
                 'Successfully ${type == 'upvote' ? 'Upvoted' : 'Downvoted'}'),
           ),
         );
-        setState(() {});
-      } else if (response.statusCode == 400) {
-        print("Something isn't right");
-      } else if (response.statusCode == 401) {
-        print("Unauthorized");
-      } else if (response.statusCode == 422) {
-        print("Validation error: ${response.body}");
+        setState(() {}); // Update the UI
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(responseBody['message'] ?? 'An error occurred'),
+          ),
+        );
       }
     }
 
@@ -1725,7 +1781,6 @@ class _SentimentViewCoinState extends State<SentimentViewCoin>
                                     color: Colors.black,
                                   ),
                                 ),
-
                               ],
                             ),
                             SizedBox(height: screenHeight * 0.02),
@@ -1742,8 +1797,8 @@ class _SentimentViewCoinState extends State<SentimentViewCoin>
                                   ),
                                 ),
                                 Container(
-                                  width: MediaQuery.of(context).size.width *
-                                      0.2,
+                                  width:
+                                      MediaQuery.of(context).size.width * 0.2,
                                   height: 5,
                                   decoration: BoxDecoration(
                                     border: Border.all(

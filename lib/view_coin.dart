@@ -5,14 +5,16 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'dart:async';
 
-import 'package:shared_preferences/shared_preferences.dart';
-
 class ViewCoin extends StatefulWidget {
   final int eventId;
   final String eventTitle;
   final String eventImg;
+
   const ViewCoin({
-    super.key, required this.eventId, required this.eventTitle, required this.eventImg,
+    super.key,
+    required this.eventId,
+    required this.eventTitle,
+    required this.eventImg,
   });
 
   @override
@@ -27,6 +29,7 @@ class _ViewCoinState extends State<ViewCoin> with TickerProviderStateMixin {
   bool loading = true;
   final ScrollController _scrollController = ScrollController();
   bool _isRefreshing = false;
+  String? errorMessage;
 
   @override
   void initState() {
@@ -54,27 +57,39 @@ class _ViewCoinState extends State<ViewCoin> with TickerProviderStateMixin {
   Future<void> fetchEvents() async {
     setState(() {
       loading = true;
+      errorMessage = null; // Reset error message before fetch
     });
-    final String? accessToken = await storage.read(key: 'accessToken');
-    const url = 'https://script.teendev.dev/signal/api/events';
-    final response = await http.get(
-      Uri.parse(url),
-      headers: {
-        'Authorization': 'Bearer $accessToken',
-      },
-    );
 
-    if (response.statusCode == 200) {
+    try {
+      final String? accessToken = await storage.read(key: 'accessToken');
+      const url = 'https://script.teendev.dev/signal/api/events';
+      final response = await http.get(
+        Uri.parse(url),
+        headers: {
+          'Authorization': 'Bearer $accessToken',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        setState(() {
+          events = json.decode(response.body);
+          loading = false;
+        });
+      } else {
+        setState(() {
+          loading = false; // Failed to load data
+          errorMessage = 'Failed to load events';
+        });
+        // Handle the error accordingly
+        print('Failed to load events');
+      }
+    } catch (e) {
       setState(() {
-        events = json.decode(response.body);
         loading = false;
+        errorMessage =
+            'Failed to load data. Please check your network connection.';
       });
-    } else {
-      setState(() {
-        loading = false; // Failed to load data
-      });
-      // Handle the error accordingly
-      print('Failed to load events');
+      print('Exception: $e');
     }
   }
 
@@ -186,7 +201,7 @@ class _ViewCoinState extends State<ViewCoin> with TickerProviderStateMixin {
           title: const Text('Error'),
           content: Text(
             'An error occurred: $error',
-            style: TextStyle(fontSize: 16),
+            style: const TextStyle(fontSize: 16),
           ),
           actions: <Widget>[
             TextButton(
@@ -226,11 +241,9 @@ class _ViewCoinState extends State<ViewCoin> with TickerProviderStateMixin {
                       ClipRRect(
                         borderRadius: BorderRadius.circular(35),
                         child: Container(
-                          width:
-                          (48 / MediaQuery.of(context).size.width) *
+                          width: (48 / MediaQuery.of(context).size.width) *
                               MediaQuery.of(context).size.width,
-                          height:
-                          (48 / MediaQuery.of(context).size.height) *
+                          height: (48 / MediaQuery.of(context).size.height) *
                               MediaQuery.of(context).size.height,
                           color: Colors.grey,
                           child: Image.network(
@@ -239,9 +252,7 @@ class _ViewCoinState extends State<ViewCoin> with TickerProviderStateMixin {
                           ),
                         ),
                       ),
-                      SizedBox(
-                          width:
-                          MediaQuery.of(context).size.width * 0.03),
+                      SizedBox(width: MediaQuery.of(context).size.width * 0.03),
                       Expanded(
                         flex: 10,
                         child: Text(
@@ -1167,6 +1178,35 @@ class _ViewCoinState extends State<ViewCoin> with TickerProviderStateMixin {
                         const Center(
                           child: CircularProgressIndicator(color: Colors.black),
                         )
+                      else if (errorMessage != null)
+                        Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Text(
+                                errorMessage!,
+                                textAlign: TextAlign.center,
+                                style: const TextStyle(
+                                  fontFamily: 'Inconsolata',
+                                  color: Colors.red,
+                                ),
+                              ),
+                              const SizedBox(height: 16),
+                              ElevatedButton(
+                                onPressed: _refreshData,
+                                child: const Text(
+                                  'Retry',
+                                  style: TextStyle(
+                                    fontFamily: 'Inconsolata',
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 18,
+                                    color: Colors.black,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        )
                       else
                         RefreshIndicator(
                           onRefresh: _refreshData,
@@ -1247,40 +1287,21 @@ class _ViewCoinState extends State<ViewCoin> with TickerProviderStateMixin {
   }
 
   Widget cryptoCard(Map<String, dynamic> event) {
-    int upvotes = event['upvotes'] is int ? event['upvotes'] : int.parse(event['upvotes']);
-    int downvotes = event['downvotes'] is int ? event['downvotes'] : int.parse(event['downvotes']);
-    int totalVotes = upvotes + downvotes;
-    double upvotePercentage = totalVotes > 0 ? upvotes / totalVotes : 0.0;
-    final screenWidth = MediaQuery.of(context).size.width;
     final screenHeight = MediaQuery.of(context).size.height;
 
-    // Function to check if the user has already voted
-    Future<bool> hasVoted(String eventId) async {
-      final prefs = await SharedPreferences.getInstance();
-      return prefs.getBool('hasVoted_$eventId') ?? false;
-    }
+    int upvotes = event['upvotes'] is int
+        ? event['upvotes']
+        : int.parse(event['upvotes']);
+    int downvotes = event['downvotes'] is int
+        ? event['downvotes']
+        : int.parse(event['downvotes']);
+    int totalVotes = upvotes + downvotes;
+    double upvotePercentage = totalVotes > 0 ? upvotes / totalVotes : 0.0;
 
-// Function to set the voting status
-    Future<void> setVoted(String eventId, String voteType) async {
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.setBool('hasVoted_$eventId', true);
-      await prefs.setString('voteType_$eventId', voteType);
-    }
-
-// Modified vote function
     Future<void> vote(String type) async {
       final String eventId = event['id'].toString(); // Ensure ID is a string
-
-      if (await hasVoted(eventId)) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('You have already voted on this event.'),
-          ),
-        );
-        return;
-      }
-
       final String? accessToken = await storage.read(key: 'accessToken');
+
       final response = await http.post(
         Uri.parse('https://script.teendev.dev/signal/api/vote'),
         headers: {
@@ -1289,38 +1310,42 @@ class _ViewCoinState extends State<ViewCoin> with TickerProviderStateMixin {
         },
         body: jsonEncode({
           'type': type,
-          'id': event['id'],
+          'group': 'event', // Specify the group if needed
+          'id': eventId,
         }),
       );
 
+      final responseBody = jsonDecode(response.body);
+
       if (response.statusCode == 200) {
-        // Update local vote status and event counts
-        await setVoted(eventId, type);
+        // Update event counts based on the type of vote
         if (type == 'upvote') {
           event['upvotes'] = (int.parse(event['upvotes']) + 1).toString();
         } else {
           event['downvotes'] = (int.parse(event['downvotes']) + 1).toString();
         }
 
-        // Recalculate the vote percentage
-        totalVotes =
-            int.parse(event['upvotes']) + int.parse(event['downvotes']);
+        // Recalculate the vote percentage after updating votes
+        int updatedUpvotes = int.parse(event['upvotes']);
+        int updatedDownvotes = int.parse(event['downvotes']);
+        int updatedTotalVotes = updatedUpvotes + updatedDownvotes;
         upvotePercentage =
-        totalVotes > 0 ? int.parse(event['upvotes']) / totalVotes : 0.0;
+            updatedTotalVotes > 0 ? updatedUpvotes / updatedTotalVotes : 0.0;
 
+        // Show success message
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
                 'Successfully ${type == 'upvote' ? 'Upvoted' : 'Downvoted'}'),
           ),
         );
-        setState(() {});
-      } else if (response.statusCode == 400) {
-        print("Something isn't right");
-      } else if (response.statusCode == 401) {
-        print("Unauthorized");
-      } else if (response.statusCode == 422) {
-        print("Validation error: ${response.body}");
+        setState(() {}); // Update the UI
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(responseBody['message'] ?? 'An error occurred'),
+          ),
+        );
       }
     }
 
@@ -1409,7 +1434,6 @@ class _ViewCoinState extends State<ViewCoin> with TickerProviderStateMixin {
                                 color: Colors.black,
                               ),
                             ),
-
                           ],
                         ),
                         SizedBox(height: screenHeight * 0.02),
@@ -1426,12 +1450,11 @@ class _ViewCoinState extends State<ViewCoin> with TickerProviderStateMixin {
                               ),
                             ),
                             Container(
-                              width: MediaQuery.of(context).size.width *
-                                  0.2,
+                              width: MediaQuery.of(context).size.width * 0.2,
                               height: 5,
                               decoration: BoxDecoration(
-                                border: Border.all(
-                                    width: 0.5, color: Colors.black),
+                                border:
+                                    Border.all(width: 0.5, color: Colors.black),
                                 borderRadius: BorderRadius.circular(0),
                               ),
                             ),

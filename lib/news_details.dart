@@ -147,16 +147,16 @@ class NewsDetailsState extends State<NewsDetails> {
   void initState() {
     super.initState();
     _newsFuture = fetchNewsDetails(widget.newsId);
-      _scrollController.addListener(() {
-        if (_scrollController.offset <= 0) {
-          if (_isRefreshing) {
-            // Logic to cancel refresh if needed
-            setState(() {
-              _isRefreshing = false;
-            });
-          }
+    _scrollController.addListener(() {
+      if (_scrollController.offset <= 0) {
+        if (_isRefreshing) {
+          // Logic to cancel refresh if needed
+          setState(() {
+            _isRefreshing = false;
+          });
         }
-      });
+      }
+    });
   }
 
   Future<Map<String, dynamic>?> fetchNewsDetails(int id) async {
@@ -203,37 +203,207 @@ class NewsDetailsState extends State<NewsDetails> {
     setState(() {
       _isRefreshing = true;
     });
+
+    try {
+      // Check for internet connection
+      var connectivityResult = await (Connectivity().checkConnectivity());
+      if (connectivityResult == ConnectivityResult.none) {
+        _showNoInternetDialog(context);
+        setState(() {
+          _isRefreshing = false;
+        });
+        return;
+      }
+
+      // Set a timeout for the entire refresh operation
+      await Future.any([
+        Future.delayed(const Duration(seconds: 15), () {
+          throw TimeoutException('The operation took too long.');
+        }),
+        _performDataFetch(),
+      ]);
+    } catch (e) {
+      if (e is TimeoutException) {
+        _showTimeoutDialog(context);
+      } else {
+        _showErrorDialog(context, e.toString());
+      }
+    } finally {
+      setState(() {
+        _isRefreshing = false;
+      });
+    }
+  }
+
+  Future<void> _performDataFetch() async {
     _newsFuture = fetchNewsDetails(widget.newsId);
-    setState(() {
-      _isRefreshing = false;
-    });
+  }
+
+  void _showNoInternetDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('No Internet Connection'),
+          content: const Text(
+            'It looks like you are not connected to the internet. Please check your connection and try again.',
+            style: TextStyle(fontSize: 16),
+          ),
+          actions: <Widget>[
+            TextButton(
+              child: const Text('Retry', style: TextStyle(color: Colors.blue)),
+              onPressed: () {
+                Navigator.of(context).pop();
+                _refreshData();
+              },
+            ),
+            TextButton(
+              child: const Text('Cancel', style: TextStyle(color: Colors.red)),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _showTimeoutDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Request Timed Out'),
+          content: const Text(
+            'The operation took too long to complete. Please try again later.',
+            style: TextStyle(fontSize: 16),
+          ),
+          actions: <Widget>[
+            TextButton(
+              child: Text('Retry', style: TextStyle(color: Colors.blue)),
+              onPressed: () {
+                Navigator.of(context).pop();
+                _refreshData();
+              },
+            ),
+            TextButton(
+              child: const Text('Cancel', style: TextStyle(color: Colors.red)),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _showErrorDialog(BuildContext context, String error) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Error'),
+          content: Text(
+            'An error occurred: $error',
+            style: const TextStyle(fontSize: 16),
+          ),
+          actions: <Widget>[
+            TextButton(
+              child: const Text('Close', style: TextStyle(color: Colors.red)),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: FutureBuilder<Map<String, dynamic>?>(
-        future: _newsFuture,
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(
-                child: CircularProgressIndicator(color: Colors.black));
-          } else if (snapshot.hasError) {
-            return const Center(child: Text('An unexpected error occurred'));
-          } else if (snapshot.hasData) {
-            final news = snapshot.data;
-            if (news == null) {
-              return const Center(child: Text('No news found'));
-            }
-            return OrientationBuilder(
-              builder: (context, orientation) {
-                return Scaffold(
-                  body: Center(
-                    child: SizedBox(
-                      height: orientation == Orientation.portrait
-                          ? MediaQuery.of(context).size.height
-                          : MediaQuery.of(context).size.height * 1.5,
-                      child: Stack(
+      body: OrientationBuilder(
+        builder: (context, orientation) {
+          return Center(
+            child: SizedBox(
+              height: orientation == Orientation.portrait
+                  ? MediaQuery.of(context).size.height
+                  : MediaQuery.of(context).size.height * 1.5,
+              child: RefreshIndicator(
+                onRefresh: _refreshData,
+                color: Colors.black,
+                child: FutureBuilder<Map<String, dynamic>?>(
+                  future: _newsFuture,
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      return const Center(
+                          child:
+                              CircularProgressIndicator(color: Colors.black));
+                    } else if (snapshot.hasError) {
+                      return Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            const Text(
+                              'An unexpected error occurred',
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                fontFamily: 'Inconsolata',
+                                color: Colors.red,
+                              ),
+                            ),
+                            const SizedBox(height: 16),
+                            ElevatedButton(
+                              onPressed: _refreshData,
+                              child: const Text(
+                                'Retry',
+                                style: TextStyle(
+                                  fontFamily: 'Inconsolata',
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 18,
+                                  color: Colors.black,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      );
+                    } else if (snapshot.hasData) {
+                      final news = snapshot.data;
+                      if (news == null) {
+                        return Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              const Text(
+                                'No news found',
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                  fontFamily: 'Inconsolata',
+                                  color: Colors.red,
+                                ),
+                              ),
+                              const SizedBox(height: 16),
+                              ElevatedButton(
+                                onPressed: _refreshData,
+                                child: const Text(
+                                  'Retry',
+                                  style: TextStyle(
+                                    fontFamily: 'Inconsolata',
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 18,
+                                    color: Colors.black,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        );
+                      }
+                      return Stack(
                         alignment: Alignment.center,
                         children: [
                           Padding(
@@ -437,15 +607,42 @@ class NewsDetailsState extends State<NewsDetails> {
                             ),
                           ),
                         ],
-                      ),
-                    ),
-                  ),
-                );
-              },
-            );
-          } else {
-            return const Center(child: Text('No data available'));
-          }
+                      );
+                    } else {
+                      return Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            const Text(
+                              'No data available',
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                fontFamily: 'Inconsolata',
+                                color: Colors.red,
+                              ),
+                            ),
+                            const SizedBox(height: 16),
+                            ElevatedButton(
+                              onPressed: _refreshData,
+                              child: const Text(
+                                'Retry',
+                                style: TextStyle(
+                                  fontFamily: 'Inconsolata',
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 18,
+                                  color: Colors.black,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      );
+                    }
+                  },
+                ),
+              ),
+            ),
+          );
         },
       ),
     );

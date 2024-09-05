@@ -117,7 +117,6 @@ class NotificationPageState extends State<NotificationPage> {
         }),
         _performDataFetch(),
       ]);
-
     } catch (e) {
       if (e is TimeoutException) {
         _showTimeoutDialog(context);
@@ -219,68 +218,134 @@ class NotificationPageState extends State<NotificationPage> {
     );
   }
 
-
-
   @override
   Widget build(BuildContext context) {
-    return OrientationBuilder(
-      builder: (context, orientation) {
-        return Scaffold(
-          body: RefreshIndicator(
-            onRefresh: _refreshData,
-            color: Colors.black,
-            child: FutureBuilder<List<Map<String, dynamic>>>(
-              future: _notificationsFuture,
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(
-                      child: CircularProgressIndicator(color: Colors.black));
-                } else if (snapshot.hasError) {
-                  return Center(child: Text('Error: ${snapshot.error}'));
-                } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                  return const Center(
-                      child: Text('No notifications available'));
-                }
-
-                List<Map<String, dynamic>> notifications = snapshot.data!;
-                Map<String, List<Map<String, dynamic>>> groupedNotifications = {
-                };
-
-                for (var notification in notifications) {
-                  String formattedDate = formatDate(notification['created_at']);
-                  if (groupedNotifications.containsKey(formattedDate)) {
-                    groupedNotifications[formattedDate]!.add(notification);
-                  } else {
-                    groupedNotifications[formattedDate] = [notification];
-                  }
-                }
-
-                return SingleChildScrollView(
-                  controller: _scrollController,
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        SizedBox(
-                          height: MediaQuery
-                              .of(context)
-                              .size
-                              .height * 0.1,
+    return OrientationBuilder(builder: (context, orientation) {
+      return Scaffold(
+        body: RefreshIndicator(
+          onRefresh: _refreshData,
+          color: Colors.black,
+          child: FutureBuilder<List<Map<String, dynamic>>>(
+            future: _notificationsFuture,
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return const Center(
+                    child: CircularProgressIndicator(color: Colors.black));
+              } else if (snapshot.hasError) {
+                return Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Text(
+                        'An unexpected error occurred',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontFamily: 'Inconsolata',
+                          color:Colors.red,
                         ),
-                        Row(
-                          children: [
-                            InkWell(
-                              onTap: () {
-                                Navigator.pop(context);
-                              },
-                              child: Image.asset(
-                                  'images/tabler_arrow-back.png'),
+                      ),
+                      const SizedBox(height: 16),
+                      ElevatedButton(
+                        onPressed: _refreshData,
+                        child: const Text(
+                          'Retry',
+                          style: TextStyle(
+                            fontFamily: 'Inconsolata',
+                            fontWeight: FontWeight.bold,
+                            fontSize: 18,
+                            color: Colors.black,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                return Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Text(
+                        'No notifications available',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontFamily: 'Inconsolata',
+                          color:Colors.red,
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      ElevatedButton(
+                        onPressed: _refreshData,
+                        child: const Text(
+                          'Retry',
+                          style: TextStyle(
+                            fontFamily: 'Inconsolata',
+                            fontWeight: FontWeight.bold,
+                            fontSize: 18,
+                            color: Colors.black,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              }
+
+              List<Map<String, dynamic>> notifications = snapshot.data!;
+              Map<String, List<Map<String, dynamic>>> groupedNotifications = {};
+
+              for (var notification in notifications) {
+                String formattedDate = formatDate(notification['created_at']);
+                if (groupedNotifications.containsKey(formattedDate)) {
+                  groupedNotifications[formattedDate]!.add(notification);
+                } else {
+                  groupedNotifications[formattedDate] = [notification];
+                }
+              }
+
+              return SingleChildScrollView(
+                controller: _scrollController,
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      SizedBox(
+                        height: MediaQuery.of(context).size.height * 0.1,
+                      ),
+                      Row(
+                        children: [
+                          InkWell(
+                            onTap: () {
+                              Navigator.pop(context);
+                            },
+                            child: Image.asset('images/tabler_arrow-back.png'),
+                          ),
+                          const Spacer(),
+                          const Text(
+                            'Notification',
+                            style: TextStyle(
+                              fontFamily: 'Inter',
+                              fontWeight: FontWeight.bold,
+                              fontSize: 22.0,
+                              color: Colors.black,
                             ),
-                            const Spacer(),
-                            const Text(
-                              'Notification',
-                              style: TextStyle(
+                          ),
+                          SizedBox(
+                              width: MediaQuery.of(context).size.width * 0.1),
+                          const Spacer(),
+                        ],
+                      ),
+                      SizedBox(
+                        height: MediaQuery.of(context).size.height * 0.05,
+                      ),
+                      ...groupedNotifications.entries.map((entry) {
+                        return Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              entry.key,
+                              style: const TextStyle(
                                 fontFamily: 'Inter',
                                 fontWeight: FontWeight.bold,
                                 fontSize: 22.0,
@@ -288,65 +353,32 @@ class NotificationPageState extends State<NotificationPage> {
                               ),
                             ),
                             SizedBox(
-                                width: MediaQuery
-                                    .of(context)
-                                    .size
-                                    .width * 0.1),
-                            const Spacer(),
+                              height: MediaQuery.of(context).size.height * 0.02,
+                            ),
+                            Column(
+                              children: entry.value.map((notification) {
+                                return Padding(
+                                  padding: const EdgeInsets.only(bottom: 15.0),
+                                  child: notificationWidget(
+                                    'images/iconamoon_news-thin_active.png',
+                                    notification['message'],
+                                    notification['created_at'],
+                                  ),
+                                );
+                              }).toList(),
+                            ),
                           ],
-                        ),
-                        SizedBox(
-                          height: MediaQuery
-                              .of(context)
-                              .size
-                              .height * 0.05,
-                        ),
-                        ...groupedNotifications.entries.map((entry) {
-                          return Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                entry.key,
-                                style: const TextStyle(
-                                  fontFamily: 'Inter',
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 22.0,
-                                  color: Colors.black,
-                                ),
-                              ),
-                              SizedBox(
-                                height: MediaQuery
-                                    .of(context)
-                                    .size
-                                    .height * 0.02,
-                              ),
-                              Column(
-                                children: entry.value.map((notification) {
-                                  return Padding(
-                                    padding: const EdgeInsets.only(
-                                        bottom: 15.0),
-                                    child: notificationWidget(
-                                      'images/iconamoon_news-thin_active.png',
-                                      notification['message'],
-                                      notification['created_at'],
-                                    ),
-                                  );
-                                }).toList(),
-                              ),
-                            ],
-                          );
-                        }).toList(),
-                      ],
-                    ),
+                        );
+                      }).toList(),
+                    ],
                   ),
-                );
-              },
-
-            ),
+                ),
+              );
+            },
           ),
-        );
-      }
-    );
+        ),
+      );
+    });
   }
 
   Widget notificationWidget(String img, String message, String time) {

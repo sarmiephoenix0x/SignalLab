@@ -212,10 +212,7 @@ class _EventsDetailsState extends State<EventsDetails> {
     return OrientationBuilder(
       builder: (context, orientation) {
         return Scaffold(
-          body: _isLoading
-              ? const Center(
-                  child: CircularProgressIndicator(color: Colors.black))
-              : RefreshIndicator(
+          body: RefreshIndicator(
                   onRefresh: _refreshData,
                   color: Colors.black,
                   child: FutureBuilder<Map<String, dynamic>>(
@@ -226,12 +223,64 @@ class _EventsDetailsState extends State<EventsDetails> {
                           return const Center(
                               child: CircularProgressIndicator(
                                   color: Colors.black));
-                        } else if (snapshot.hasError ||
-                            !snapshot.hasData ||
-                            snapshot.data!.isEmpty) {
+                        } else if (snapshot.hasError) {
                           return Center(
-                              child: Text(_errorMessage,
-                                  style: const TextStyle(color: Colors.red)));
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                const Text(
+                                  'An unexpected error occurred',
+                                  textAlign: TextAlign.center,
+                                  style: TextStyle(
+                                    fontFamily: 'Inconsolata',
+                                    color:Colors.red,
+                                  ),
+                                ),
+                                const SizedBox(height: 16),
+                                ElevatedButton(
+                                  onPressed: _refreshData,
+                                  child: const Text(
+                                    'Retry',
+                                    style: TextStyle(
+                                      fontFamily: 'Inconsolata',
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 18,
+                                      color: Colors.black,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          );
+                        } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                          return Center(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                const Text(
+                                  'No data available',
+                                  textAlign: TextAlign.center,
+                                  style: TextStyle(
+                                    fontFamily: 'Inconsolata',
+                                    color:Colors.red,
+                                  ),
+                                ),
+                                const SizedBox(height: 16),
+                                ElevatedButton(
+                                  onPressed: _refreshData,
+                                  child: const Text(
+                                    'Retry',
+                                    style: TextStyle(
+                                      fontFamily: 'Inconsolata',
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 18,
+                                      color: Colors.black,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          );
                         } else {
                           final event = snapshot.data!;
                           return SingleChildScrollView(

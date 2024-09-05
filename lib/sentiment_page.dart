@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 // import 'package:signal_app/sentiments_details.dart';
 import 'package:signal_app/sentiment_page_view_coin.dart';
@@ -42,6 +41,7 @@ class _SentimentPageState extends State<SentimentPage>
   bool loading = true;
   final ScrollController _scrollController = ScrollController();
   bool _isRefreshing = false;
+  String? errorMessage;
 
   @override
   void initState() {
@@ -240,27 +240,38 @@ class _SentimentPageState extends State<SentimentPage>
   Future<void> fetchSentiments() async {
     setState(() {
       loading = true;
+      errorMessage = null;
     });
-    final String? accessToken = await storage.read(key: 'accessToken');
-    const url = 'https://script.teendev.dev/signal/api/sentiments';
-    final response = await http.get(
-      Uri.parse(url),
-      headers: {
-        'Authorization': 'Bearer $accessToken',
-      },
-    );
+    try {
+      final String? accessToken = await storage.read(key: 'accessToken');
+      const url = 'https://script.teendev.dev/signal/api/sentiments';
+      final response = await http.get(
+        Uri.parse(url),
+        headers: {
+          'Authorization': 'Bearer $accessToken',
+        },
+      );
 
-    if (response.statusCode == 200) {
+      if (response.statusCode == 200) {
+        setState(() {
+          sentiments = json.decode(response.body);
+          loading = false;
+        });
+      } else {
+        setState(() {
+          loading = false; // Failed to load data
+          errorMessage = 'Failed to load sentiments';
+        });
+        // Handle the error accordingly
+        print('Failed to load sentiments');
+      }
+    } catch (e) {
       setState(() {
-        sentiments = json.decode(response.body);
         loading = false;
+        errorMessage =
+            'Failed to load data. Please check your network connection.';
       });
-    } else {
-      setState(() {
-        loading = false; // Failed to load data
-      });
-      // Handle the error accordingly
-      print('Failed to load sentiments');
+      print('Exception caught: $e');
     }
   }
 
@@ -471,24 +482,34 @@ class _SentimentPageState extends State<SentimentPage>
                                 child: CircularProgressIndicator(
                                     color: Colors.black),
                               )
-                            else
-                              RefreshIndicator(
-                                onRefresh: _refreshData,
-                                color: Colors.black,
-                                child: ListView.builder(
-                                  controller: _scrollController,
-                                  itemCount: sentiments.length,
-                                  itemBuilder: (context, index) {
-                                    return cryptoCard(
-                                        ValueNotifier<bool>(false),
-                                        sentiments[index]);
-                                  },
+                            else if (errorMessage != null)
+                              Center(
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Text(
+                                      errorMessage!,
+                                      textAlign: TextAlign.center,
+                                      style: const TextStyle(
+                                        fontFamily: 'Inconsolata',
+                                        color: Colors.red,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 16),
+                                    ElevatedButton(
+                                      onPressed: _refreshData,
+                                      child: const Text(
+                                        'Retry',
+                                        style: TextStyle(
+                                          fontFamily: 'Inconsolata',
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 18,
+                                          color: Colors.black,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
                                 ),
-                              ),
-                            if (loading)
-                              const Center(
-                                child: CircularProgressIndicator(
-                                    color: Colors.black),
                               )
                             else
                               RefreshIndicator(
@@ -509,24 +530,34 @@ class _SentimentPageState extends State<SentimentPage>
                                 child: CircularProgressIndicator(
                                     color: Colors.black),
                               )
-                            else
-                              RefreshIndicator(
-                                onRefresh: _refreshData,
-                                color: Colors.black,
-                                child: ListView.builder(
-                                  controller: _scrollController,
-                                  itemCount: sentiments.length,
-                                  itemBuilder: (context, index) {
-                                    return cryptoCard(
-                                        ValueNotifier<bool>(false),
-                                        sentiments[index]);
-                                  },
+                            else if (errorMessage != null)
+                              Center(
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Text(
+                                      errorMessage!,
+                                      textAlign: TextAlign.center,
+                                      style: const TextStyle(
+                                        fontFamily: 'Inconsolata',
+                                        color: Colors.red,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 16),
+                                    ElevatedButton(
+                                      onPressed: _refreshData,
+                                      child: const Text(
+                                        'Retry',
+                                        style: TextStyle(
+                                          fontFamily: 'Inconsolata',
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 18,
+                                          color: Colors.black,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
                                 ),
-                              ),
-                            if (loading)
-                              const Center(
-                                child: CircularProgressIndicator(
-                                    color: Colors.black),
                               )
                             else
                               RefreshIndicator(
@@ -547,6 +578,35 @@ class _SentimentPageState extends State<SentimentPage>
                                 child: CircularProgressIndicator(
                                     color: Colors.black),
                               )
+                            else if (errorMessage != null)
+                              Center(
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Text(
+                                      errorMessage!,
+                                      textAlign: TextAlign.center,
+                                      style: const TextStyle(
+                                        fontFamily: 'Inconsolata',
+                                        color: Colors.red,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 16),
+                                    ElevatedButton(
+                                      onPressed: _refreshData,
+                                      child: const Text(
+                                        'Retry',
+                                        style: TextStyle(
+                                          fontFamily: 'Inconsolata',
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 18,
+                                          color: Colors.black,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              )
                             else
                               RefreshIndicator(
                                 onRefresh: _refreshData,
@@ -565,6 +625,131 @@ class _SentimentPageState extends State<SentimentPage>
                               const Center(
                                 child: CircularProgressIndicator(
                                     color: Colors.black),
+                              )
+                            else if (errorMessage != null)
+                              Center(
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Text(
+                                      errorMessage!,
+                                      textAlign: TextAlign.center,
+                                      style: const TextStyle(
+                                        fontFamily: 'Inconsolata',
+                                        color: Colors.red,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 16),
+                                    ElevatedButton(
+                                      onPressed: _refreshData,
+                                      child: const Text(
+                                        'Retry',
+                                        style: TextStyle(
+                                          fontFamily: 'Inconsolata',
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 18,
+                                          color: Colors.black,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              )
+                            else
+                              RefreshIndicator(
+                                onRefresh: _refreshData,
+                                color: Colors.black,
+                                child: ListView.builder(
+                                  controller: _scrollController,
+                                  itemCount: sentiments.length,
+                                  itemBuilder: (context, index) {
+                                    return cryptoCard(
+                                        ValueNotifier<bool>(false),
+                                        sentiments[index]);
+                                  },
+                                ),
+                              ),
+                            if (loading)
+                              const Center(
+                                child: CircularProgressIndicator(
+                                    color: Colors.black),
+                              )
+                            else if (errorMessage != null)
+                              Center(
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Text(
+                                      errorMessage!,
+                                      textAlign: TextAlign.center,
+                                      style: const TextStyle(
+                                        fontFamily: 'Inconsolata',
+                                        color: Colors.red,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 16),
+                                    ElevatedButton(
+                                      onPressed: _refreshData,
+                                      child: const Text(
+                                        'Retry',
+                                        style: TextStyle(
+                                          fontFamily: 'Inconsolata',
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 18,
+                                          color: Colors.black,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              )
+                            else
+                              RefreshIndicator(
+                                onRefresh: _refreshData,
+                                color: Colors.black,
+                                child: ListView.builder(
+                                  controller: _scrollController,
+                                  itemCount: sentiments.length,
+                                  itemBuilder: (context, index) {
+                                    return cryptoCard(
+                                        ValueNotifier<bool>(false),
+                                        sentiments[index]);
+                                  },
+                                ),
+                              ),
+                            if (loading)
+                              const Center(
+                                child: CircularProgressIndicator(
+                                    color: Colors.black),
+                              )
+                            else if (errorMessage != null)
+                              Center(
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Text(
+                                      errorMessage!,
+                                      textAlign: TextAlign.center,
+                                      style: const TextStyle(
+                                        fontFamily: 'Inconsolata',
+                                        color: Colors.red,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 16),
+                                    ElevatedButton(
+                                      onPressed: _refreshData,
+                                      child: const Text(
+                                        'Retry',
+                                        style: TextStyle(
+                                          fontFamily: 'Inconsolata',
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 18,
+                                          color: Colors.black,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
                               )
                             else
                               RefreshIndicator(
@@ -668,40 +853,23 @@ class _SentimentPageState extends State<SentimentPage>
 
   Widget cryptoCard(ValueNotifier<bool> dropdownStateNotifier,
       Map<String, dynamic> sentiment) {
-    int upvotes = sentiment['upvotes'] is int ? sentiment['upvotes'] : int.parse(sentiment['upvotes']);
-    int downvotes = sentiment['downvotes'] is int ? sentiment['downvotes'] : int.parse(sentiment['downvotes']);
-    int totalVotes = upvotes + downvotes;
-    double upvotePercentage = totalVotes > 0 ? upvotes / totalVotes : 0.0;
     final screenWidth = MediaQuery.of(context).size.width;
     final screenHeight = MediaQuery.of(context).size.height;
 
-    // Function to check if the user has already voted
-    Future<bool> hasVoted(String sentimentId) async {
-      final prefs = await SharedPreferences.getInstance();
-      return prefs.getBool('hasVoted_$sentimentId') ?? false;
-    }
+    int upvotes = sentiment['upvotes'] is int
+        ? sentiment['upvotes']
+        : int.parse(sentiment['upvotes']);
+    int downvotes = sentiment['downvotes'] is int
+        ? sentiment['downvotes']
+        : int.parse(sentiment['downvotes']);
+    int totalVotes = upvotes + downvotes;
+    double upvotePercentage = totalVotes > 0 ? upvotes / totalVotes : 0.0;
 
-// Function to set the voting status
-    Future<void> setVoted(String sentimentId, String voteType) async {
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.setBool('hasVoted_$sentimentId', true);
-      await prefs.setString('voteType_$sentimentId', voteType);
-    }
-
-// Modified vote function
     Future<void> vote(String type) async {
-      final String sentimentId = sentiment['id'].toString(); // Ensure ID is a string
-
-      if (await hasVoted(sentimentId)) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('You have already voted on this sentiment.'),
-          ),
-        );
-        return;
-      }
-
+      final String sentimentId =
+          sentiment['id'].toString(); // Ensure ID is a string
       final String? accessToken = await storage.read(key: 'accessToken');
+
       final response = await http.post(
         Uri.parse('https://script.teendev.dev/signal/api/vote'),
         headers: {
@@ -710,38 +878,44 @@ class _SentimentPageState extends State<SentimentPage>
         },
         body: jsonEncode({
           'type': type,
-          'id': sentiment['id'],
+          'group': 'sentiment', // Specify the group if needed
+          'id': sentimentId,
         }),
       );
 
+      final responseBody = jsonDecode(response.body);
+
       if (response.statusCode == 200) {
-        // Update local vote status and sentiment counts
-        await setVoted(sentimentId, type);
+        // Update sentiment counts based on the type of vote
         if (type == 'upvote') {
-          sentiment['upvotes'] = (int.parse(sentiment['upvotes']) + 1).toString();
+          sentiment['upvotes'] =
+              (int.parse(sentiment['upvotes']) + 1).toString();
         } else {
-          sentiment['downvotes'] = (int.parse(sentiment['downvotes']) + 1).toString();
+          sentiment['downvotes'] =
+              (int.parse(sentiment['downvotes']) + 1).toString();
         }
 
-        // Recalculate the vote percentage
-        totalVotes =
-            int.parse(sentiment['upvotes']) + int.parse(sentiment['downvotes']);
+        // Recalculate the vote percentage after updating votes
+        int updatedUpvotes = int.parse(sentiment['upvotes']);
+        int updatedDownvotes = int.parse(sentiment['downvotes']);
+        int updatedTotalVotes = updatedUpvotes + updatedDownvotes;
         upvotePercentage =
-        totalVotes > 0 ? int.parse(sentiment['upvotes']) / totalVotes : 0.0;
+            updatedTotalVotes > 0 ? updatedUpvotes / updatedTotalVotes : 0.0;
 
+        // Show success message
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
                 'Successfully ${type == 'upvote' ? 'Upvoted' : 'Downvoted'}'),
           ),
         );
-        setState(() {});
-      } else if (response.statusCode == 400) {
-        print("Something isn't right");
-      } else if (response.statusCode == 401) {
-        print("Unauthorized");
-      } else if (response.statusCode == 422) {
-        print("Validation error: ${response.body}");
+        setState(() {}); // Update the UI
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(responseBody['message'] ?? 'An error occurred'),
+          ),
+        );
       }
     }
 
@@ -880,7 +1054,6 @@ class _SentimentPageState extends State<SentimentPage>
                                     color: Colors.black,
                                   ),
                                 ),
-
                               ],
                             ),
                             SizedBox(height: screenHeight * 0.02),
@@ -897,8 +1070,8 @@ class _SentimentPageState extends State<SentimentPage>
                                   ),
                                 ),
                                 Container(
-                                  width: MediaQuery.of(context).size.width *
-                                      0.2,
+                                  width:
+                                      MediaQuery.of(context).size.width * 0.2,
                                   height: 5,
                                   decoration: BoxDecoration(
                                     border: Border.all(
