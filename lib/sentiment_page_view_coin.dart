@@ -1652,6 +1652,7 @@ class _SentimentViewCoinState extends State<SentimentViewCoin>
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(responseBody['message'] ?? 'An error occurred'),
+            backgroundColor: Colors.red,
           ),
         );
       }

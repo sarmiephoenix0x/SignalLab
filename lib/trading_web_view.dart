@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'dart:async';
+import 'package:flutter/services.dart';
 
 class TradingViewPage extends StatefulWidget {
   const TradingViewPage({super.key});
@@ -16,70 +17,70 @@ class TradingViewPageState extends State<TradingViewPage> {
   late final WebViewController _controller;
   late final WebViewController _controller2;
   bool _isRefreshing = false; // Track the refreshing state
+  DateTime? currentBackPressTime;
 
   @override
   void initState() {
     super.initState();
-    _controller = WebViewController()
-      ..setJavaScriptMode(JavaScriptMode.unrestricted);
-
-    String htmlString = '''
-      <!DOCTYPE html>
-      <html>
-        <head>
-          <meta name="viewport" content="width=device-width, initial-scale=1.0">
-          <style>
-            html, body {
-              height: 100%;
-              margin: 0;
-              padding: 0;
-            }
-            .tradingview-widget-container {
-              height: 100%;
-              width: 100%;
-            }
-          </style>
-        </head>
-        <body>
-          <div class="tradingview-widget-container">
-            <div id="tradingview_5c88f" style="height: 100%; width: 100%;"></div>
-            <script type="text/javascript" src="https://s3.tradingview.com/tv.js"></script>
-            <script type="text/javascript">
-            new TradingView.widget({
-              "width": "100%",
-              "height": "100%",
-              "symbol": "$coinSymbol",
-              "interval": "D",
-              "timezone": "Etc/UTC",
-              "theme": "light",
-              "style": "1",
-              "locale": "en",
-              "toolbar_bg": "#f1f3f6",
-              "enable_publishing": false,
-              "withdateranges": true,
-              "hide_side_toolbar": false,
-              "allow_symbol_change": true,
-              "details": true,
-              "hotlist": true,
-              "calendar": true,
-              "studies": [
-                "MACD@tv-basicstudies",
-                "StochasticRSI@tv-basicstudies"
-              ],
-              "container_id": "tradingview_5c88f"
-            });
-            </script>
-          </div>
-        </body>
-      </html>
-    ''';
-
-    _controller.loadHtmlString(htmlString);
+    // _controller = WebViewController()
+    //   ..setJavaScriptMode(JavaScriptMode.unrestricted);
+    //
+    // String htmlString = '''
+    //   <!DOCTYPE html>
+    //   <html>
+    //     <head>
+    //       <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    //       <style>
+    //         html, body {
+    //           height: 100%;
+    //           margin: 0;
+    //           padding: 0;
+    //         }
+    //         .tradingview-widget-container {
+    //           height: 100%;
+    //           width: 100%;
+    //         }
+    //       </style>
+    //     </head>
+    //     <body>
+    //       <div class="tradingview-widget-container">
+    //         <div id="tradingview_5c88f" style="height: 100%; width: 100%;"></div>
+    //         <script type="text/javascript" src="https://s3.tradingview.com/tv.js"></script>
+    //         <script type="text/javascript">
+    //         new TradingView.widget({
+    //           "width": "100%",
+    //           "height": "100%",
+    //           "symbol": "$coinSymbol",
+    //           "interval": "D",
+    //           "timezone": "Etc/UTC",
+    //           "theme": "light",
+    //           "style": "1",
+    //           "locale": "en",
+    //           "toolbar_bg": "#f1f3f6",
+    //           "enable_publishing": false,
+    //           "withdateranges": true,
+    //           "hide_side_toolbar": false,
+    //           "allow_symbol_change": true,
+    //           "details": true,
+    //           "hotlist": true,
+    //           "calendar": true,
+    //           "studies": [
+    //             "MACD@tv-basicstudies",
+    //             "StochasticRSI@tv-basicstudies"
+    //           ],
+    //           "container_id": "tradingview_5c88f"
+    //         });
+    //         </script>
+    //       </div>
+    //     </body>
+    //   </html>
+    // ''';
+    //
+    // _controller.loadHtmlString(htmlString);
 
     _controller2 = WebViewController()
       ..setJavaScriptMode(JavaScriptMode.unrestricted)
-      ..loadRequest(Uri.parse(
-          'https://s.tradingview.com/widgetembed/?symbol=$coinSymbol&interval=D&hidesidetoolbar=1&symboledit=1&saveimage=1&toolbarbg=f1f3f6&studies=[]&theme=Dark&style=1&timezone=Etc/UTC&studies_overrides={}&overrides={}&enabled_features=[]&disabled_features=[]&locale=en'));
+      ..loadRequest(Uri.parse('https://s.tradingview.com/widgetembed/?symbol=$coinSymbol&interval=D&hidesidetoolbar=1&symboledit=1&saveimage=1&toolbarbg=f1f3f6&studies=[]&theme=Dark&style=1&timezone=Etc/UTC&studies_overrides={}&overrides={}&enabled_features=[]&disabled_features=[]&locale=en'));
   }
 
   Future<void> _refreshData() async {
@@ -117,60 +118,59 @@ class TradingViewPageState extends State<TradingViewPage> {
   }
 
   Future<void> _performDataFetch() async {
-    // Reload the WebView content
-    _controller.loadHtmlString('''
-        <!DOCTYPE html>
-        <html>
-          <head>
-            <meta name="viewport" content="width=device-width, initial-scale=1.0">
-            <style>
-              html, body {
-                height: 100%;
-                margin: 0;
-                padding: 0;
-              }
-              .tradingview-widget-container {
-                height: 100%;
-                width: 100%;
-              }
-            </style>
-          </head>
-          <body>
-            <div class="tradingview-widget-container">
-              <div id="tradingview_5c88f" style="height: 100%; width: 100%;"></div>
-              <script type="text/javascript" src="https://s3.tradingview.com/tv.js"></script>
-              <script type="text/javascript">
-              new TradingView.widget({
-                "width": "100%",
-                "height": "100%",
-                "symbol": "$coinSymbol",
-                "interval": "D",
-                "timezone": "Etc/UTC",
-                "theme": "light",
-                "style": "1",
-                "locale": "en",
-                "toolbar_bg": "#f1f3f6",
-                "enable_publishing": false,
-                "withdateranges": true,
-                "hide_side_toolbar": false,
-                "allow_symbol_change": true,
-                "details": true,
-                "hotlist": true,
-                "calendar": true,
-                "studies": [
-                  "MACD@tv-basicstudies",
-                  "StochasticRSI@tv-basicstudies"
-                ],
-                "container_id": "tradingview_5c88f"
-              });
-              </script>
-            </div>
-          </body>
-        </html>
-      ''');
+    //Reload the WebView content
+    // _controller.loadHtmlString('''
+    //     <!DOCTYPE html>
+    //     <html>
+    //       <head>
+    //         <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    //         <style>
+    //           html, body {
+    //             height: 100%;
+    //             margin: 0;
+    //             padding: 0;
+    //           }
+    //           .tradingview-widget-container {
+    //             height: 100%;
+    //             width: 100%;
+    //           }
+    //         </style>
+    //       </head>
+    //       <body>
+    //         <div class="tradingview-widget-container">
+    //           <div id="tradingview_5c88f" style="height: 100%; width: 100%;"></div>
+    //           <script type="text/javascript" src="https://s3.tradingview.com/tv.js"></script>
+    //           <script type="text/javascript">
+    //           new TradingView.widget({
+    //             "width": "100%",
+    //             "height": "100%",
+    //             "symbol": "$coinSymbol",
+    //             "interval": "D",
+    //             "timezone": "Etc/UTC",
+    //             "theme": "light",
+    //             "style": "1",
+    //             "locale": "en",
+    //             "toolbar_bg": "#f1f3f6",
+    //             "enable_publishing": false,
+    //             "withdateranges": true,
+    //             "hide_side_toolbar": false,
+    //             "allow_symbol_change": true,
+    //             "details": true,
+    //             "hotlist": true,
+    //             "calendar": true,
+    //             "studies": [
+    //               "MACD@tv-basicstudies",
+    //               "StochasticRSI@tv-basicstudies"
+    //             ],
+    //             "container_id": "tradingview_5c88f"
+    //           });
+    //           </script>
+    //         </div>
+    //       </body>
+    //     </html>
+    //   ''');
 
-    _controller2.loadRequest(Uri.parse(
-        'https://s.tradingview.com/widgetembed/?symbol=$coinSymbol&interval=D&hidesidetoolbar=1&symboledit=1&saveimage=1&toolbarbg=f1f3f6&studies=[]&theme=Dark&style=1&timezone=Etc/UTC&studies_overrides={}&overrides={}&enabled_features=[]&disabled_features=[]&locale=en'));
+    _controller2.loadRequest(Uri.parse('https://s.tradingview.com/widgetembed/?symbol=$coinSymbol&interval=D&hidesidetoolbar=1&symboledit=1&saveimage=1&toolbarbg=f1f3f6&studies=[]&theme=Dark&style=1&timezone=Etc/UTC&studies_overrides={}&overrides={}&enabled_features=[]&disabled_features=[]&locale=en'));
   }
 
   void _showNoInternetDialog(BuildContext context) {
@@ -259,56 +259,111 @@ class TradingViewPageState extends State<TradingViewPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: Column(
-        children: <Widget>[
-          SizedBox(
-            height: MediaQuery.of(context).size.height * 0.1,
-          ),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20.0),
-            child: Row(
-              children: [
-                InkWell(
-                  onTap: () {
-                    Navigator.pop(context);
-                  },
-                  child: Image.asset('images/tabler_arrow-back.png'),
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, dynamic result) async {
+        if (!didPop) {
+          // Check if WebView can go back
+          bool canGoBack = await _controller2.canGoBack();
+
+          if (canGoBack) {
+            // If WebView can go back, navigate back in WebView
+            await _controller2.goBack();
+          } else {
+            DateTime now = DateTime.now();
+            if (currentBackPressTime == null ||
+                now.difference(currentBackPressTime!) >
+                    const Duration(seconds: 2)) {
+              currentBackPressTime = now;
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('Press back again to exit the chart view'),
+                  duration: Duration(seconds: 2),
                 ),
-                const Spacer(),
-                const Expanded(
-                  flex: 10,
-                  child: Text(
-                    'Chart View',
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
-                      fontFamily: 'Inter',
-                      fontWeight: FontWeight.bold,
-                      fontSize: 22.0,
-                      color: Colors.black,
+              );
+            } else {
+              Navigator.pop(context);
+            }
+          }
+        }
+      },
+      child: Scaffold(
+        body: Column(
+          children: <Widget>[
+            SizedBox(
+              height: MediaQuery.of(context).size.height * 0.1,
+            ),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20.0),
+              child: Row(
+                children: [
+                  InkWell(
+                    onTap: () async {
+                      bool canGoBack = await _controller2.canGoBack();
+
+                      if (canGoBack) {
+                        // If WebView can go back, navigate back in WebView
+                        await _controller2.goBack();
+                      } else {
+                        DateTime now = DateTime.now();
+                        if (currentBackPressTime == null ||
+                            now.difference(currentBackPressTime!) >
+                                const Duration(seconds: 2)) {
+                          currentBackPressTime = now;
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text(
+                                  'Press back again to exit the chart view'),
+                              duration: Duration(seconds: 2),
+                            ),
+                          );
+                        } else {
+                          Navigator.pop(context);
+                        }
+                      }
+                      // Navigator.pop(context);
+                    },
+                    child: Image.asset('images/tabler_arrow-back.png'),
+                  ),
+                  const Spacer(),
+                  const Expanded(
+                    flex: 10,
+                    child: Text(
+                      'Live, Crypto, Forex and Stocks',
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        fontFamily: 'Inter',
+                        fontWeight: FontWeight.bold,
+                        fontSize: 22.0,
+                        color: Colors.black,
+                      ),
                     ),
                   ),
-                ),
-                const Spacer(),
-                IconButton(
-                  icon: const Icon(Icons.refresh),
-                  onPressed: _refreshData,
-                ),
-              ],
+                  const Spacer(),
+                  if (_isRefreshing)
+                    const Center(
+                        child: CircularProgressIndicator(color: Colors.black))
+                  else
+                    IconButton(
+                      icon: const Icon(Icons.refresh),
+                      onPressed: _refreshData,
+                    ),
+                ],
+              ),
             ),
-          ),
-          SizedBox(
-            height: MediaQuery.of(context).size.height * 0.03,
-          ),
-          Expanded(
-            flex: 1,
-            child: WebViewWidget(controller: _controller),
-          ),
-          Expanded(
-            flex: 1,
-            child: WebViewWidget(controller: _controller2),
-          ),
-        ],
+            SizedBox(
+              height: MediaQuery.of(context).size.height * 0.03,
+            ),
+            // Expanded(
+            //   flex: 1,
+            //   child: WebViewWidget(controller: _controller),
+            // ),
+            Expanded(
+              flex: 1,
+              child: WebViewWidget(controller: _controller2),
+            ),
+          ],
+        ),
       ),
     );
   }

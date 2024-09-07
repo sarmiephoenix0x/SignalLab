@@ -285,11 +285,14 @@ class CardDetailsState extends State<CardDetails> {
                           SizedBox(
                               height:
                                   MediaQuery.of(context).size.height * 0.03),
-                          Image.network(
+                          ClipRRect(
+                              borderRadius: BorderRadius.circular(10),
+                              child: Image.network(
                             courseDetails!['images'],
                             width: double.infinity,
                             fit: BoxFit.cover,
                           ),
+        ),
                           SizedBox(
                             height: MediaQuery.of(context).size.height * 0.03,
                           ),

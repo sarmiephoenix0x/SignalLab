@@ -80,32 +80,33 @@ class _EventsPageState extends State<EventsPage> with TickerProviderStateMixin {
       errorMessage = null;
     });
     try {
-    final String? accessToken = await storage.read(key: 'accessToken');
-    const url = 'https://script.teendev.dev/signal/api/events';
-    final response = await http.get(
-      Uri.parse(url),
-      headers: {
-        'Authorization': 'Bearer $accessToken',
-      },
-    );
+      final String? accessToken = await storage.read(key: 'accessToken');
+      const url = 'https://script.teendev.dev/signal/api/events';
+      final response = await http.get(
+        Uri.parse(url),
+        headers: {
+          'Authorization': 'Bearer $accessToken',
+        },
+      );
 
-    if (response.statusCode == 200) {
-      setState(() {
-        events = json.decode(response.body);
-        loading = false;
-      });
-    } else {
-      setState(() {
-        loading = false;
-        errorMessage = 'Failed to load events';// Failed to load data
-      });
-      // Handle the error accordingly
-      print('Failed to load events');
-    }
+      if (response.statusCode == 200) {
+        setState(() {
+          events = json.decode(response.body);
+          loading = false;
+        });
+      } else {
+        setState(() {
+          loading = false;
+          errorMessage = 'Failed to load events'; // Failed to load data
+        });
+        // Handle the error accordingly
+        print('Failed to load events');
+      }
     } catch (e) {
       setState(() {
         loading = false;
-        errorMessage = 'Failed to load data. Please check your network connection.';
+        errorMessage =
+            'Failed to load data. Please check your network connection.';
       });
       print('Exception caught: $e');
     }
@@ -243,26 +244,14 @@ class _EventsPageState extends State<EventsPage> with TickerProviderStateMixin {
           body: Center(
             child: SizedBox(
               height: orientation == Orientation.portrait
-                  ? MediaQuery
-                  .of(context)
-                  .size
-                  .height
-                  : MediaQuery
-                  .of(context)
-                  .size
-                  .height * 1.5,
+                  ? MediaQuery.of(context).size.height
+                  : MediaQuery.of(context).size.height * 1.5,
               child: SizedBox(
-                height: MediaQuery
-                    .of(context)
-                    .size
-                    .height,
+                height: MediaQuery.of(context).size.height,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    SizedBox(height: MediaQuery
-                        .of(context)
-                        .size
-                        .height * 0.1),
+                    SizedBox(height: MediaQuery.of(context).size.height * 0.1),
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 20.0),
                       child: Row(
@@ -274,10 +263,7 @@ class _EventsPageState extends State<EventsPage> with TickerProviderStateMixin {
                             child: Image.asset('images/tabler_arrow-back.png'),
                           ),
                           SizedBox(
-                              width: MediaQuery
-                                  .of(context)
-                                  .size
-                                  .width * 0.02),
+                              width: MediaQuery.of(context).size.width * 0.02),
                           const Text(
                             'Events',
                             style: TextStyle(
@@ -294,10 +280,7 @@ class _EventsPageState extends State<EventsPage> with TickerProviderStateMixin {
                       ),
                     ),
                     SizedBox(
-                      height: MediaQuery
-                          .of(context)
-                          .size
-                          .height * 0.03,
+                      height: MediaQuery.of(context).size.height * 0.03,
                     ),
                     _latestInfoTabBar(),
                     Expanded(
@@ -312,8 +295,7 @@ class _EventsPageState extends State<EventsPage> with TickerProviderStateMixin {
                           else if (errorMessage != null)
                             Center(
                               child: Column(
-                                mainAxisAlignment:
-                                MainAxisAlignment.center,
+                                mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
                                   Text(
                                     errorMessage!,
@@ -359,8 +341,7 @@ class _EventsPageState extends State<EventsPage> with TickerProviderStateMixin {
                           else if (errorMessage != null)
                             Center(
                               child: Column(
-                                mainAxisAlignment:
-                                MainAxisAlignment.center,
+                                mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
                                   Text(
                                     errorMessage!,
@@ -406,8 +387,7 @@ class _EventsPageState extends State<EventsPage> with TickerProviderStateMixin {
                           else if (errorMessage != null)
                             Center(
                               child: Column(
-                                mainAxisAlignment:
-                                MainAxisAlignment.center,
+                                mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
                                   Text(
                                     errorMessage!,
@@ -453,8 +433,7 @@ class _EventsPageState extends State<EventsPage> with TickerProviderStateMixin {
                           else if (errorMessage != null)
                             Center(
                               child: Column(
-                                mainAxisAlignment:
-                                MainAxisAlignment.center,
+                                mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
                                   Text(
                                     errorMessage!,
@@ -500,8 +479,7 @@ class _EventsPageState extends State<EventsPage> with TickerProviderStateMixin {
                           else if (errorMessage != null)
                             Center(
                               child: Column(
-                                mainAxisAlignment:
-                                MainAxisAlignment.center,
+                                mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
                                   Text(
                                     errorMessage!,
@@ -547,8 +525,7 @@ class _EventsPageState extends State<EventsPage> with TickerProviderStateMixin {
                           else if (errorMessage != null)
                             Center(
                               child: Column(
-                                mainAxisAlignment:
-                                MainAxisAlignment.center,
+                                mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
                                   Text(
                                     errorMessage!,
@@ -594,8 +571,7 @@ class _EventsPageState extends State<EventsPage> with TickerProviderStateMixin {
                           else if (errorMessage != null)
                             Center(
                               child: Column(
-                                mainAxisAlignment:
-                                MainAxisAlignment.center,
+                                mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
                                   Text(
                                     errorMessage!,
@@ -641,8 +617,7 @@ class _EventsPageState extends State<EventsPage> with TickerProviderStateMixin {
                           else if (errorMessage != null)
                             Center(
                               child: Column(
-                                mainAxisAlignment:
-                                MainAxisAlignment.center,
+                                mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
                                   Text(
                                     errorMessage!,
@@ -704,7 +679,7 @@ class _EventsPageState extends State<EventsPage> with TickerProviderStateMixin {
           ),
           indicatorSize: TabBarIndicatorSize.label,
           indicatorPadding:
-          const EdgeInsets.only(left: 2.1, right: 2.1, bottom: 6.6, top: 5),
+              const EdgeInsets.only(left: 2.1, right: 2.1, bottom: 6.6, top: 5),
           dividerHeight: 0,
           tabAlignment: TabAlignment.start,
           controller: tabController!,
@@ -752,10 +727,7 @@ class _EventsPageState extends State<EventsPage> with TickerProviderStateMixin {
               Image.asset(
                 img,
               ),
-            SizedBox(width: MediaQuery
-                .of(context)
-                .size
-                .width * 0.01),
+            SizedBox(width: MediaQuery.of(context).size.width * 0.01),
             Text(
               label,
               style: const TextStyle(
@@ -773,8 +745,12 @@ class _EventsPageState extends State<EventsPage> with TickerProviderStateMixin {
   Widget cryptoCard(Map<String, dynamic> event) {
     final screenHeight = MediaQuery.of(context).size.height;
 
-    int upvotes = event['upvotes'] is int ? event['upvotes'] : int.parse(event['upvotes']);
-    int downvotes = event['downvotes'] is int ? event['downvotes'] : int.parse(event['downvotes']);
+    int upvotes = event['upvotes'] is int
+        ? event['upvotes']
+        : int.parse(event['upvotes']);
+    int downvotes = event['downvotes'] is int
+        ? event['downvotes']
+        : int.parse(event['downvotes']);
     int totalVotes = upvotes + downvotes;
     double upvotePercentage = totalVotes > 0 ? upvotes / totalVotes : 0.0;
 
@@ -809,24 +785,26 @@ class _EventsPageState extends State<EventsPage> with TickerProviderStateMixin {
         int updatedUpvotes = int.parse(event['upvotes']);
         int updatedDownvotes = int.parse(event['downvotes']);
         int updatedTotalVotes = updatedUpvotes + updatedDownvotes;
-        upvotePercentage = updatedTotalVotes > 0 ? updatedUpvotes / updatedTotalVotes : 0.0;
+        upvotePercentage =
+            updatedTotalVotes > 0 ? updatedUpvotes / updatedTotalVotes : 0.0;
 
         // Show success message
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Successfully ${type == 'upvote' ? 'Upvoted' : 'Downvoted'}'),
+            content: Text(
+                'Successfully ${type == 'upvote' ? 'Upvoted' : 'Downvoted'}'),
           ),
         );
         setState(() {}); // Update the UI
-      }  else {
+      } else {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(responseBody['message'] ?? 'An error occurred'),
+            backgroundColor: Colors.red,
           ),
         );
       }
     }
-
 
     return Padding(
       padding: const EdgeInsets.only(left: 20.0, right: 20.0, bottom: 20.0),
@@ -861,22 +839,10 @@ class _EventsPageState extends State<EventsPage> with TickerProviderStateMixin {
                   ClipRRect(
                     borderRadius: BorderRadius.circular(35),
                     child: Container(
-                      width: (48 / MediaQuery
-                          .of(context)
-                          .size
-                          .width) *
-                          MediaQuery
-                              .of(context)
-                              .size
-                              .width,
-                      height: (48 / MediaQuery
-                          .of(context)
-                          .size
-                          .height) *
-                          MediaQuery
-                              .of(context)
-                              .size
-                              .height,
+                      width: (48 / MediaQuery.of(context).size.width) *
+                          MediaQuery.of(context).size.width,
+                      height: (48 / MediaQuery.of(context).size.height) *
+                          MediaQuery.of(context).size.height,
                       color: Colors.grey,
                       child: Image.network(
                         event['image'],
@@ -884,10 +850,7 @@ class _EventsPageState extends State<EventsPage> with TickerProviderStateMixin {
                       ),
                     ),
                   ),
-                  SizedBox(width: MediaQuery
-                      .of(context)
-                      .size
-                      .width * 0.03),
+                  SizedBox(width: MediaQuery.of(context).size.width * 0.03),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -913,10 +876,7 @@ class _EventsPageState extends State<EventsPage> with TickerProviderStateMixin {
                           ),
                         ),
                         SizedBox(
-                          height: MediaQuery
-                              .of(context)
-                              .size
-                              .height * 0.02,
+                          height: MediaQuery.of(context).size.height * 0.02,
                         ),
                         Text(
                           event['sub_text'],
@@ -939,7 +899,6 @@ class _EventsPageState extends State<EventsPage> with TickerProviderStateMixin {
                                 color: Colors.black,
                               ),
                             ),
-
                           ],
                         ),
                         SizedBox(height: screenHeight * 0.02),
@@ -956,12 +915,11 @@ class _EventsPageState extends State<EventsPage> with TickerProviderStateMixin {
                               ),
                             ),
                             Container(
-                              width: MediaQuery.of(context).size.width *
-                                  0.2,
+                              width: MediaQuery.of(context).size.width * 0.2,
                               height: 5,
                               decoration: BoxDecoration(
-                                border: Border.all(
-                                    width: 0.5, color: Colors.black),
+                                border:
+                                    Border.all(width: 0.5, color: Colors.black),
                                 borderRadius: BorderRadius.circular(0),
                               ),
                             ),
@@ -971,10 +929,7 @@ class _EventsPageState extends State<EventsPage> with TickerProviderStateMixin {
                     ),
                   ),
                   SizedBox(
-                    height: MediaQuery
-                        .of(context)
-                        .size
-                        .height * 0.15,
+                    height: MediaQuery.of(context).size.height * 0.15,
                     child: Column(
                       children: [
                         GestureDetector(

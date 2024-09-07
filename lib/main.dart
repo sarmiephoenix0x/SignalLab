@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:signal_app/intro_page.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:signal_app/main_app.dart';
+
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -32,9 +32,17 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'Signal App',
       theme: ThemeData(
-        // brightness: Brightness.dark, // Sets the black theme color
-        primarySwatch: Colors.grey, // Custom swatch with a neutral color
-      ),
+        primarySwatch: Colors.grey,
+        fontFamily: 'Inconsolata', // Apply custom font
+        appBarTheme: const AppBarTheme(
+          titleTextStyle: TextStyle(
+              fontFamily: 'Inconsolata',
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+              color: Colors.black,
+            ),
+          ),
+        ),
       home: isLoggedIn ? MainApp(key: UniqueKey()) : const IntroPage(),
     );
   }

@@ -207,116 +207,157 @@ class _MainAppState extends State<MainApp> with TickerProviderStateMixin {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('You are not logged in.'),
+          backgroundColor: Colors.red,
+          duration: Duration(seconds: 2),
         ),
       );
       return;
     }
 
-    final response = await http.post(
-      Uri.parse('https://script.teendev.dev/signal/api/logout'),
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer $accessToken',
-      },
-    );
-
-    final responseData = json.decode(response.body);
-
-    if (response.statusCode == 200) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Logged out successfully!'),
-        ),
+    try {
+      final response = await http.post(
+        Uri.parse('https://script.teendev.dev/signal/api/logout'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $accessToken',
+        },
       );
 
-      // Clear the stored data
-      await storage.delete(key: 'accessToken');
-      await prefs.remove('user');
+      final responseData = json.decode(response.body);
 
-      // Navigate to the login screen
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(
-          builder: (context) => const IntroPage(),
-        ),
-      );
-    } else if (response.statusCode == 401) {
+      if (response.statusCode == 200) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Logged out successfully!'),
+            backgroundColor: Colors.green,
+            duration: Duration(seconds: 2),
+          ),
+        );
+
+        // Clear the stored data
+        await storage.delete(key: 'accessToken');
+        await prefs.remove('user');
+
+        // Navigate to the login screen
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (context) => const IntroPage(),
+          ),
+        );
+      } else if (response.statusCode == 401) {
+        final String message = responseData['message'] ?? 'Unauthorized';
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error: $message'),
+            backgroundColor: Colors.orange,
+            duration: const Duration(seconds: 3),
+          ),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('An unexpected error occurred. Please try again.'),
+            backgroundColor: Colors.red,
+            duration: Duration(seconds: 3),
+          ),
+        );
+      }
+    } catch (e) {
       setState(() {
         isLoading = false;
       });
-      final String message = responseData['message'];
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Error: $message'),
-        ),
-      );
-    } else {
-      setState(() {
-        isLoading = false;
-      });
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('An unexpected error occurred.'),
+          content: const Text('Failed to connect to the server. Please check your internet connection.'),
+          backgroundColor: Colors.red,
+          duration: const Duration(seconds: 3),
         ),
       );
     }
   }
 
+
   void _showLogoutConfirmationDialog() {
     showDialog(
       context: context,
+      barrierDismissible: false, // Initially set based on isLoading
       builder: (BuildContext context) {
-        // Use a local variable for isLoading
-
         return StatefulBuilder(
           builder: (BuildContext context, StateSetter setState) {
-            return AlertDialog(
-              title: const Text('Confirm Logout'),
-              content: const Text('Are you sure you want to log out?'),
-              actions: <Widget>[
-                Row(
-                  children: [
-                    TextButton(
-                      child: const Text(
-                        'Cancel',
-                        style:
-                            TextStyle(color: Colors.black, fontFamily: 'Inter'),
-                      ),
-                      onPressed: () {
-                        setState(() {
-                          isLoading = false; // Update local state
-                        });
-                        Navigator.of(context).pop(); // Dismiss the dialog
-                      },
-                    ),
-                    const Spacer(),
-                    if (isLoading == true)
-                      const Center(
-                        child: CircularProgressIndicator(
-                          color: Colors.red,
-                        ),
-                      )
-                    else
-                      ElevatedButton(
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.red,
-                        ),
-                        onPressed: () {
-                          setState(() {
-                            isLoading = true; // Update local state
-                          });
-
-                          _logout(); // Call the logout method
-                        },
+            return PopScope(
+              canPop: false,
+              onPopInvokedWithResult: (didPop, dynamic result) {
+                if (!didPop) {
+                  if (isLoading != true) {
+                    if (Navigator.of(context).canPop()) {
+                      Navigator.of(context).pop();
+                    } else {
+                      SystemChannels.platform
+                          .invokeMethod('SystemNavigator.pop');
+                    }
+                  }
+                }
+              },
+              child: AlertDialog(
+                title: const Text('Confirm Logout'),
+                content: const Text('Are you sure you want to log out?'),
+                actions: <Widget>[
+                  Row(
+                    children: [
+                      TextButton(
                         child: const Text(
-                          'Logout',
+                          'Cancel',
                           style: TextStyle(
                               color: Colors.black, fontFamily: 'Inter'),
                         ),
+                        onPressed: () {
+                          setState(() {
+                            isLoading = false; // Update local state
+                          });
+                          Navigator.of(context).pop(); // Dismiss the dialog
+                        },
                       ),
-                  ],
-                ),
-              ],
+                      const Spacer(),
+                      if (isLoading == true)
+                        const Center(
+                          child: CircularProgressIndicator(
+                            color: Colors.red,
+                          ),
+                        )
+                      else
+                        ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.red,
+                          ),
+                          onPressed: () {
+                            setState(() {
+                              isLoading = true; // Update local state
+                            });
+
+                            _logout().then((_) {
+                              // After logout is done, reset isLoading and close the dialog
+                              setState(() {
+                                isLoading = false;
+                              });
+                              Navigator.of(context).pop(); // Dismiss dialog
+                            }).catchError((error) {
+                              // Handle error if necessary
+                              setState(() {
+                                isLoading = false;
+                              });
+                            });
+                          },
+                          child: const Text(
+                            'Logout',
+                            style: TextStyle(
+                                color: Colors.black, fontFamily: 'Inter'),
+                          ),
+                        ),
+                    ],
+                  ),
+                ],
+              ),
             );
           },
         );
@@ -977,11 +1018,12 @@ class _MainAppState extends State<MainApp> with TickerProviderStateMixin {
                   child: SingleChildScrollView(
                     controller: _scrollController,
                     child: Center(
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                        child: Column(
-                          children: [
-                            Row(
+                      child: Column(
+                        children: [
+                          Padding(
+                            padding:
+                                const EdgeInsets.symmetric(horizontal: 20.0),
+                            child: Row(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 InkWell(
@@ -1015,10 +1057,14 @@ class _MainAppState extends State<MainApp> with TickerProviderStateMixin {
                                 ),
                               ],
                             ),
-                            SizedBox(
-                                height:
-                                    MediaQuery.of(context).size.height * 0.05),
-                            Row(children: [
+                          ),
+                          SizedBox(
+                              height:
+                                  MediaQuery.of(context).size.height * 0.05),
+                          Padding(
+                            padding:
+                                const EdgeInsets.symmetric(horizontal: 20.0),
+                            child: Row(children: [
                               Image.asset(
                                 'images/ProfileImg.png',
                               ),
@@ -1038,10 +1084,14 @@ class _MainAppState extends State<MainApp> with TickerProviderStateMixin {
                                 const CircularProgressIndicator(
                                     color: Colors.black),
                             ]),
-                            SizedBox(
-                                height:
-                                    MediaQuery.of(context).size.height * 0.05),
-                            Container(
+                          ),
+                          SizedBox(
+                              height:
+                                  MediaQuery.of(context).size.height * 0.05),
+                          Padding(
+                            padding:
+                                const EdgeInsets.symmetric(horizontal: 20.0),
+                            child: Container(
                               height:
                                   (130 / MediaQuery.of(context).size.height) *
                                       MediaQuery.of(context).size.height,
@@ -1112,10 +1162,14 @@ class _MainAppState extends State<MainApp> with TickerProviderStateMixin {
                                 ],
                               ),
                             ),
-                            SizedBox(
-                                height:
-                                    MediaQuery.of(context).size.height * 0.02),
-                            Container(
+                          ),
+                          SizedBox(
+                              height:
+                                  MediaQuery.of(context).size.height * 0.02),
+                          Padding(
+                            padding:
+                                const EdgeInsets.symmetric(horizontal: 20.0),
+                            child: Container(
                               height:
                                   (130 / MediaQuery.of(context).size.height) *
                                       MediaQuery.of(context).size.height,
@@ -1182,10 +1236,14 @@ class _MainAppState extends State<MainApp> with TickerProviderStateMixin {
                                 ],
                               ),
                             ),
-                            SizedBox(
-                                height:
-                                    MediaQuery.of(context).size.height * 0.02),
-                            Container(
+                          ),
+                          SizedBox(
+                              height:
+                                  MediaQuery.of(context).size.height * 0.02),
+                          Padding(
+                            padding:
+                                const EdgeInsets.symmetric(horizontal: 20.0),
+                            child: Container(
                               height:
                                   (130 / MediaQuery.of(context).size.height) *
                                       MediaQuery.of(context).size.height,
@@ -1252,10 +1310,14 @@ class _MainAppState extends State<MainApp> with TickerProviderStateMixin {
                                 ],
                               ),
                             ),
-                            SizedBox(
-                                height:
-                                    MediaQuery.of(context).size.height * 0.05),
-                            Row(
+                          ),
+                          SizedBox(
+                              height:
+                                  MediaQuery.of(context).size.height * 0.05),
+                          Padding(
+                            padding:
+                                const EdgeInsets.symmetric(horizontal: 20.0),
+                            child: Row(
                               children: [
                                 const Text(
                                   "Educational Content",
@@ -1291,10 +1353,14 @@ class _MainAppState extends State<MainApp> with TickerProviderStateMixin {
                                 ),
                               ],
                             ),
-                            SizedBox(
-                                height:
-                                    MediaQuery.of(context).size.height * 0.03),
-                            TabBar(
+                          ),
+                          SizedBox(
+                              height:
+                                  MediaQuery.of(context).size.height * 0.03),
+                          Padding(
+                            padding:
+                                const EdgeInsets.symmetric(horizontal: 20.0),
+                            child: TabBar(
                               tabAlignment: TabAlignment.start,
                               controller: homeTab,
                               isScrollable: true,
@@ -1326,105 +1392,112 @@ class _MainAppState extends State<MainApp> with TickerProviderStateMixin {
                               indicatorPadding: const EdgeInsets.only(
                                   left: 16.0, right: 16.0),
                             ),
-                            SizedBox(
-                                height:
-                                    MediaQuery.of(context).size.height * 0.03),
-                            SizedBox(
+                          ),
+                          SizedBox(
                               height:
-                                  (400 / MediaQuery.of(context).size.height) *
-                                      MediaQuery.of(context).size.height,
-                              child: TabBarView(
-                                controller: homeTab,
-                                children: [
-                                  if (loading)
-                                    const Center(
-                                      child: CircularProgressIndicator(
-                                          color: Colors.black),
-                                    )
-                                  else if (errorMessage != null)
-                                    Center(
-                                      child: Column(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.center,
-                                        children: [
-                                          Text(
-                                            errorMessage!,
-                                            textAlign: TextAlign.center,
-                                            style: const TextStyle(
+                                  MediaQuery.of(context).size.height * 0.03),
+                          SizedBox(
+                            height: (400 / MediaQuery.of(context).size.height) *
+                                MediaQuery.of(context).size.height,
+                            child: TabBarView(
+                              controller: homeTab,
+                              children: [
+                                if (loading)
+                                  const Center(
+                                    child: CircularProgressIndicator(
+                                        color: Colors.black),
+                                  )
+                                else if (errorMessage != null)
+                                  Center(
+                                    child: Column(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
+                                      children: [
+                                        Text(
+                                          errorMessage!,
+                                          textAlign: TextAlign.center,
+                                          style: const TextStyle(
+                                            fontFamily: 'Inconsolata',
+                                            color: Colors.red,
+                                          ),
+                                        ),
+                                        const SizedBox(height: 16),
+                                        ElevatedButton(
+                                          onPressed: _refreshData,
+                                          child: const Text(
+                                            'Retry',
+                                            style: TextStyle(
                                               fontFamily: 'Inconsolata',
-                                              color: Colors.red,
+                                              fontWeight: FontWeight.bold,
+                                              fontSize: 18,
+                                              color: Colors.black,
                                             ),
                                           ),
-                                          const SizedBox(height: 16),
-                                          ElevatedButton(
-                                            onPressed: _refreshData,
-                                            child: const Text(
-                                              'Retry',
-                                              style: TextStyle(
-                                                fontFamily: 'Inconsolata',
-                                                fontWeight: FontWeight.bold,
-                                                fontSize: 18,
-                                                color: Colors.black,
-                                              ),
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    )
-                                  else
-                                    ListView.builder(
-                                      itemCount: news.length,
-                                      itemBuilder: (context, index) {
-                                        return newsCard(news[index]);
-                                      },
+                                        ),
+                                      ],
                                     ),
-                                  if (loading2)
-                                    const Center(
-                                      child: CircularProgressIndicator(
-                                          color: Colors.black),
-                                    )
-                                  else if (errorMessage != null)
-                                    Center(
-                                      child: Column(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.center,
-                                        children: [
-                                          Text(
-                                            errorMessage!,
-                                            textAlign: TextAlign.center,
-                                            style: const TextStyle(
+                                  )
+                                else
+                                  ListView.builder(
+                                    itemCount: news.length,
+                                    itemBuilder: (context, index) {
+                                      return Padding(
+                                        padding: const EdgeInsets.only(
+                                            left: 20.0, right: 20.0, top: 10.0),
+                                        child: newsCard(news[index]),
+                                      );
+                                    },
+                                  ),
+                                if (loading2)
+                                  const Center(
+                                    child: CircularProgressIndicator(
+                                        color: Colors.black),
+                                  )
+                                else if (errorMessage != null)
+                                  Center(
+                                    child: Column(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
+                                      children: [
+                                        Text(
+                                          errorMessage!,
+                                          textAlign: TextAlign.center,
+                                          style: const TextStyle(
+                                            fontFamily: 'Inconsolata',
+                                            color: Colors.red,
+                                          ),
+                                        ),
+                                        const SizedBox(height: 16),
+                                        ElevatedButton(
+                                          onPressed: _refreshData,
+                                          child: const Text(
+                                            'Retry',
+                                            style: TextStyle(
                                               fontFamily: 'Inconsolata',
-                                              color: Colors.red,
+                                              fontWeight: FontWeight.bold,
+                                              fontSize: 18,
+                                              color: Colors.black,
                                             ),
                                           ),
-                                          const SizedBox(height: 16),
-                                          ElevatedButton(
-                                            onPressed: _refreshData,
-                                            child: const Text(
-                                              'Retry',
-                                              style: TextStyle(
-                                                fontFamily: 'Inconsolata',
-                                                fontWeight: FontWeight.bold,
-                                                fontSize: 18,
-                                                color: Colors.black,
-                                              ),
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    )
-                                  else
-                                    ListView.builder(
-                                      itemCount: courses.length,
-                                      itemBuilder: (context, index) {
-                                        return courseCard(courses[index]);
-                                      },
+                                        ),
+                                      ],
                                     ),
-                                ],
-                              ),
+                                  )
+                                else
+                                  ListView.builder(
+                                    itemCount: courses.length,
+                                    itemBuilder: (context, index) {
+                                      return Padding(
+                                        padding: const EdgeInsets.only(
+                                            left: 20.0, right: 20.0, top: 5.0),
+                                        child: courseCard(courses[index]),
+                                      );
+                                    },
+                                  ),
+                              ],
                             ),
-                          ],
-                        ),
+                          ),
+                        ],
                       ),
                     ),
                   ),
@@ -1445,489 +1518,508 @@ class _MainAppState extends State<MainApp> with TickerProviderStateMixin {
           Expanded(
             child: Stack(
               children: [
-                Padding(
-                  padding: const EdgeInsets.only(left: 20.0, right: 20.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                        child: Row(
-                          children: [
-                            const Text(
-                              'Signal',
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                      child: Row(
+                        children: [
+                          const Text(
+                            'Signal',
+                            style: TextStyle(
+                              fontFamily: 'Inter',
+                              fontWeight: FontWeight.bold,
+                              fontSize: 22.0,
+                              color: Colors.black,
+                            ),
+                          ),
+                          const Spacer(),
+                          Container(
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(15),
+                              border: Border.all(
+                                color: Colors.black,
+                                width: 2,
+                              ),
+                            ),
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 12, vertical: 6),
+                            child: const Text(
+                              'Results',
                               style: TextStyle(
+                                fontSize: 16,
                                 fontFamily: 'Inter',
                                 fontWeight: FontWeight.bold,
-                                fontSize: 22.0,
                                 color: Colors.black,
                               ),
                             ),
-                            const Spacer(),
-                            Container(
-                              decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(15),
-                                border: Border.all(
-                                  color: Colors.black,
-                                  width: 2,
-                                ),
-                              ),
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 12, vertical: 6),
-                              child: const Text(
-                                'Results',
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  fontFamily: 'Inter',
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.black,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      SizedBox(
-                          height: MediaQuery.of(context).size.height * 0.03),
-                      TabBar(
-                        controller: signalTab,
-                        tabs: [
-                          _buildTab2('Crypto'),
-                          _buildTab2('Forex'),
-                          _buildTab2('Stocks'),
+                          ),
                         ],
-                        labelColor: Colors.black,
-                        unselectedLabelColor: Colors.grey,
-                        labelStyle: const TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                          fontFamily: 'Inconsolata',
-                        ),
-                        unselectedLabelStyle: const TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                          fontFamily: 'Inconsolata',
-                        ),
-                        labelPadding: EdgeInsets.zero,
-                        indicatorSize: TabBarIndicatorSize.tab,
-                        indicatorColor: Colors.black,
                       ),
-                      SizedBox(
-                          height: MediaQuery.of(context).size.height * 0.03),
-                      Expanded(
-                        child: TabBarView(
-                          controller: signalTab,
-                          children: [
-                            FutureBuilder<List<dynamic>>(
-                              future: _signalsFuture1,
-                              builder: (context, snapshot) {
-                                if (snapshot.connectionState ==
-                                    ConnectionState.waiting) {
-                                  return const Center(
-                                      child: CircularProgressIndicator(
-                                          color: Colors.black));
-                                } else if (snapshot.hasError) {
-                                  return Center(
-                                    child: Column(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.center,
-                                      children: [
-                                        const Text(
-                                          'An unexpected error occurred',
-                                          textAlign: TextAlign.center,
-                                          style: const TextStyle(
-                                            fontFamily: 'Inconsolata',
-                                            color: Colors.red,
-                                          ),
-                                        ),
-                                        const SizedBox(height: 16),
-                                        ElevatedButton(
-                                          onPressed: _refreshData,
-                                          child: const Text(
-                                            'Retry',
-                                            style: TextStyle(
-                                              fontFamily: 'Inconsolata',
-                                              fontWeight: FontWeight.bold,
-                                              fontSize: 18,
-                                              color: Colors.black,
-                                            ),
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  );
-                                } else if (!snapshot.hasData ||
-                                    snapshot.data!.isEmpty) {
-                                  return Center(
-                                    child: Column(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.center,
-                                      children: [
-                                        const Text(
-                                          'No signals available',
-                                          textAlign: TextAlign.center,
-                                          style: TextStyle(
-                                            fontFamily: 'Inconsolata',
-                                            color: Colors.red,
-                                          ),
-                                        ),
-                                        const SizedBox(height: 16),
-                                        ElevatedButton(
-                                          onPressed: _refreshData,
-                                          child: const Text(
-                                            'Retry',
-                                            style: TextStyle(
-                                              fontFamily: 'Inconsolata',
-                                              fontWeight: FontWeight.bold,
-                                              fontSize: 18,
-                                              color: Colors.black,
-                                            ),
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  );
-                                }
-
-                                List<dynamic> signalsList = snapshot.data!;
-                                return RefreshIndicator(
-                                  onRefresh: _refreshData,
-                                  child: ListView.builder(
-                                    controller: _scrollController,
-                                    itemCount: signalsList.length +
-                                        1, // +1 for the stats container
-                                    itemBuilder: (context, index) {
-                                      if (index == 0) {
-                                        return Container(
-                                          padding: const EdgeInsets.all(12.0),
-                                          decoration: BoxDecoration(
-                                            color: Colors.white,
-                                            borderRadius:
-                                                BorderRadius.circular(15),
-                                            boxShadow: [
-                                              BoxShadow(
-                                                color: Colors.grey
-                                                    .withOpacity(0.5),
-                                                spreadRadius: 3,
-                                                blurRadius: 5,
-                                              ),
-                                            ],
-                                          ),
-                                          child: Column(
-                                            mainAxisAlignment:
-                                                MainAxisAlignment.spaceEvenly,
-                                            children: [
-                                              buildStatRow(
-                                                  'Trades last 7 days: ----',
-                                                  'Win rate: ----'),
-                                              buildStatRow(
-                                                  'Trades last 14 days: ----',
-                                                  'Win rate: ----'),
-                                              buildStatRow(
-                                                  'Trades last 30 days: ----',
-                                                  'Win rate: ----'),
-                                            ],
-                                          ),
-                                        );
-                                      }
-
-                                      final signal = signalsList[index -
-                                          1]; // -1 to adjust for the stats container
-
-                                      Map<String, dynamic> targetsMap =
-                                          jsonDecode(signal['targets']);
-
-                                      return signals(
-                                        img: signal['coin_image'],
-                                        name: signal['coin'],
-                                        entryPrice: signal['entry_price'],
-                                        stopLoss: signal['stop_loss'],
-                                        currentPrice: signal['current_price'],
-                                        targets: targetsMap,
-                                        createdAt: signal['created_at'],
-                                        varNameNotifier:
-                                            ValueNotifier<bool>(false),
-                                      );
-                                    },
-                                  ),
-                                );
-                              },
-                            ),
-                            FutureBuilder<List<dynamic>>(
-                              future: _signalsFuture2,
-                              builder: (context, snapshot) {
-                                if (snapshot.connectionState ==
-                                    ConnectionState.waiting) {
-                                  return const Center(
-                                      child: CircularProgressIndicator(
-                                          color: Colors.black));
-                                } else if (snapshot.hasError) {
-                                  return Center(
-                                    child: Column(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.center,
-                                      children: [
-                                        const Text(
-                                          'An unexpected error occurred',
-                                          textAlign: TextAlign.center,
-                                          style: const TextStyle(
-                                            fontFamily: 'Inconsolata',
-                                            color: Colors.red,
-                                          ),
-                                        ),
-                                        const SizedBox(height: 16),
-                                        ElevatedButton(
-                                          onPressed: _refreshData,
-                                          child: const Text(
-                                            'Retry',
-                                            style: TextStyle(
-                                              fontFamily: 'Inconsolata',
-                                              fontWeight: FontWeight.bold,
-                                              fontSize: 18,
-                                              color: Colors.black,
-                                            ),
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  );
-                                } else if (!snapshot.hasData ||
-                                    snapshot.data!.isEmpty) {
-                                  return Center(
-                                    child: Column(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.center,
-                                      children: [
-                                        const Text(
-                                          'No signals available',
-                                          textAlign: TextAlign.center,
-                                          style: TextStyle(
-                                            fontFamily: 'Inconsolata',
-                                            color: Colors.red,
-                                          ),
-                                        ),
-                                        const SizedBox(height: 16),
-                                        ElevatedButton(
-                                          onPressed: _refreshData,
-                                          child: const Text(
-                                            'Retry',
-                                            style: TextStyle(
-                                              fontFamily: 'Inconsolata',
-                                              fontWeight: FontWeight.bold,
-                                              fontSize: 18,
-                                              color: Colors.black,
-                                            ),
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  );
-                                }
-
-                                List<dynamic> signalsList = snapshot.data!;
-                                return RefreshIndicator(
-                                  onRefresh: _refreshData,
-                                  child: ListView.builder(
-                                    controller: _scrollController,
-                                    itemCount: signalsList.length +
-                                        1, // +1 for the stats container
-                                    itemBuilder: (context, index) {
-                                      if (index == 0) {
-                                        return Container(
-                                          padding: const EdgeInsets.all(12.0),
-                                          decoration: BoxDecoration(
-                                            color: Colors.white,
-                                            borderRadius:
-                                                BorderRadius.circular(15),
-                                            boxShadow: [
-                                              BoxShadow(
-                                                color: Colors.grey
-                                                    .withOpacity(0.5),
-                                                spreadRadius: 3,
-                                                blurRadius: 5,
-                                              ),
-                                            ],
-                                          ),
-                                          child: Column(
-                                            mainAxisAlignment:
-                                                MainAxisAlignment.spaceEvenly,
-                                            children: [
-                                              buildStatRow(
-                                                  'Trades last 7 days: ----',
-                                                  'Win rate: ----'),
-                                              buildStatRow(
-                                                  'Trades last 14 days: ----',
-                                                  'Win rate: ----'),
-                                              buildStatRow(
-                                                  'Trades last 30 days: ----',
-                                                  'Win rate: ----'),
-                                            ],
-                                          ),
-                                        );
-                                      }
-
-                                      final signal = signalsList[index -
-                                          1]; // -1 to adjust for the stats container
-
-                                      Map<String, dynamic> targetsMap =
-                                          jsonDecode(signal['targets']);
-
-                                      return signals(
-                                        img: signal['coin_image'],
-                                        name: signal['coin'],
-                                        entryPrice: signal['entry_price'],
-                                        stopLoss: signal['stop_loss'],
-                                        currentPrice: signal['current_price'],
-                                        targets: targetsMap,
-                                        createdAt: signal['created_at'],
-                                        varNameNotifier:
-                                            ValueNotifier<bool>(false),
-                                      );
-                                    },
-                                  ),
-                                );
-                              },
-                            ),
-                            FutureBuilder<List<dynamic>>(
-                              future: _signalsFuture3,
-                              builder: (context, snapshot) {
-                                if (snapshot.connectionState ==
-                                    ConnectionState.waiting) {
-                                  return const Center(
-                                      child: CircularProgressIndicator(
-                                          color: Colors.black));
-                                } else if (snapshot.hasError) {
-                                  return Center(
-                                    child: Column(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.center,
-                                      children: [
-                                        const Text(
-                                          'An unexpected error occurred',
-                                          textAlign: TextAlign.center,
-                                          style: const TextStyle(
-                                            fontFamily: 'Inconsolata',
-                                            color: Colors.red,
-                                          ),
-                                        ),
-                                        const SizedBox(height: 16),
-                                        ElevatedButton(
-                                          onPressed: _refreshData,
-                                          child: const Text(
-                                            'Retry',
-                                            style: TextStyle(
-                                              fontFamily: 'Inconsolata',
-                                              fontWeight: FontWeight.bold,
-                                              fontSize: 18,
-                                              color: Colors.black,
-                                            ),
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  );
-                                } else if (!snapshot.hasData ||
-                                    snapshot.data!.isEmpty) {
-                                  return Center(
-                                    child: Column(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.center,
-                                      children: [
-                                        const Text(
-                                          'No signals available',
-                                          textAlign: TextAlign.center,
-                                          style: TextStyle(
-                                            fontFamily: 'Inconsolata',
-                                            color: Colors.red,
-                                          ),
-                                        ),
-                                        const SizedBox(height: 16),
-                                        ElevatedButton(
-                                          onPressed: _refreshData,
-                                          child: const Text(
-                                            'Retry',
-                                            style: TextStyle(
-                                              fontFamily: 'Inconsolata',
-                                              fontWeight: FontWeight.bold,
-                                              fontSize: 18,
-                                              color: Colors.black,
-                                            ),
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  );
-                                }
-
-                                List<dynamic> signalsList = snapshot.data!;
-                                return RefreshIndicator(
-                                  onRefresh: _refreshData,
-                                  child: ListView.builder(
-                                    controller: _scrollController,
-                                    itemCount: signalsList.length +
-                                        1, // +1 for the stats container
-                                    itemBuilder: (context, index) {
-                                      if (index == 0) {
-                                        return Container(
-                                          padding: const EdgeInsets.all(12.0),
-                                          decoration: BoxDecoration(
-                                            color: Colors.white,
-                                            borderRadius:
-                                                BorderRadius.circular(15),
-                                            boxShadow: [
-                                              BoxShadow(
-                                                color: Colors.grey
-                                                    .withOpacity(0.5),
-                                                spreadRadius: 3,
-                                                blurRadius: 5,
-                                              ),
-                                            ],
-                                          ),
-                                          child: Column(
-                                            mainAxisAlignment:
-                                                MainAxisAlignment.spaceEvenly,
-                                            children: [
-                                              buildStatRow(
-                                                  'Trades last 7 days: ----',
-                                                  'Win rate: ----'),
-                                              buildStatRow(
-                                                  'Trades last 14 days: ----',
-                                                  'Win rate: ----'),
-                                              buildStatRow(
-                                                  'Trades last 30 days: ----',
-                                                  'Win rate: ----'),
-                                            ],
-                                          ),
-                                        );
-                                      }
-
-                                      final signal = signalsList[index -
-                                          1]; // -1 to adjust for the stats container
-
-                                      Map<String, dynamic> targetsMap =
-                                          jsonDecode(signal['targets']);
-
-                                      return signals(
-                                        img: signal['coin_image'],
-                                        name: signal['coin'],
-                                        entryPrice: signal['entry_price'],
-                                        stopLoss: signal['stop_loss'],
-                                        currentPrice: signal['current_price'],
-                                        targets: targetsMap,
-                                        createdAt: signal['created_at'],
-                                        varNameNotifier:
-                                            ValueNotifier<bool>(false),
-                                      );
-                                    },
-                                  ),
-                                );
-                              },
-                            ),
-                          ],
-                        ),
+                    ),
+                    SizedBox(height: MediaQuery.of(context).size.height * 0.03),
+                    TabBar(
+                      controller: signalTab,
+                      tabs: [
+                        _buildTab2('Crypto'),
+                        _buildTab2('Forex'),
+                        _buildTab2('Stocks'),
+                      ],
+                      labelColor: Colors.black,
+                      unselectedLabelColor: Colors.grey,
+                      labelStyle: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        fontFamily: 'Inconsolata',
                       ),
-                    ],
-                  ),
+                      unselectedLabelStyle: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        fontFamily: 'Inconsolata',
+                      ),
+                      labelPadding: EdgeInsets.zero,
+                      indicatorSize: TabBarIndicatorSize.tab,
+                      indicatorColor: Colors.black,
+                    ),
+                    SizedBox(height: MediaQuery.of(context).size.height * 0.03),
+                    Expanded(
+                      child: TabBarView(
+                        controller: signalTab,
+                        children: [
+                          FutureBuilder<List<dynamic>>(
+                            future: _signalsFuture1,
+                            builder: (context, snapshot) {
+                              if (snapshot.connectionState ==
+                                  ConnectionState.waiting) {
+                                return const Center(
+                                    child: CircularProgressIndicator(
+                                        color: Colors.black));
+                              } else if (snapshot.hasError) {
+                                return Center(
+                                  child: Column(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      const Text(
+                                        'An unexpected error occurred',
+                                        textAlign: TextAlign.center,
+                                        style: const TextStyle(
+                                          fontFamily: 'Inconsolata',
+                                          color: Colors.red,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 16),
+                                      ElevatedButton(
+                                        onPressed: _refreshData,
+                                        child: const Text(
+                                          'Retry',
+                                          style: TextStyle(
+                                            fontFamily: 'Inconsolata',
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 18,
+                                            color: Colors.black,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                );
+                              } else if (!snapshot.hasData ||
+                                  snapshot.data!.isEmpty) {
+                                return Center(
+                                  child: Column(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      const Text(
+                                        'No signals available',
+                                        textAlign: TextAlign.center,
+                                        style: TextStyle(
+                                          fontFamily: 'Inconsolata',
+                                          color: Colors.red,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 16),
+                                      ElevatedButton(
+                                        onPressed: _refreshData,
+                                        child: const Text(
+                                          'Retry',
+                                          style: TextStyle(
+                                            fontFamily: 'Inconsolata',
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 18,
+                                            color: Colors.black,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                );
+                              }
+
+                              List<dynamic> signalsList = snapshot.data!;
+                              return RefreshIndicator(
+                                onRefresh: _refreshData,
+                                child: ListView.builder(
+                                  controller: _scrollController,
+                                  itemCount: signalsList.length +
+                                      1, // +1 for the stats container
+                                  itemBuilder: (context, index) {
+                                    if (index == 0) {
+                                      return Padding(
+                                        padding: const EdgeInsets.only(
+                                            left: 20.0,
+                                            right: 20.0,
+                                            top: 10.0,
+                                            bottom: 5),
+                                        child: Container(
+                                          padding: const EdgeInsets.all(12.0),
+                                          decoration: BoxDecoration(
+                                            color: Colors.white,
+                                            borderRadius:
+                                                BorderRadius.circular(15),
+                                            boxShadow: [
+                                              BoxShadow(
+                                                color: Colors.grey
+                                                    .withOpacity(0.5),
+                                                spreadRadius: 3,
+                                                blurRadius: 5,
+                                              ),
+                                            ],
+                                          ),
+                                          child: Column(
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.spaceEvenly,
+                                            children: [
+                                              buildStatRow(
+                                                  'Trades last  7 days: ----',
+                                                  'Win rate: ----'),
+                                              buildStatRow(
+                                                  'Trades last 14 days: ----',
+                                                  'Win rate: ----'),
+                                              buildStatRow(
+                                                  'Trades last 30 days: ----',
+                                                  'Win rate: ----'),
+                                            ],
+                                          ),
+                                        ),
+                                      );
+                                    }
+
+                                    final signal = signalsList[index -
+                                        1]; // -1 to adjust for the stats container
+
+                                    Map<String, dynamic> targetsMap =
+                                        jsonDecode(signal['targets']);
+
+                                    return signals(
+                                      img: signal['coin_image'],
+                                      name: signal['coin'],
+                                      entryPrice: signal['entry_price'],
+                                      stopLoss: signal['stop_loss'],
+                                      currentPrice: signal['current_price'],
+                                      targets: targetsMap,
+                                      createdAt: signal['created_at'],
+                                      insight: signal['insight'],
+                                      analysisNotifier:
+                                          ValueNotifier<bool>(false),
+                                      currentPriceNotifier:
+                                          ValueNotifier<bool>(false),
+                                    );
+                                  },
+                                ),
+                              );
+                            },
+                          ),
+                          FutureBuilder<List<dynamic>>(
+                            future: _signalsFuture2,
+                            builder: (context, snapshot) {
+                              if (snapshot.connectionState ==
+                                  ConnectionState.waiting) {
+                                return const Center(
+                                    child: CircularProgressIndicator(
+                                        color: Colors.black));
+                              } else if (snapshot.hasError) {
+                                return Center(
+                                  child: Column(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      const Text(
+                                        'An unexpected error occurred',
+                                        textAlign: TextAlign.center,
+                                        style: const TextStyle(
+                                          fontFamily: 'Inconsolata',
+                                          color: Colors.red,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 16),
+                                      ElevatedButton(
+                                        onPressed: _refreshData,
+                                        child: const Text(
+                                          'Retry',
+                                          style: TextStyle(
+                                            fontFamily: 'Inconsolata',
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 18,
+                                            color: Colors.black,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                );
+                              } else if (!snapshot.hasData ||
+                                  snapshot.data!.isEmpty) {
+                                return Center(
+                                  child: Column(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      const Text(
+                                        'No signals available',
+                                        textAlign: TextAlign.center,
+                                        style: TextStyle(
+                                          fontFamily: 'Inconsolata',
+                                          color: Colors.red,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 16),
+                                      ElevatedButton(
+                                        onPressed: _refreshData,
+                                        child: const Text(
+                                          'Retry',
+                                          style: TextStyle(
+                                            fontFamily: 'Inconsolata',
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 18,
+                                            color: Colors.black,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                );
+                              }
+
+                              List<dynamic> signalsList = snapshot.data!;
+                              return RefreshIndicator(
+                                onRefresh: _refreshData,
+                                child: ListView.builder(
+                                  controller: _scrollController,
+                                  itemCount: signalsList.length +
+                                      1, // +1 for the stats container
+                                  itemBuilder: (context, index) {
+                                    if (index == 0) {
+                                      return Padding(
+                                        padding: const EdgeInsets.only(
+                                            left: 20.0,
+                                            right: 20.0,
+                                            top: 10.0,
+                                            bottom: 5),
+                                        child: Container(
+                                          padding: const EdgeInsets.all(12.0),
+                                          decoration: BoxDecoration(
+                                            color: Colors.white,
+                                            borderRadius:
+                                                BorderRadius.circular(15),
+                                            boxShadow: [
+                                              BoxShadow(
+                                                color: Colors.grey
+                                                    .withOpacity(0.5),
+                                                spreadRadius: 3,
+                                                blurRadius: 5,
+                                              ),
+                                            ],
+                                          ),
+                                          child: Column(
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.spaceEvenly,
+                                            children: [
+                                              buildStatRow(
+                                                  'Trades last 7 days: ----',
+                                                  'Win rate: ----'),
+                                              buildStatRow(
+                                                  'Trades last 14 days: ----',
+                                                  'Win rate: ----'),
+                                              buildStatRow(
+                                                  'Trades last 30 days: ----',
+                                                  'Win rate: ----'),
+                                            ],
+                                          ),
+                                        ),
+                                      );
+                                    }
+
+                                    final signal = signalsList[index -
+                                        1]; // -1 to adjust for the stats container
+
+                                    Map<String, dynamic> targetsMap =
+                                        jsonDecode(signal['targets']);
+
+                                    return signals(
+                                      img: signal['coin_image'],
+                                      name: signal['coin'],
+                                      entryPrice: signal['entry_price'],
+                                      stopLoss: signal['stop_loss'],
+                                      currentPrice: signal['current_price'],
+                                      targets: targetsMap,
+                                      createdAt: signal['created_at'],
+                                      insight: signal['insight'],
+                                      analysisNotifier:
+                                          ValueNotifier<bool>(false),
+                                      currentPriceNotifier:
+                                          ValueNotifier<bool>(false),
+                                    );
+                                  },
+                                ),
+                              );
+                            },
+                          ),
+                          FutureBuilder<List<dynamic>>(
+                            future: _signalsFuture3,
+                            builder: (context, snapshot) {
+                              if (snapshot.connectionState ==
+                                  ConnectionState.waiting) {
+                                return const Center(
+                                    child: CircularProgressIndicator(
+                                        color: Colors.black));
+                              } else if (snapshot.hasError) {
+                                return Center(
+                                  child: Column(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      const Text(
+                                        'An unexpected error occurred',
+                                        textAlign: TextAlign.center,
+                                        style: const TextStyle(
+                                          fontFamily: 'Inconsolata',
+                                          color: Colors.red,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 16),
+                                      ElevatedButton(
+                                        onPressed: _refreshData,
+                                        child: const Text(
+                                          'Retry',
+                                          style: TextStyle(
+                                            fontFamily: 'Inconsolata',
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 18,
+                                            color: Colors.black,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                );
+                              } else if (!snapshot.hasData ||
+                                  snapshot.data!.isEmpty) {
+                                return Center(
+                                  child: Column(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      const Text(
+                                        'No signals available',
+                                        textAlign: TextAlign.center,
+                                        style: TextStyle(
+                                          fontFamily: 'Inconsolata',
+                                          color: Colors.red,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 16),
+                                      ElevatedButton(
+                                        onPressed: _refreshData,
+                                        child: const Text(
+                                          'Retry',
+                                          style: TextStyle(
+                                            fontFamily: 'Inconsolata',
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 18,
+                                            color: Colors.black,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                );
+                              }
+
+                              List<dynamic> signalsList = snapshot.data!;
+                              return RefreshIndicator(
+                                onRefresh: _refreshData,
+                                child: ListView.builder(
+                                  controller: _scrollController,
+                                  itemCount: signalsList.length +
+                                      1, // +1 for the stats container
+                                  itemBuilder: (context, index) {
+                                    if (index == 0) {
+                                      return Padding(
+                                        padding: const EdgeInsets.only(
+                                            left: 20.0,
+                                            right: 20.0,
+                                            top: 10.0,
+                                            bottom: 5),
+                                        child: Container(
+                                          padding: const EdgeInsets.all(12.0),
+                                          decoration: BoxDecoration(
+                                            color: Colors.white,
+                                            borderRadius:
+                                                BorderRadius.circular(15),
+                                            boxShadow: [
+                                              BoxShadow(
+                                                color: Colors.grey
+                                                    .withOpacity(0.5),
+                                                spreadRadius: 3,
+                                                blurRadius: 5,
+                                              ),
+                                            ],
+                                          ),
+                                          child: Column(
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.spaceEvenly,
+                                            children: [
+                                              buildStatRow(
+                                                  'Trades last 7 days: ----',
+                                                  'Win rate: ----'),
+                                              buildStatRow(
+                                                  'Trades last 14 days: ----',
+                                                  'Win rate: ----'),
+                                              buildStatRow(
+                                                  'Trades last 30 days: ----',
+                                                  'Win rate: ----'),
+                                            ],
+                                          ),
+                                        ),
+                                      );
+                                    }
+
+                                    final signal = signalsList[index -
+                                        1]; // -1 to adjust for the stats container
+
+                                    Map<String, dynamic> targetsMap =
+                                        jsonDecode(signal['targets']);
+
+                                    return signals(
+                                      img: signal['coin_image'],
+                                      name: signal['coin'],
+                                      entryPrice: signal['entry_price'],
+                                      stopLoss: signal['stop_loss'],
+                                      currentPrice: signal['current_price'],
+                                      targets: targetsMap,
+                                      createdAt: signal['created_at'],
+                                      insight: signal['insight'],
+                                      analysisNotifier:
+                                          ValueNotifier<bool>(false),
+                                      currentPriceNotifier:
+                                          ValueNotifier<bool>(false),
+                                    );
+                                  },
+                                ),
+                              );
+                            },
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
                 ),
                 // if (_isRefreshing)
                 //   Container(
@@ -2005,7 +2097,7 @@ class _MainAppState extends State<MainApp> with TickerProviderStateMixin {
                                     itemBuilder: (context, index) {
                                       return Padding(
                                         padding: const EdgeInsets.only(
-                                            left: 20.0, right: 20.0),
+                                            left: 20.0, right: 20.0, top: 10.0),
                                         child: newsCard(news[index]),
                                       );
                                     },
@@ -2083,7 +2175,7 @@ class _MainAppState extends State<MainApp> with TickerProviderStateMixin {
                                     itemBuilder: (context, index) {
                                       return Padding(
                                         padding: const EdgeInsets.only(
-                                            left: 20.0, right: 20.0),
+                                            left: 20.0, right: 20.0, top: 5.0),
                                         child: courseCard(courses[index]),
                                       );
                                     },
@@ -2108,79 +2200,76 @@ class _MainAppState extends State<MainApp> with TickerProviderStateMixin {
           Expanded(
             child: Stack(
               children: [
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                  child: RefreshIndicator(
-                    onRefresh: _refreshData,
-                    color: Colors.black,
-                    child: SingleChildScrollView(
-                      controller: _scrollController,
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.start,
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Row(
-                            children: [
-                              Spacer(),
-                              Text(
-                                'Profile',
-                                style: TextStyle(
-                                  fontFamily: 'Inter',
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 22.0,
-                                  color: Colors.black,
-                                ),
+                RefreshIndicator(
+                  onRefresh: _refreshData,
+                  color: Colors.black,
+                  child: SingleChildScrollView(
+                    controller: _scrollController,
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.start,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Row(
+                          children: [
+                            Spacer(),
+                            Text(
+                              'Profile',
+                              style: TextStyle(
+                                fontFamily: 'Inter',
+                                fontWeight: FontWeight.bold,
+                                fontSize: 22.0,
+                                color: Colors.black,
                               ),
-                              Spacer(),
-                            ],
-                          ),
-                          SizedBox(
-                              height:
-                                  MediaQuery.of(context).size.height * 0.05),
-                          Center(
-                            child: Image.asset(
-                              'images/Pexels Photo by 3Motional Studio.png',
                             ),
+                            Spacer(),
+                          ],
+                        ),
+                        SizedBox(
+                            height: MediaQuery.of(context).size.height * 0.05),
+                        Center(
+                          child: Image.asset(
+                            'images/Pexels Photo by 3Motional Studio.png',
                           ),
-                          SizedBox(
-                              height:
-                                  MediaQuery.of(context).size.height * 0.05),
-                          Center(
-                            child: userName != null
-                                ? Text(
-                                    userName!,
-                                    style: const TextStyle(
-                                      fontFamily: 'Inter',
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 15,
-                                      color: Colors.black,
-                                    ),
-                                  )
-                                : const CircularProgressIndicator(
-                                    color: Colors.black),
-                          ),
-                          SizedBox(
-                              height:
-                                  MediaQuery.of(context).size.height * 0.01),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Image.asset(
-                                'images/weui_location-outlined.png',
+                        ),
+                        SizedBox(
+                            height: MediaQuery.of(context).size.height * 0.05),
+                        Center(
+                          child: userName != null
+                              ? Text(
+                                  userName!,
+                                  style: const TextStyle(
+                                    fontFamily: 'Inter',
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 15,
+                                    color: Colors.black,
+                                  ),
+                                )
+                              : const CircularProgressIndicator(
+                                  color: Colors.black),
+                        ),
+                        SizedBox(
+                            height: MediaQuery.of(context).size.height * 0.01),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Image.asset(
+                              'images/weui_location-outlined.png',
+                            ),
+                            const Text(
+                              'Address Here',
+                              style: TextStyle(
+                                fontFamily: 'Inter',
+                                fontSize: 12,
+                                color: Colors.black,
                               ),
-                              const Text(
-                                'Address Here',
-                                style: TextStyle(
-                                  fontFamily: 'Inter',
-                                  fontSize: 12,
-                                  color: Colors.black,
-                                ),
-                              ),
-                            ],
-                          ),
-                          SizedBox(
-                              height: MediaQuery.of(context).size.height * 0.1),
-                          Container(
+                            ),
+                          ],
+                        ),
+                        SizedBox(
+                            height: MediaQuery.of(context).size.height * 0.1),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                          child: Container(
                             height: (50 / MediaQuery.of(context).size.height) *
                                 MediaQuery.of(context).size.height,
                             padding: const EdgeInsets.all(10.0),
@@ -2218,10 +2307,12 @@ class _MainAppState extends State<MainApp> with TickerProviderStateMixin {
                               ],
                             ),
                           ),
-                          SizedBox(
-                              height:
-                                  MediaQuery.of(context).size.height * 0.05),
-                          Container(
+                        ),
+                        SizedBox(
+                            height: MediaQuery.of(context).size.height * 0.05),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                          child: Container(
                             height: (50 / MediaQuery.of(context).size.height) *
                                 MediaQuery.of(context).size.height,
                             padding: const EdgeInsets.all(10.0),
@@ -2259,10 +2350,12 @@ class _MainAppState extends State<MainApp> with TickerProviderStateMixin {
                               ],
                             ),
                           ),
-                          SizedBox(
-                              height:
-                                  MediaQuery.of(context).size.height * 0.05),
-                          Container(
+                        ),
+                        SizedBox(
+                            height: MediaQuery.of(context).size.height * 0.05),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                          child: Container(
                             height: (50 / MediaQuery.of(context).size.height) *
                                 MediaQuery.of(context).size.height,
                             padding: const EdgeInsets.all(10.0),
@@ -2300,10 +2393,12 @@ class _MainAppState extends State<MainApp> with TickerProviderStateMixin {
                               ],
                             ),
                           ),
-                          SizedBox(
-                              height:
-                                  MediaQuery.of(context).size.height * 0.05),
-                          Container(
+                        ),
+                        SizedBox(
+                            height: MediaQuery.of(context).size.height * 0.05),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                          child: Container(
                             height: (50 / MediaQuery.of(context).size.height) *
                                 MediaQuery.of(context).size.height,
                             padding: const EdgeInsets.all(10.0),
@@ -2341,10 +2436,12 @@ class _MainAppState extends State<MainApp> with TickerProviderStateMixin {
                               ],
                             ),
                           ),
-                          SizedBox(
-                              height:
-                                  MediaQuery.of(context).size.height * 0.05),
-                          Container(
+                        ),
+                        SizedBox(
+                            height: MediaQuery.of(context).size.height * 0.05),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                          child: Container(
                             height: (50 / MediaQuery.of(context).size.height) *
                                 MediaQuery.of(context).size.height,
                             padding: const EdgeInsets.all(10.0),
@@ -2382,10 +2479,12 @@ class _MainAppState extends State<MainApp> with TickerProviderStateMixin {
                               ],
                             ),
                           ),
-                          SizedBox(
-                              height:
-                                  MediaQuery.of(context).size.height * 0.05),
-                          InkWell(
+                        ),
+                        SizedBox(
+                            height: MediaQuery.of(context).size.height * 0.05),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                          child: InkWell(
                             onTap: () {
                               Navigator.push(
                                 context,
@@ -2435,10 +2534,12 @@ class _MainAppState extends State<MainApp> with TickerProviderStateMixin {
                               ),
                             ),
                           ),
-                          SizedBox(
-                              height:
-                                  MediaQuery.of(context).size.height * 0.05),
-                          InkWell(
+                        ),
+                        SizedBox(
+                            height: MediaQuery.of(context).size.height * 0.05),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                          child: InkWell(
                             onTap: () {
                               _showLogoutConfirmationDialog();
                             },
@@ -2482,11 +2583,10 @@ class _MainAppState extends State<MainApp> with TickerProviderStateMixin {
                               ),
                             ),
                           ),
-                          SizedBox(
-                              height:
-                                  MediaQuery.of(context).size.height * 0.05),
-                        ],
-                      ),
+                        ),
+                        SizedBox(
+                            height: MediaQuery.of(context).size.height * 0.05),
+                      ],
                     ),
                   ),
                 ),
@@ -2515,27 +2615,29 @@ class _MainAppState extends State<MainApp> with TickerProviderStateMixin {
     return Row(
       children: [
         Expanded(
-          flex: 5,
+          flex: 7,
           child: Text(
             leftText,
+            overflow: TextOverflow.ellipsis,
             style: const TextStyle(
               fontFamily: 'Inconsolata',
               fontWeight: FontWeight.bold,
-              fontSize: 15,
+              fontSize: 13,
               color: Colors.black,
             ),
           ),
         ),
         const Spacer(),
         Expanded(
-          flex: 2,
+          flex: 4,
           child: Text(
             rightText,
+            overflow: TextOverflow.ellipsis,
             textAlign: TextAlign.end,
             style: const TextStyle(
               fontFamily: 'Inconsolata',
               fontWeight: FontWeight.bold,
-              fontSize: 15,
+              fontSize: 13,
               color: Colors.black,
             ),
           ),
@@ -2561,7 +2663,7 @@ class _MainAppState extends State<MainApp> with TickerProviderStateMixin {
 
   Widget newsCard(Map<String, dynamic> newsItem) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 20.0),
+      padding: const EdgeInsets.only(bottom: 10.0),
       child: InkWell(
         onTap: () {
           Navigator.push(
@@ -2589,12 +2691,18 @@ class _MainAppState extends State<MainApp> with TickerProviderStateMixin {
               Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  SizedBox(
-                    width: 120,
-                    height: 115,
-                    child: Image.network(
-                      newsItem['images'],
-                      fit: BoxFit.cover,
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(5),
+                    child: Container(
+                      width: (120 / MediaQuery.of(context).size.width) *
+                          MediaQuery.of(context).size.width,
+                      height: (110 / MediaQuery.of(context).size.height) *
+                          MediaQuery.of(context).size.height,
+                      color: Colors.grey,
+                      child: Image.network(
+                        newsItem['images'],
+                        fit: BoxFit.cover,
+                      ),
                     ),
                   ),
                   const Spacer(),
@@ -2793,306 +2901,450 @@ class _MainAppState extends State<MainApp> with TickerProviderStateMixin {
     required String currentPrice,
     required Map<String, dynamic> targets,
     required String createdAt,
-    required ValueNotifier<bool> varNameNotifier,
+    required String? insight, // Include insight for analysis dropdown
+    required ValueNotifier<bool> currentPriceNotifier,
+    required ValueNotifier<bool>
+        analysisNotifier, // Add a new notifier for analysis dropdown
   }) {
     return ValueListenableBuilder<bool>(
-      valueListenable: varNameNotifier,
-      builder: (context, varName, _) {
-        return Padding(
-          padding: const EdgeInsets.only(top: 10.0, bottom: 10.0),
-          child: Container(
-            padding: const EdgeInsets.only(top: 12.0, bottom: 12.0),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(15),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.grey.withOpacity(0.5),
-                  spreadRadius: 3,
-                  blurRadius: 5,
-                ),
-              ],
-            ),
-            child: Column(
-              children: [
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 25.0),
-                  child: Row(
-                    children: [
-                      const Expanded(
-                        flex: 5,
-                        child: Text(
-                          'Opened',
-                          style: TextStyle(
-                            fontFamily: 'Inconsolata',
-                            fontWeight: FontWeight.bold,
-                            fontSize: 18,
-                            color: Colors.black,
-                          ),
-                        ),
-                      ),
-                      const Spacer(),
-                      Expanded(
-                        flex: 5,
-                        child: Text(
-                          createdAt,
-                          overflow: TextOverflow.ellipsis,
-                          textAlign: TextAlign.end,
-                          style: const TextStyle(
-                            fontFamily: 'Inconsolata',
-                            fontWeight: FontWeight.bold,
-                            fontSize: 15,
-                            color: Colors.black,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                SizedBox(
-                  height: MediaQuery.of(context).size.height * 0.02,
-                ),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 25.0),
-                  child: Row(
-                    children: [
-                      ClipRRect(
-                        borderRadius: BorderRadius.circular(35),
-                        child: Container(
-                          width: (55 / MediaQuery.of(context).size.width) *
-                              MediaQuery.of(context).size.width,
-                          height: (55 / MediaQuery.of(context).size.height) *
-                              MediaQuery.of(context).size.height,
-                          color: Colors.grey,
-                          child: Image.network(
-                            img,
-                            fit: BoxFit.cover,
-                          ),
-                        ),
-                      ),
-                      SizedBox(width: MediaQuery.of(context).size.width * 0.03),
-                      Container(
-                        decoration: BoxDecoration(
-                          color: Colors.black,
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 12, vertical: 6),
-                        child: const Text(
-                          'LONG',
-                          style: TextStyle(
-                            fontSize: 15,
-                            fontFamily: 'Inconsolata',
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white,
-                          ),
-                        ),
-                      ),
-                      SizedBox(width: MediaQuery.of(context).size.width * 0.02),
-                      const SizedBox(
-                        height: 35,
-                        child: VerticalDivider(
-                          color: Colors.black,
-                          thickness: 2.0,
-                        ),
-                      ),
-                      SizedBox(width: MediaQuery.of(context).size.width * 0.02),
-                      Expanded(
-                        flex: 5,
-                        child: Text(
-                          name,
-                          overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(
-                            fontSize: 15,
-                            fontFamily: 'Inconsolata',
-                            fontWeight: FontWeight.bold,
-                            color: Colors.black,
-                          ),
-                        ),
-                      ),
-                      const Spacer(),
-                      Expanded(
-                        flex: 5,
-                        child: Container(
-                          decoration: BoxDecoration(
-                            color: Colors.black,
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 12, vertical: 6),
-                          child: Row(
-                            children: [
-                              const Expanded(
-                                flex: 5,
-                                child: Text(
-                                  'In progress',
-                                  overflow: TextOverflow.ellipsis,
-                                  style: TextStyle(
-                                    fontSize: 15,
-                                    fontFamily: 'Inconsolata',
-                                    color: Colors.white,
-                                  ),
-                                ),
-                              ),
-                              Image.asset(
-                                'images/carbon_in-progress.png',
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                SizedBox(
-                  height: MediaQuery.of(context).size.height * 0.02,
-                ),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 25.0),
-                  child: Row(
-                    children: [
-                      const Expanded(
-                        child: Text(
-                          'Entry price',
-                          style: TextStyle(
-                            fontFamily: 'Inconsolata',
-                            fontSize: 13,
-                            color: Colors.black,
-                          ),
-                        ),
-                      ),
-                      const Spacer(),
-                      Expanded(
-                        child: Text(
-                          entryPrice,
-                          overflow: TextOverflow.ellipsis,
-                          textAlign: TextAlign.end,
-                          style: const TextStyle(
-                            fontFamily: 'Inconsolata',
-                            fontSize: 13,
-                            color: Colors.black,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                SizedBox(
-                  height: MediaQuery.of(context).size.height * 0.02,
-                ),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 25.0),
-                  child: Row(
-                    children: [
-                      const Expanded(
-                        flex: 5,
-                        child: Text(
-                          'Stop Loss 40.0%',
-                          overflow: TextOverflow.ellipsis,
-                          style: TextStyle(
-                            fontFamily: 'Inconsolata',
-                            fontSize: 13,
-                            color: Colors.black,
-                          ),
-                        ),
-                      ),
-                      const Spacer(),
-                      Expanded(
-                        child: Text(
-                          stopLoss,
-                          overflow: TextOverflow.ellipsis,
-                          textAlign: TextAlign.end,
-                          style: const TextStyle(
-                            fontFamily: 'Inconsolata',
-                            fontSize: 13,
-                            color: Colors.black,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                SizedBox(
-                  height: MediaQuery.of(context).size.height * 0.02,
-                ),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 10.0),
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(10),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.grey.withOpacity(0.5),
-                          spreadRadius: 3,
-                          blurRadius: 5,
-                        ),
-                      ],
+      valueListenable: currentPriceNotifier,
+      builder: (context, currentPriceExpanded, _) {
+        return ValueListenableBuilder<bool>(
+          valueListenable: analysisNotifier,
+          builder: (context, analysisExpanded, _) {
+            return Padding(
+              padding: const EdgeInsets.only(
+                  left: 20.0, right: 20.0, top: 5.0, bottom: 5.0),
+              child: Container(
+                padding: const EdgeInsets.only(top: 12.0, bottom: 12.0),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(15),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.grey.withOpacity(0.5),
+                      spreadRadius: 3,
+                      blurRadius: 5,
                     ),
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 20, vertical: 10),
-                    child: Column(
-                      children: [
-                        Row(
-                          children: [
-                            const Expanded(
-                              flex: 5,
-                              child: Text(
-                                'Current Price',
-                                overflow: TextOverflow.ellipsis,
-                                style: TextStyle(
-                                  fontSize: 15,
-                                  fontWeight: FontWeight.bold,
-                                  fontFamily: 'Inconsolata',
-                                  color: Colors.black,
-                                ),
+                  ],
+                ),
+                child: Column(
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 25.0),
+                      child: Row(
+                        children: [
+                          const Expanded(
+                            flex: 5,
+                            child: Text(
+                              'Opened',
+                              style: TextStyle(
+                                fontFamily: 'Inconsolata',
+                                fontWeight: FontWeight.bold,
+                                fontSize: 18,
+                                color: Colors.black,
                               ),
                             ),
-                            const Spacer(),
-                            Expanded(
-                              flex: 3,
-                              child: Text(
-                                currentPrice,
-                                overflow: TextOverflow.ellipsis,
-                                textAlign: TextAlign.center,
-                                style: const TextStyle(
-                                  fontSize: 15,
-                                  fontWeight: FontWeight.bold,
-                                  fontFamily: 'Inconsolata',
-                                  color: Colors.black,
-                                ),
+                          ),
+                          const Spacer(),
+                          Expanded(
+                            flex: 5,
+                            child: Text(
+                              createdAt,
+                              overflow: TextOverflow.ellipsis,
+                              textAlign: TextAlign.end,
+                              style: const TextStyle(
+                                fontFamily: 'Inconsolata',
+                                fontWeight: FontWeight.bold,
+                                fontSize: 15,
+                                color: Colors.black,
                               ),
                             ),
-                            const Spacer(),
-                            const Expanded(
-                              flex: 4,
-                              child: Text(
-                                '-35.5%',
-                                overflow: TextOverflow.ellipsis,
-                                style: TextStyle(
-                                  fontSize: 15,
-                                  fontWeight: FontWeight.bold,
-                                  fontFamily: 'Inconsolata',
-                                  color: Color(0xFFFF0000),
-                                ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    SizedBox(
+                      height: MediaQuery.of(context).size.height * 0.02,
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 25.0),
+                      child: Row(
+                        children: [
+                          ClipRRect(
+                            borderRadius: BorderRadius.circular(35),
+                            child: Container(
+                              width: (50 / MediaQuery.of(context).size.width) *
+                                  MediaQuery.of(context).size.width,
+                              height:
+                                  (50 / MediaQuery.of(context).size.height) *
+                                      MediaQuery.of(context).size.height,
+                              color: Colors.grey,
+                              child: Image.network(
+                                img,
+                                fit: BoxFit.cover,
                               ),
                             ),
-                            GestureDetector(
-                              onTap: () {
-                                varNameNotifier.value = !varNameNotifier.value;
-                              },
-                              child: Image.asset(
-                                varName
-                                    ? 'images/material-symbols_arrow-drop-down-upwards.png'
-                                    : 'images/material-symbols_arrow-drop-down.png',
+                          ),
+                          SizedBox(
+                              width: MediaQuery.of(context).size.width * 0.03),
+                          Container(
+                            decoration: BoxDecoration(
+                              color: Colors.black,
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 12, vertical: 6),
+                            child: const Text(
+                              'LONG',
+                              style: TextStyle(
+                                fontSize: 15,
+                                fontFamily: 'Inconsolata',
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white,
                               ),
+                            ),
+                          ),
+                          SizedBox(
+                              width: MediaQuery.of(context).size.width * 0.02),
+                          const SizedBox(
+                            height: 35,
+                            child: VerticalDivider(
+                              color: Colors.black,
+                              thickness: 2.0,
+                            ),
+                          ),
+                          SizedBox(
+                              width: MediaQuery.of(context).size.width * 0.02),
+                          Expanded(
+                            flex: 5,
+                            child: Text(
+                              name,
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(
+                                fontSize: 15,
+                                fontFamily: 'Inconsolata',
+                                fontWeight: FontWeight.bold,
+                                color: Colors.black,
+                              ),
+                            ),
+                          ),
+                          // const Spacer(),
+                          // Expanded(
+                          //   flex: 5,
+                          //   child: Container(
+                          //     decoration: BoxDecoration(
+                          //       color: Colors.black,
+                          //       borderRadius: BorderRadius.circular(10),
+                          //     ),
+                          //     padding: const EdgeInsets.symmetric(
+                          //         horizontal: 12, vertical: 6),
+                          //     child: Row(
+                          //       children: [
+                          //         const Expanded(
+                          //           flex: 5,
+                          //           child: Text(
+                          //             'In progress',
+                          //             overflow: TextOverflow.ellipsis,
+                          //             style: TextStyle(
+                          //               fontSize: 15,
+                          //               fontFamily: 'Inconsolata',
+                          //               color: Colors.white,
+                          //             ),
+                          //           ),
+                          //         ),
+                          //         Image.asset(
+                          //           'images/carbon_in-progress.png',
+                          //         ),
+                          //       ],
+                          //     ),
+                          //   ),
+                          // ),
+                        ],
+                      ),
+                    ),
+                    SizedBox(
+                      height: MediaQuery.of(context).size.height * 0.02,
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 25.0),
+                      child: Row(
+                        children: [
+                          const Expanded(
+                            child: Text(
+                              'Entry price',
+                              style: TextStyle(
+                                fontFamily: 'Inconsolata',
+                                fontSize: 13,
+                                color: Colors.black,
+                              ),
+                            ),
+                          ),
+                          const Spacer(),
+                          Expanded(
+                            child: Text(
+                              entryPrice,
+                              overflow: TextOverflow.ellipsis,
+                              textAlign: TextAlign.end,
+                              style: const TextStyle(
+                                fontFamily: 'Inconsolata',
+                                fontSize: 13,
+                                color: Colors.black,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    SizedBox(
+                      height: MediaQuery.of(context).size.height * 0.01,
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 25.0),
+                      child: Row(
+                        children: [
+                          const Expanded(
+                            flex: 5,
+                            child: Text(
+                              'Stop Loss',
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(
+                                fontFamily: 'Inconsolata',
+                                fontSize: 13,
+                                color: Colors.black,
+                              ),
+                            ),
+                          ),
+                          const Spacer(),
+                          Expanded(
+                            child: Text(
+                              stopLoss,
+                              overflow: TextOverflow.ellipsis,
+                              textAlign: TextAlign.end,
+                              style: const TextStyle(
+                                fontFamily: 'Inconsolata',
+                                fontSize: 13,
+                                color: Colors.black,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    SizedBox(
+                      height: MediaQuery.of(context).size.height * 0.02,
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 10.0),
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(10),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.grey.withOpacity(0.5),
+                              spreadRadius: 3,
+                              blurRadius: 5,
                             ),
                           ],
                         ),
-                        if (varName)
-                          ...targets.entries.map(
-                            (entry) => Padding(
-                              padding: const EdgeInsets.only(top: 10.0),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 20, vertical: 10),
+                        child: Column(
+                          children: [
+                            Row(
+                              children: [
+                                const Expanded(
+                                  flex: 10,
+                                  child: Text(
+                                    'Current Price',
+                                    overflow: TextOverflow.ellipsis,
+                                    style: TextStyle(
+                                      fontSize: 15,
+                                      fontWeight: FontWeight.bold,
+                                      fontFamily: 'Inconsolata',
+                                      color: Colors.black,
+                                    ),
+                                  ),
+                                ),
+                                const Spacer(),
+                                Expanded(
+                                  flex: 3,
+                                  child: Text(
+                                    currentPrice,
+                                    overflow: TextOverflow.ellipsis,
+                                    textAlign: TextAlign.center,
+                                    style: const TextStyle(
+                                      fontSize: 15,
+                                      fontWeight: FontWeight.bold,
+                                      fontFamily: 'Inconsolata',
+                                      color: Colors.black,
+                                    ),
+                                  ),
+                                ),
+                                // const Spacer(),
+                                // const Expanded(
+                                //   flex: 4,
+                                //   child: Text(
+                                //     '-35.5%',
+                                //     overflow: TextOverflow.ellipsis,
+                                //     style: TextStyle(
+                                //       fontSize: 15,
+                                //       fontWeight: FontWeight.bold,
+                                //       fontFamily: 'Inconsolata',
+                                //       color: Color(0xFFFF0000),
+                                //     ),
+                                //   ),
+                                // ),
+                                GestureDetector(
+                                  onTap: () {
+                                    currentPriceNotifier.value =
+                                        !currentPriceNotifier.value;
+                                  },
+                                  child: Image.asset(
+                                    currentPriceExpanded
+                                        ? 'images/material-symbols_arrow-drop-down-upwards.png'
+                                        : 'images/material-symbols_arrow-drop-down.png',
+                                  ),
+                                ),
+                              ],
+                            ),
+                            if (currentPriceExpanded)
+                              ...targets.entries.map(
+                                (entry) => Padding(
+                                  padding: const EdgeInsets.only(top: 10.0),
+                                  child: Container(
+                                    decoration: BoxDecoration(
+                                      color: Colors.white,
+                                      borderRadius: BorderRadius.circular(10),
+                                      boxShadow: [
+                                        BoxShadow(
+                                          color: Colors.grey.withOpacity(0.5),
+                                          spreadRadius: 3,
+                                          blurRadius: 5,
+                                        ),
+                                      ],
+                                    ),
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 20, vertical: 6),
+                                    child: Row(
+                                      children: [
+                                        Expanded(
+                                          flex: 2,
+                                          child: Text(
+                                            entry.key,
+                                            overflow: TextOverflow.ellipsis,
+                                            style: const TextStyle(
+                                              fontFamily: 'Inconsolata',
+                                              fontSize: 15,
+                                              color: Colors.black,
+                                            ),
+                                          ),
+                                        ),
+                                        Expanded(
+                                          flex: 2,
+                                          child: Text(
+                                            entry.value.toString(),
+                                            textAlign: TextAlign.end,
+                                            overflow: TextOverflow.ellipsis,
+                                            style: const TextStyle(
+                                              fontFamily: 'Inconsolata',
+                                              fontSize: 15,
+                                              color: Colors.black,
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    SizedBox(
+                      height: MediaQuery.of(context).size.height * 0.02,
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 10.0),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            flex: 10,
+                            child: Container(
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(10),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.grey.withOpacity(0.5),
+                                    spreadRadius: 3,
+                                    blurRadius: 5,
+                                  ),
+                                ],
+                              ),
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 0, vertical: 6),
+                              child: Column(
+                                children: [
+                                  Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.center,
+                                    children: [
+                                      const Text(
+                                        'View Analysis',
+                                        style: TextStyle(
+                                          fontSize: 15,
+                                          fontWeight: FontWeight.bold,
+                                          fontFamily: 'Inconsolata',
+                                          color: Colors.black,
+                                        ),
+                                      ),
+                                      GestureDetector(
+                                        onTap: () {
+                                          analysisNotifier.value =
+                                              !analysisNotifier.value;
+                                        },
+                                        child: Image.asset(
+                                          analysisExpanded
+                                              ? 'images/material-symbols_arrow-drop-down-upwards.png'
+                                              : 'images/material-symbols_arrow-drop-down.png',
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  if (analysisExpanded && insight != null)
+                                    Padding(
+                                      padding: const EdgeInsets.symmetric(
+                                          horizontal: 20.0, vertical: 10.0),
+                                      child: Text(
+                                        insight,
+                                        style: const TextStyle(
+                                          fontSize: 15,
+                                          fontFamily: 'Inconsolata',
+                                          color: Colors.black,
+                                        ),
+                                      ),
+                                    ),
+                                ],
+                              ),
+                            ),
+                          ),
+                          const Spacer(),
+                          Expanded(
+                            flex: 10,
+                            child: InkWell(
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) =>
+                                        TradingViewPage(key: UniqueKey()),
+                                  ),
+                                );
+                              },
                               child: Container(
                                 decoration: BoxDecoration(
                                   color: Colors.white,
@@ -3106,144 +3358,41 @@ class _MainAppState extends State<MainApp> with TickerProviderStateMixin {
                                   ],
                                 ),
                                 padding: const EdgeInsets.symmetric(
-                                    horizontal: 20, vertical: 6),
+                                    horizontal: 0, vertical: 6),
                                 child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  crossAxisAlignment: CrossAxisAlignment.center,
                                   children: [
-                                    Expanded(
-                                      flex: 2,
-                                      child: Text(
-                                        entry.key,
-                                        overflow: TextOverflow.ellipsis,
-                                        style: const TextStyle(
-                                          fontFamily: 'Inconsolata',
-                                          fontSize: 15,
-                                          color: Colors.black,
-                                        ),
+                                    const Text(
+                                      'View Chart',
+                                      overflow: TextOverflow.ellipsis,
+                                      style: TextStyle(
+                                        fontSize: 15,
+                                        fontWeight: FontWeight.bold,
+                                        fontFamily: 'Inconsolata',
+                                        color: Colors.black,
                                       ),
                                     ),
-                                    Expanded(
-                                      flex: 2,
-                                      child: Text(
-                                        entry.value.toString(),
-                                        textAlign: TextAlign.end,
-                                        overflow: TextOverflow.ellipsis,
-                                        style: const TextStyle(
-                                          fontFamily: 'Inconsolata',
-                                          fontSize: 15,
-                                          color: Colors.black,
-                                        ),
-                                      ),
+                                    SizedBox(
+                                      width: MediaQuery.of(context).size.width *
+                                          0.02,
+                                    ),
+                                    Image.asset(
+                                      'images/material-symbols_pie-chart.png',
                                     ),
                                   ],
                                 ),
                               ),
                             ),
                           ),
-                      ],
+                        ],
+                      ),
                     ),
-                  ),
+                  ],
                 ),
-                SizedBox(
-                  height: MediaQuery.of(context).size.height * 0.02,
-                ),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 25.0),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        flex: 10,
-                        child: Container(
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(10),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.grey.withOpacity(0.5),
-                                spreadRadius: 3,
-                                blurRadius: 5,
-                              ),
-                            ],
-                          ),
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 20, vertical: 6),
-                          child: Row(
-                            children: [
-                              const Expanded(
-                                flex: 10,
-                                child: Text(
-                                  'View Steps',
-                                  overflow: TextOverflow.ellipsis,
-                                  style: TextStyle(
-                                    fontSize: 15,
-                                    fontWeight: FontWeight.bold,
-                                    fontFamily: 'Inconsolata',
-                                    color: Colors.black,
-                                  ),
-                                ),
-                              ),
-                              Image.asset(
-                                'images/material-symbols_arrow-drop-down.png',
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                      const Spacer(),
-                      Expanded(
-                        flex: 10,
-                        child: InkWell(
-                          onTap: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) =>
-                                    TradingViewPage(key: UniqueKey()),
-                              ),
-                            );
-                          },
-                          child: Container(
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                              borderRadius: BorderRadius.circular(10),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Colors.grey.withOpacity(0.5),
-                                  spreadRadius: 3,
-                                  blurRadius: 5,
-                                ),
-                              ],
-                            ),
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 20, vertical: 6),
-                            child: Row(
-                              children: [
-                                const Expanded(
-                                  flex: 10,
-                                  child: Text(
-                                    'View Charts',
-                                    overflow: TextOverflow.ellipsis,
-                                    style: TextStyle(
-                                      fontSize: 15,
-                                      fontWeight: FontWeight.bold,
-                                      fontFamily: 'Inconsolata',
-                                      color: Colors.black,
-                                    ),
-                                  ),
-                                ),
-                                Image.asset(
-                                  'images/material-symbols_pie-chart.png',
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
+              ),
+            );
+          },
         );
       },
     );

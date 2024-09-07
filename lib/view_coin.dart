@@ -1344,6 +1344,7 @@ class _ViewCoinState extends State<ViewCoin> with TickerProviderStateMixin {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(responseBody['message'] ?? 'An error occurred'),
+            backgroundColor: Colors.red,
           ),
         );
       }

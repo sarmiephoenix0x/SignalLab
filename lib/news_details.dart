@@ -488,8 +488,11 @@ class NewsDetailsState extends State<NewsDetails> {
                                   Padding(
                                     padding: const EdgeInsets.symmetric(
                                         vertical: 20.0),
-                                    child: Image.network(
-                                      news['images'] ?? '',
+                                    child: ClipRRect(
+                                      borderRadius: BorderRadius.circular(10),
+                                      child: Image.network(
+                                        news['images'] ?? '',
+                                      ),
                                     ),
                                   ),
                                   Padding(

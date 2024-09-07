@@ -76,23 +76,25 @@ class NotificationPageState extends State<NotificationPage> {
     return now; // Fallback to current date if parsing fails
   }
 
-  String formatDate(String relativeDate) {
-    final parsedDate = parseRelativeDate(relativeDate);
-    final today = DateTime.now();
-    final yesterday = DateTime.now().subtract(const Duration(days: 1));
-
-    if (parsedDate.year == today.year &&
-        parsedDate.month == today.month &&
-        parsedDate.day == today.day) {
-      return 'Today';
-    } else if (parsedDate.year == yesterday.year &&
-        parsedDate.month == yesterday.month &&
-        parsedDate.day == yesterday.day) {
-      return 'Yesterday';
-    } else {
-      return DateFormat('MMM dd, yyyy').format(parsedDate);
+  String formatDate(String dateString) {
+    try {
+      // Try parsing the date in ISO format
+      DateTime parsedDate = DateTime.parse(dateString);
+      // Format the parsed date as needed
+      return DateFormat('yMMMd').format(parsedDate);
+    } catch (e) {
+      // Handle cases like "5 days ago"
+      if (dateString.contains('days ago')) {
+        int daysAgo = int.tryParse(dateString.split(' ')[0]) ?? 0;
+        DateTime calculatedDate = DateTime.now().subtract(Duration(days: daysAgo));
+        return DateFormat('yMMMd').format(calculatedDate);
+      }
+      // If the date format is unknown, return the original string
+      return dateString;
     }
   }
+
+
 
   Future<void> _refreshData() async {
     setState(() {
@@ -241,7 +243,7 @@ class NotificationPageState extends State<NotificationPage> {
                         textAlign: TextAlign.center,
                         style: TextStyle(
                           fontFamily: 'Inconsolata',
-                          color:Colors.red,
+                          color: Colors.red,
                         ),
                       ),
                       const SizedBox(height: 16),
@@ -270,7 +272,7 @@ class NotificationPageState extends State<NotificationPage> {
                         textAlign: TextAlign.center,
                         style: TextStyle(
                           fontFamily: 'Inconsolata',
-                          color:Colors.red,
+                          color: Colors.red,
                         ),
                       ),
                       const SizedBox(height: 16),
@@ -311,7 +313,10 @@ class NotificationPageState extends State<NotificationPage> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       SizedBox(
-                        height: MediaQuery.of(context).size.height * 0.1,
+                        height: MediaQuery
+                            .of(context)
+                            .size
+                            .height * 0.1,
                       ),
                       Row(
                         children: [
@@ -332,12 +337,18 @@ class NotificationPageState extends State<NotificationPage> {
                             ),
                           ),
                           SizedBox(
-                              width: MediaQuery.of(context).size.width * 0.1),
+                              width: MediaQuery
+                                  .of(context)
+                                  .size
+                                  .width * 0.1),
                           const Spacer(),
                         ],
                       ),
                       SizedBox(
-                        height: MediaQuery.of(context).size.height * 0.05,
+                        height: MediaQuery
+                            .of(context)
+                            .size
+                            .height * 0.05,
                       ),
                       ...groupedNotifications.entries.map((entry) {
                         return Column(
@@ -353,7 +364,10 @@ class NotificationPageState extends State<NotificationPage> {
                               ),
                             ),
                             SizedBox(
-                              height: MediaQuery.of(context).size.height * 0.02,
+                              height: MediaQuery
+                                  .of(context)
+                                  .size
+                                  .height * 0.02,
                             ),
                             Column(
                               children: entry.value.map((notification) {
@@ -384,9 +398,15 @@ class NotificationPageState extends State<NotificationPage> {
   Widget notificationWidget(String img, String message, String time) {
     return Row(
       children: [
-        SizedBox(width: MediaQuery.of(context).size.width * 0.02),
+        SizedBox(width: MediaQuery
+            .of(context)
+            .size
+            .width * 0.02),
         Image.asset(img),
-        SizedBox(width: MediaQuery.of(context).size.width * 0.02),
+        SizedBox(width: MediaQuery
+            .of(context)
+            .size
+            .width * 0.02),
         Expanded(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -402,7 +422,10 @@ class NotificationPageState extends State<NotificationPage> {
                   color: Colors.black,
                 ),
               ),
-              SizedBox(height: MediaQuery.of(context).size.height * 0.02),
+              SizedBox(height: MediaQuery
+                  .of(context)
+                  .size
+                  .height * 0.02),
               Text(
                 time,
                 style: const TextStyle(

@@ -914,6 +914,7 @@ class _SentimentPageState extends State<SentimentPage>
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(responseBody['message'] ?? 'An error occurred'),
+            backgroundColor: Colors.red,
           ),
         );
       }
@@ -1177,12 +1178,12 @@ class _SentimentPageState extends State<SentimentPage>
   }
 
   Widget filterContents(String text, ValueNotifier<bool> notifier) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 10.0),
-      child: ValueListenableBuilder<bool>(
+    return  ValueListenableBuilder<bool>(
         valueListenable: notifier,
         builder: (context, varName, _) {
-          return Container(
+          return Padding(
+              padding: const EdgeInsets.symmetric(vertical: 10.0),
+          child:Container(
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.circular(10),
@@ -1345,16 +1346,14 @@ class _SentimentPageState extends State<SentimentPage>
                   ),
               ],
             ),
+          ),
           );
         },
-      ),
     );
   }
 
   Widget filterContents2(String text, ValueNotifier<bool> notifier) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 10.0),
-      child: ValueListenableBuilder<bool>(
+    return  ValueListenableBuilder<bool>(
         valueListenable: notifier,
         builder: (context, varName, _) {
           return Container(
@@ -1525,7 +1524,6 @@ class _SentimentPageState extends State<SentimentPage>
             ),
           );
         },
-      ),
     );
   }
 }
