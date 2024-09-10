@@ -1337,6 +1337,7 @@ class _ViewCoinState extends State<ViewCoin> with TickerProviderStateMixin {
           SnackBar(
             content: Text(
                 'Successfully ${type == 'upvote' ? 'Upvoted' : 'Downvoted'}'),
+backgroundColor: Colors.green,
           ),
         );
         setState(() {}); // Update the UI

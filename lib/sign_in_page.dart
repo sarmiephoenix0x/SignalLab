@@ -5,7 +5,6 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-
 import 'forgot_password_page.dart';
 
 class SignInPage extends StatefulWidget {
@@ -51,6 +50,7 @@ class _SignInPageState extends State<SignInPage> with WidgetsBindingObserver {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('All fields are required.'),
+          backgroundColor: Colors.red,
         ),
       );
       return;
@@ -63,6 +63,7 @@ class _SignInPageState extends State<SignInPage> with WidgetsBindingObserver {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Please enter a valid email address.'),
+          backgroundColor: Colors.red,
         ),
       );
       return;
@@ -74,6 +75,7 @@ class _SignInPageState extends State<SignInPage> with WidgetsBindingObserver {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Password must be at least 6 characters.'),
+          backgroundColor: Colors.red,
         ),
       );
       return;
@@ -110,6 +112,7 @@ class _SignInPageState extends State<SignInPage> with WidgetsBindingObserver {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Sign in successful!'),
+          backgroundColor: Colors.green,
         ),
       );
 
@@ -130,6 +133,7 @@ class _SignInPageState extends State<SignInPage> with WidgetsBindingObserver {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Error: $error - $data'),
+          backgroundColor: Colors.red,
         ),
       );
     } else if (response.statusCode == 401) {
@@ -142,6 +146,7 @@ class _SignInPageState extends State<SignInPage> with WidgetsBindingObserver {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Error: $error'),
+          backgroundColor: Colors.red,
         ),
       );
     } else {
@@ -152,6 +157,7 @@ class _SignInPageState extends State<SignInPage> with WidgetsBindingObserver {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('An unexpected error occurred.'),
+          backgroundColor: Colors.red,
         ),
       );
     }
@@ -240,6 +246,7 @@ class _SignInPageState extends State<SignInPage> with WidgetsBindingObserver {
                             color: Colors.grey,
                             fontFamily: 'Inter',
                             fontSize: 12.0,
+                            decoration: TextDecoration.none,
                           ),
                           floatingLabelBehavior: FloatingLabelBehavior.never,
                           border: OutlineInputBorder(
@@ -283,6 +290,7 @@ class _SignInPageState extends State<SignInPage> with WidgetsBindingObserver {
                             color: Colors.grey,
                             fontFamily: 'Inter',
                             fontSize: 12.0,
+                            decoration: TextDecoration.none,
                           ),
                           floatingLabelBehavior: FloatingLabelBehavior.never,
                           border: OutlineInputBorder(
@@ -306,7 +314,7 @@ class _SignInPageState extends State<SignInPage> with WidgetsBindingObserver {
                         Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 20.0),
                           child: InkWell(
-                            onTap:(){
+                            onTap: () {
                               Navigator.push(
                                 context,
                                 MaterialPageRoute(
@@ -315,18 +323,18 @@ class _SignInPageState extends State<SignInPage> with WidgetsBindingObserver {
                                 ),
                               );
                             },
-                            child:const Text(
-                            'Forgot password?',
-                            textAlign: TextAlign.start,
-                            style: TextStyle(
-                              decoration: TextDecoration.underline,
-                              decorationColor: Colors.grey,
-                              fontFamily: 'Inter',
-                              fontWeight: FontWeight.w600,
-                              fontSize: 12.0,
-                              color: Colors.grey,
+                            child: const Text(
+                              'Forgot password?',
+                              textAlign: TextAlign.start,
+                              style: TextStyle(
+                                decoration: TextDecoration.underline,
+                                decorationColor: Colors.grey,
+                                fontFamily: 'Inter',
+                                fontWeight: FontWeight.w600,
+                                fontSize: 12.0,
+                                color: Colors.grey,
+                              ),
                             ),
-                          ),
                           ),
                         ),
                       ],

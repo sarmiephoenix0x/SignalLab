@@ -17,12 +17,14 @@ class SignUpPage extends StatefulWidget {
 }
 
 class _SignUpPageState extends State<SignUpPage> with WidgetsBindingObserver {
+  final FocusNode _displayNameFocusNode = FocusNode();
   final FocusNode _userNameFocusNode = FocusNode();
   final FocusNode _emailFocusNode = FocusNode();
   final FocusNode _phoneNumberFocusNode = FocusNode();
   final FocusNode _passwordFocusNode = FocusNode();
   final FocusNode _password2FocusNode = FocusNode();
 
+  final TextEditingController displayNameController = TextEditingController();
   final TextEditingController userNameController = TextEditingController();
   final TextEditingController emailController = TextEditingController();
   final TextEditingController phoneNumberController = TextEditingController();
@@ -55,10 +57,12 @@ class _SignUpPageState extends State<SignUpPage> with WidgetsBindingObserver {
     final String email = emailController.text.trim();
     final String password = passwordController.text.trim();
     final String passwordConfirmation = password2Controller.text.trim();
-    final String name = userNameController.text.trim();
+    final String name = displayNameController.text.trim();
+    final String username = userNameController.text.trim();
     final String phoneNumber = phoneNumberController.text.trim();
 
     if (name.isEmpty ||
+        username.isEmpty ||
         email.isEmpty ||
         phoneNumber.isEmpty ||
         password.isEmpty ||
@@ -66,6 +70,7 @@ class _SignUpPageState extends State<SignUpPage> with WidgetsBindingObserver {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('All fields are required.'),
+          backgroundColor: Colors.red,
         ),
       );
       return;
@@ -76,6 +81,7 @@ class _SignUpPageState extends State<SignUpPage> with WidgetsBindingObserver {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Please enter a valid email address.'),
+          backgroundColor: Colors.red,
         ),
       );
       return;
@@ -85,6 +91,7 @@ class _SignUpPageState extends State<SignUpPage> with WidgetsBindingObserver {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Password must be at least 6 characters.'),
+          backgroundColor: Colors.red,
         ),
       );
       return;
@@ -94,6 +101,7 @@ class _SignUpPageState extends State<SignUpPage> with WidgetsBindingObserver {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Passwords do not match.'),
+          backgroundColor: Colors.red,
         ),
       );
       return;
@@ -103,6 +111,7 @@ class _SignUpPageState extends State<SignUpPage> with WidgetsBindingObserver {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Phone number must be at least 11 characters.'),
+          backgroundColor: Colors.red,
         ),
       );
       return;
@@ -117,6 +126,7 @@ class _SignUpPageState extends State<SignUpPage> with WidgetsBindingObserver {
       headers: {'Content-Type': 'application/json'},
       body: jsonEncode({
         'name': name,
+        'username': username,
         'email': email,
         'phone_number': phoneNumber,
         'password': password,
@@ -140,6 +150,7 @@ class _SignUpPageState extends State<SignUpPage> with WidgetsBindingObserver {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Sign up successful! Welcome, ${user['name']}'),
+          backgroundColor: Colors.green,
         ),
       );
 
@@ -162,6 +173,7 @@ class _SignUpPageState extends State<SignUpPage> with WidgetsBindingObserver {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Error: $error - $data'),
+          backgroundColor: Colors.red,
         ),
       );
     } else {
@@ -172,6 +184,7 @@ class _SignUpPageState extends State<SignUpPage> with WidgetsBindingObserver {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('An unexpected error occurred.'),
+          backgroundColor: Colors.red,
         ),
       );
     }
@@ -180,6 +193,7 @@ class _SignUpPageState extends State<SignUpPage> with WidgetsBindingObserver {
   @override
   void dispose() {
     // Clean up the controllers when the widget is disposed
+    displayNameController.dispose();
     userNameController.dispose();
     emailController.dispose();
     phoneNumberController.dispose();
@@ -235,6 +249,43 @@ class _SignUpPageState extends State<SignUpPage> with WidgetsBindingObserver {
                     const Padding(
                       padding: EdgeInsets.symmetric(horizontal: 20.0),
                       child: Text(
+                        'Name',
+                        textAlign: TextAlign.start,
+                        style: TextStyle(
+                          fontFamily: 'Inter',
+                          fontWeight: FontWeight.w600,
+                          fontSize: 16.0,
+                          color: Colors.black,
+                        ),
+                      ),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                      child: TextFormField(
+                        controller: displayNameController,
+                        focusNode: _displayNameFocusNode,
+                        style: const TextStyle(
+                          fontSize: 16.0,
+                          decoration: TextDecoration.none,
+                        ),
+                        decoration: InputDecoration(
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(15),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(15),
+                            borderSide: const BorderSide(
+                              color: Colors.black,
+                            ),
+                          ),
+                        ),
+                        cursorColor: Colors.black,
+                      ),
+                    ),
+                    SizedBox(height: MediaQuery.of(context).size.height * 0.02),
+                    const Padding(
+                      padding: EdgeInsets.symmetric(horizontal: 20.0),
+                      child: Text(
                         'Username',
                         textAlign: TextAlign.start,
                         style: TextStyle(
@@ -252,6 +303,7 @@ class _SignUpPageState extends State<SignUpPage> with WidgetsBindingObserver {
                         focusNode: _userNameFocusNode,
                         style: const TextStyle(
                           fontSize: 16.0,
+                          decoration: TextDecoration.none,
                         ),
                         decoration: InputDecoration(
                           border: OutlineInputBorder(
@@ -288,6 +340,7 @@ class _SignUpPageState extends State<SignUpPage> with WidgetsBindingObserver {
                         focusNode: _emailFocusNode,
                         style: const TextStyle(
                           fontSize: 16.0,
+                          decoration: TextDecoration.none,
                         ),
                         decoration: InputDecoration(
                           labelText: 'example@gmail.com',
@@ -393,6 +446,7 @@ class _SignUpPageState extends State<SignUpPage> with WidgetsBindingObserver {
                               focusNode: _phoneNumberFocusNode,
                               style: const TextStyle(
                                 fontSize: 16.0,
+                                decoration: TextDecoration.none,
                               ),
                               decoration: InputDecoration(
                                 border: OutlineInputBorder(
@@ -442,6 +496,7 @@ class _SignUpPageState extends State<SignUpPage> with WidgetsBindingObserver {
                               color: Colors.grey,
                               fontFamily: 'Inter',
                               fontSize: 12.0,
+                              decoration: TextDecoration.none,
                             ),
                             floatingLabelBehavior: FloatingLabelBehavior.never,
                             border: OutlineInputBorder(
@@ -496,6 +551,7 @@ class _SignUpPageState extends State<SignUpPage> with WidgetsBindingObserver {
                               color: Colors.grey,
                               fontFamily: 'Inter',
                               fontSize: 12.0,
+                              decoration: TextDecoration.none,
                             ),
                             floatingLabelBehavior: FloatingLabelBehavior.never,
                             border: OutlineInputBorder(

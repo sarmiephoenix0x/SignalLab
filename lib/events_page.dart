@@ -27,6 +27,7 @@ class _EventsPageState extends State<EventsPage> with TickerProviderStateMixin {
   final ScrollController _scrollController = ScrollController();
   bool _isRefreshing = false;
   String? errorMessage;
+  OverlayEntry? _overlayEntry;
 
   @override
   void initState() {
@@ -236,6 +237,129 @@ class _EventsPageState extends State<EventsPage> with TickerProviderStateMixin {
     );
   }
 
+  void _showFilterOverlay() {
+    final overlay = Overlay.of(context);
+
+    _overlayEntry = OverlayEntry(
+      builder: (context) => SafeArea(
+        child: GestureDetector(
+          onTap: _removeOverlay, // Close the overlay on tap outside
+          child: Material(
+            color: Colors.black.withOpacity(0.5),
+            // Semi-transparent background
+            child: Center(
+              child: GestureDetector(
+                onTap: () {
+                  // Do nothing on tap inside this widget
+                },
+                child: Container(
+                  margin: const EdgeInsets.symmetric(
+                      horizontal: 30), // Margin to limit width
+                  padding: const EdgeInsets.only(
+                      left: 12.0, right: 12.0, top: 20.0, bottom: 20.0),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(15),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.grey.withOpacity(0.5),
+                        spreadRadius: 3,
+                        blurRadius: 5,
+                      ),
+                    ],
+                  ),
+                  child: SingleChildScrollView(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      // Makes container adjust height based on content
+                      children: [
+                        const Text(
+                          'Add Event',
+                          style: TextStyle(
+                            decoration: TextDecoration.none,
+                            fontFamily: 'Inconsolata',
+                            fontSize: 25,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.black,
+                          ),
+                        ),
+                        SizedBox(
+                            height: MediaQuery.of(context).size.height * 0.05),
+                        textBoxEventInput('Event title'),
+                        textBoxEventInput(
+                            'Date i.e. time period when the event will occur'),
+                        dropDownEventInput(
+                            'Select coin', ValueNotifier<bool>(false)),
+                        dropDownEventInput(
+                            'Event category', ValueNotifier<bool>(false)),
+                        bigTextBoxEventInput('Description'),
+                        textBoxEventInput('Source url'),
+                        SizedBox(
+                            height: MediaQuery.of(context).size.height * 0.05),
+                        Container(
+                          width: double.infinity,
+                          height: (60 / MediaQuery.of(context).size.height) *
+                              MediaQuery.of(context).size.height,
+                          padding: const EdgeInsets.symmetric(horizontal: 30.0),
+                          child: ElevatedButton(
+                            onPressed: () {},
+                            style: ButtonStyle(
+                              backgroundColor:
+                                  WidgetStateProperty.resolveWith<Color>(
+                                (Set<WidgetState> states) {
+                                  if (states.contains(WidgetState.pressed)) {
+                                    return Colors.white;
+                                  }
+                                  return Colors.black;
+                                },
+                              ),
+                              foregroundColor:
+                                  WidgetStateProperty.resolveWith<Color>(
+                                (Set<WidgetState> states) {
+                                  if (states.contains(WidgetState.pressed)) {
+                                    return Colors.black;
+                                  }
+                                  return Colors.white;
+                                },
+                              ),
+                              elevation: WidgetStateProperty.all<double>(4.0),
+                              shape: WidgetStateProperty.all<
+                                  RoundedRectangleBorder>(
+                                const RoundedRectangleBorder(
+                                  borderRadius:
+                                      BorderRadius.all(Radius.circular(15)),
+                                ),
+                              ),
+                            ),
+                            child: const Text(
+                              'Submit',
+                              style: TextStyle(
+                                fontSize: 18,
+                                fontFamily: 'Inconsolata',
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+
+    overlay.insert(_overlayEntry!);
+  }
+
+  void _removeOverlay() {
+    _overlayEntry?.remove();
+    _overlayEntry = null;
+  }
+
   @override
   Widget build(BuildContext context) {
     return OrientationBuilder(
@@ -274,7 +398,11 @@ class _EventsPageState extends State<EventsPage> with TickerProviderStateMixin {
                             ),
                           ),
                           const Spacer(),
-                          Image.asset('images/PlusButton.png'),
+                          InkWell(
+                              onTap: () {
+                                _showFilterOverlay();
+                              },
+                              child: Image.asset('images/PlusButton.png')),
                           Image.asset('images/SearchButton.png'),
                         ],
                       ),
@@ -793,6 +921,7 @@ class _EventsPageState extends State<EventsPage> with TickerProviderStateMixin {
           SnackBar(
             content: Text(
                 'Successfully ${type == 'upvote' ? 'Upvoted' : 'Downvoted'}'),
+            backgroundColor: Colors.green,
           ),
         );
         setState(() {}); // Update the UI
@@ -956,4 +1085,278 @@ class _EventsPageState extends State<EventsPage> with TickerProviderStateMixin {
       ),
     );
   }
+
+  Widget dropDownEventInput(String text, ValueNotifier<bool> notifier) {
+    return ValueListenableBuilder<bool>(
+      valueListenable: notifier,
+      builder: (context, varName, _) {
+        return Padding(
+          padding: const EdgeInsets.symmetric(vertical: 10.0),
+          child: Container(
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(10),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.grey.withOpacity(0.5),
+                  spreadRadius: 3,
+                  blurRadius: 5,
+                ),
+              ],
+            ),
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+            child: Column(
+              children: [
+                Row(
+                  children: [
+                    Expanded(
+                      flex: 5,
+                      child: Text(
+                        text,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          decoration: TextDecoration.none,
+                          fontSize: 15,
+                          fontWeight: FontWeight.bold,
+                          fontFamily: 'Inconsolata',
+                          color: Colors.grey,
+                        ),
+                      ),
+                    ),
+                    const Spacer(),
+                    GestureDetector(
+                      onTap: () {
+                        notifier.value = !notifier.value;
+                      },
+                      child: Image.asset(
+                        varName
+                            ? 'images/material-symbols_arrow-drop-down-upwards.png'
+                            : 'images/material-symbols_arrow-drop-down.png',
+                      ),
+                    ),
+                  ],
+                ),
+                if (varName)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 10.0),
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(10),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.grey.withOpacity(0.5),
+                            spreadRadius: 3,
+                            blurRadius: 5,
+                          ),
+                        ],
+                      ),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 20, vertical: 6),
+                      child: const Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Expanded(
+                            flex: 2,
+                            child: Text(
+                              'Empty List',
+                              overflow: TextOverflow.ellipsis,
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                decoration: TextDecoration.none,
+                                fontSize: 15,
+                                fontWeight: FontWeight.bold,
+                                fontFamily: 'Inconsolata',
+                                color: Colors.black,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                if (varName)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 10.0),
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(10),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.grey.withOpacity(0.5),
+                            spreadRadius: 3,
+                            blurRadius: 5,
+                          ),
+                        ],
+                      ),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 20, vertical: 6),
+                      child: const Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Expanded(
+                            flex: 2,
+                            child: Text(
+                              'Empty List',
+                              overflow: TextOverflow.ellipsis,
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                decoration: TextDecoration.none,
+                                fontSize: 15,
+                                fontWeight: FontWeight.bold,
+                                fontFamily: 'Inconsolata',
+                                color: Colors.black,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                if (varName)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 10.0),
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(10),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.grey.withOpacity(0.5),
+                            spreadRadius: 3,
+                            blurRadius: 5,
+                          ),
+                        ],
+                      ),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 20, vertical: 6),
+                      child: const Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Expanded(
+                            flex: 2,
+                            child: Text(
+                              'Empty List',
+                              overflow: TextOverflow.ellipsis,
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                decoration: TextDecoration.none,
+                                fontSize: 15,
+                                fontWeight: FontWeight.bold,
+                                fontFamily: 'Inconsolata',
+                                color: Colors.black,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget textBoxEventInput(String text) {
+    return Padding(
+        padding: const EdgeInsets.symmetric(vertical: 10.0),
+    child:Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(10),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withOpacity(0.5),
+            spreadRadius: 3,
+            blurRadius: 5,
+          ),
+        ],
+      ),
+      child: Column(
+        children: [
+          TextFormField(
+            style: const TextStyle(
+              fontSize: 16.0,
+            ),
+            decoration: InputDecoration(
+              labelText: text,
+              labelStyle: const TextStyle(
+                decoration: TextDecoration.none,
+                fontSize: 15,
+                fontWeight: FontWeight.bold,
+                fontFamily: 'Inconsolata',
+                color: Colors.grey,
+              ),
+              contentPadding:
+              const EdgeInsets.only(
+                  left: 20,
+                  right: 20,
+                  bottom: 20,
+                  top: 0),
+              floatingLabelBehavior: FloatingLabelBehavior.never,
+              border: InputBorder.none,
+            ),
+            cursorColor: Colors.black,
+          ),
+        ],
+      ),
+    ),
+    );
+  }
+  Widget bigTextBoxEventInput(String text) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 10.0),
+      child:Container(
+        height: (160 / MediaQuery.of(context).size.height) *
+            MediaQuery.of(context).size.height,
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(10),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.grey.withOpacity(0.5),
+              spreadRadius: 3,
+              blurRadius: 5,
+            ),
+          ],
+        ),
+        child: Column(
+          children: [
+            TextFormField(
+              maxLength: 140,
+              maxLines: null,
+              keyboardType: TextInputType.multiline,
+              style: const TextStyle(
+                fontSize: 16.0,
+              ),
+              decoration: InputDecoration(
+                labelText: text,
+                labelStyle: const TextStyle(
+                  decoration: TextDecoration.none,
+                  fontSize: 15,
+                  fontWeight: FontWeight.bold,
+                  fontFamily: 'Inconsolata',
+                  color: Colors.grey,
+                ),
+                contentPadding:
+                const EdgeInsets.only(
+                    left: 20,
+                    right: 20,
+                    bottom: 20,
+                    top: 0),
+                floatingLabelBehavior: FloatingLabelBehavior.never,
+                border: InputBorder.none,
+              ),
+              cursorColor: Colors.black,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
 }

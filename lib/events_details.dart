@@ -207,6 +207,8 @@ class _EventsDetailsState extends State<EventsDetails> {
     );
   }
 
+
+
   @override
   Widget build(BuildContext context) {
     return OrientationBuilder(
@@ -880,4 +882,5 @@ class _EventsDetailsState extends State<EventsDetails> {
       },
     );
   }
+
 }

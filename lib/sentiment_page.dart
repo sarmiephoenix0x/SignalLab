@@ -1,13 +1,13 @@
+import 'dart:async';
+import 'dart:convert';
+
+import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:http/http.dart' as http;
 // import 'package:signal_app/sentiments_details.dart';
 import 'package:signal_app/sentiment_page_view_coin.dart';
-import 'dart:convert';
-import 'package:http/http.dart' as http;
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'package:connectivity_plus/connectivity_plus.dart';
-import 'dart:async';
 
 class SentimentPage extends StatefulWidget {
   const SentimentPage({
@@ -28,14 +28,6 @@ class _SentimentPageState extends State<SentimentPage>
   String todayImg = 'images/wpf_today-black.png';
   String resultImg = 'images/carbon_result-new.png';
   OverlayEntry? _overlayEntry;
-  ValueNotifier<bool> varNameNotifier = ValueNotifier<bool>(false);
-  ValueNotifier<bool> varNameNotifier2 = ValueNotifier<bool>(false);
-  ValueNotifier<bool> varNameNotifier3 = ValueNotifier<bool>(false);
-  ValueNotifier<bool> varNameNotifier4 = ValueNotifier<bool>(false);
-  ValueNotifier<bool> varNameNotifier5 = ValueNotifier<bool>(false);
-  ValueNotifier<bool> varNameNotifier6 = ValueNotifier<bool>(false);
-  ValueNotifier<bool> varNameNotifier7 = ValueNotifier<bool>(false);
-  ValueNotifier<bool> varNameNotifier8 = ValueNotifier<bool>(false);
   List<dynamic> sentiments = [];
   final storage = const FlutterSecureStorage();
   bool loading = true;
@@ -46,7 +38,7 @@ class _SentimentPageState extends State<SentimentPage>
   @override
   void initState() {
     super.initState();
-    tabController = TabController(length: 6, vsync: this);
+    tabController = TabController(length: 3, vsync: this);
     tabController!.addListener(_handleTabSelection);
     fetchSentiments();
     _scrollController.addListener(() {
@@ -156,21 +148,24 @@ class _SentimentPageState extends State<SentimentPage>
                               Expanded(
                                   flex: 10,
                                   child: filterContents2(
-                                      'Dates', varNameNotifier)),
+                                      'Dates', ValueNotifier<bool>(false))),
                               const Spacer(),
                               Expanded(
                                   flex: 10,
                                   child: filterContents2(
-                                      'Dates', varNameNotifier2)),
+                                      'Dates', ValueNotifier<bool>(false))),
                             ],
                           ),
                         ),
-                        filterContents('Keywords', varNameNotifier3),
-                        filterContents('Select coins', varNameNotifier4),
-                        filterContents('Exchanges - All', varNameNotifier5),
-                        filterContents('Categories - All', varNameNotifier6),
-                        filterContents('Sort by', varNameNotifier7),
-                        filterContents('Show only', varNameNotifier8),
+                        filterContents('Keywords', ValueNotifier<bool>(false)),
+                        filterContents(
+                            'Select coins', ValueNotifier<bool>(false)),
+                        filterContents(
+                            'Exchanges - All', ValueNotifier<bool>(false)),
+                        filterContents(
+                            'Categories - All', ValueNotifier<bool>(false)),
+                        filterContents('Sort by', ValueNotifier<bool>(false)),
+                        filterContents('Show only', ValueNotifier<bool>(false)),
                         SizedBox(
                             height: MediaQuery.of(context).size.height * 0.05),
                         Container(
@@ -472,7 +467,30 @@ class _SentimentPageState extends State<SentimentPage>
                       SizedBox(
                         height: MediaQuery.of(context).size.height * 0.03,
                       ),
-                      _latestInfoTabBar(),
+                      TabBar(
+                        controller: tabController,
+                        tabs: [
+                          _buildTab('Crypto'),
+                          _buildTab('Forex'),
+                          _buildTab('Stocks'),
+                        ],
+                        labelColor: Colors.black,
+                        unselectedLabelColor: Colors.grey,
+                        labelStyle: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          fontFamily: 'Inconsolata',
+                        ),
+                        unselectedLabelStyle: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          fontFamily: 'Inconsolata',
+                        ),
+                        labelPadding: EdgeInsets.zero,
+                        indicatorSize: TabBarIndicatorSize.tab,
+                        indicatorColor: Colors.black,
+                      ),
+
                       Expanded(
                         child: TabBarView(
                           controller: tabController,
@@ -520,7 +538,6 @@ class _SentimentPageState extends State<SentimentPage>
                                   itemCount: sentiments.length,
                                   itemBuilder: (context, index) {
                                     return cryptoCard(
-                                        ValueNotifier<bool>(false),
                                         sentiments[index]);
                                   },
                                 ),
@@ -568,7 +585,6 @@ class _SentimentPageState extends State<SentimentPage>
                                   itemCount: sentiments.length,
                                   itemBuilder: (context, index) {
                                     return cryptoCard(
-                                        ValueNotifier<bool>(false),
                                         sentiments[index]);
                                   },
                                 ),
@@ -616,151 +632,6 @@ class _SentimentPageState extends State<SentimentPage>
                                   itemCount: sentiments.length,
                                   itemBuilder: (context, index) {
                                     return cryptoCard(
-                                        ValueNotifier<bool>(false),
-                                        sentiments[index]);
-                                  },
-                                ),
-                              ),
-                            if (loading)
-                              const Center(
-                                child: CircularProgressIndicator(
-                                    color: Colors.black),
-                              )
-                            else if (errorMessage != null)
-                              Center(
-                                child: Column(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    Text(
-                                      errorMessage!,
-                                      textAlign: TextAlign.center,
-                                      style: const TextStyle(
-                                        fontFamily: 'Inconsolata',
-                                        color: Colors.red,
-                                      ),
-                                    ),
-                                    const SizedBox(height: 16),
-                                    ElevatedButton(
-                                      onPressed: _refreshData,
-                                      child: const Text(
-                                        'Retry',
-                                        style: TextStyle(
-                                          fontFamily: 'Inconsolata',
-                                          fontWeight: FontWeight.bold,
-                                          fontSize: 18,
-                                          color: Colors.black,
-                                        ),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              )
-                            else
-                              RefreshIndicator(
-                                onRefresh: _refreshData,
-                                color: Colors.black,
-                                child: ListView.builder(
-                                  controller: _scrollController,
-                                  itemCount: sentiments.length,
-                                  itemBuilder: (context, index) {
-                                    return cryptoCard(
-                                        ValueNotifier<bool>(false),
-                                        sentiments[index]);
-                                  },
-                                ),
-                              ),
-                            if (loading)
-                              const Center(
-                                child: CircularProgressIndicator(
-                                    color: Colors.black),
-                              )
-                            else if (errorMessage != null)
-                              Center(
-                                child: Column(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    Text(
-                                      errorMessage!,
-                                      textAlign: TextAlign.center,
-                                      style: const TextStyle(
-                                        fontFamily: 'Inconsolata',
-                                        color: Colors.red,
-                                      ),
-                                    ),
-                                    const SizedBox(height: 16),
-                                    ElevatedButton(
-                                      onPressed: _refreshData,
-                                      child: const Text(
-                                        'Retry',
-                                        style: TextStyle(
-                                          fontFamily: 'Inconsolata',
-                                          fontWeight: FontWeight.bold,
-                                          fontSize: 18,
-                                          color: Colors.black,
-                                        ),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              )
-                            else
-                              RefreshIndicator(
-                                onRefresh: _refreshData,
-                                color: Colors.black,
-                                child: ListView.builder(
-                                  controller: _scrollController,
-                                  itemCount: sentiments.length,
-                                  itemBuilder: (context, index) {
-                                    return cryptoCard(
-                                        ValueNotifier<bool>(false),
-                                        sentiments[index]);
-                                  },
-                                ),
-                              ),
-                            if (loading)
-                              const Center(
-                                child: CircularProgressIndicator(
-                                    color: Colors.black),
-                              )
-                            else if (errorMessage != null)
-                              Center(
-                                child: Column(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    Text(
-                                      errorMessage!,
-                                      textAlign: TextAlign.center,
-                                      style: const TextStyle(
-                                        fontFamily: 'Inconsolata',
-                                        color: Colors.red,
-                                      ),
-                                    ),
-                                    const SizedBox(height: 16),
-                                    ElevatedButton(
-                                      onPressed: _refreshData,
-                                      child: const Text(
-                                        'Retry',
-                                        style: TextStyle(
-                                          fontFamily: 'Inconsolata',
-                                          fontWeight: FontWeight.bold,
-                                          fontSize: 18,
-                                          color: Colors.black,
-                                        ),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              )
-                            else
-                              RefreshIndicator(
-                                onRefresh: _refreshData,
-                                color: Colors.black,
-                                child: ListView.builder(
-                                  controller: _scrollController,
-                                  itemCount: sentiments.length,
-                                  itemBuilder: (context, index) {
-                                    return cryptoCard(
-                                        ValueNotifier<bool>(false),
                                         sentiments[index]);
                                   },
                                 ),
@@ -777,49 +648,6 @@ class _SentimentPageState extends State<SentimentPage>
         );
       },
     );
-  }
-
-  Widget _latestInfoTabBar() {
-    if (tabController != null) {
-      return Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 20.0),
-        child: TabBar(
-          indicator: BoxDecoration(
-            color: _indicatorColor,
-            borderRadius: BorderRadius.circular(10),
-          ),
-          indicatorSize: TabBarIndicatorSize.label,
-          indicatorPadding:
-              const EdgeInsets.only(left: 2.1, right: 2.1, bottom: 6.6, top: 5),
-          dividerHeight: 0,
-          tabAlignment: TabAlignment.start,
-          controller: tabController!,
-          isScrollable: true,
-          splashBorderRadius: BorderRadius.circular(10),
-          tabs: [
-            _buildCurvedTab('Trending', trendImg),
-            _buildCurvedTab('Significant', 'images/noto_crown.png'),
-            _buildCurvedTab('Today', todayImg),
-            _buildCurvedTab('This Week', ''),
-            _buildCurvedTab('This Month', ''),
-            _buildCurvedTab('Result', resultImg),
-          ],
-          labelPadding: const EdgeInsets.symmetric(horizontal: 6),
-          labelColor: Colors.white,
-          unselectedLabelColor: Colors.black,
-          labelStyle: const TextStyle(
-            fontSize: 16,
-            fontFamily: 'Inter',
-          ),
-          unselectedLabelStyle: const TextStyle(
-            fontSize: 16,
-            fontFamily: 'Inter',
-          ),
-        ),
-      );
-    } else {
-      return const SizedBox.shrink();
-    }
   }
 
   Widget _buildCurvedTab(String label, String img) {
@@ -851,7 +679,7 @@ class _SentimentPageState extends State<SentimentPage>
     );
   }
 
-  Widget cryptoCard(ValueNotifier<bool> dropdownStateNotifier,
+  Widget cryptoCard(
       Map<String, dynamic> sentiment) {
     final screenWidth = MediaQuery.of(context).size.width;
     final screenHeight = MediaQuery.of(context).size.height;
@@ -863,327 +691,159 @@ class _SentimentPageState extends State<SentimentPage>
         ? sentiment['downvotes']
         : int.parse(sentiment['downvotes']);
     int totalVotes = upvotes + downvotes;
-    double upvotePercentage = totalVotes > 0 ? upvotes / totalVotes : 0.0;
+    double upvotePercentage = totalVotes > 0 ? (upvotes / totalVotes) * 100 : 0;
+    double downvotePercentage =
+    totalVotes > 0 ? (downvotes / totalVotes) * 100 : 0;
 
-    Future<void> vote(String type) async {
-      final String sentimentId =
-          sentiment['id'].toString(); // Ensure ID is a string
-      final String? accessToken = await storage.read(key: 'accessToken');
-
-      final response = await http.post(
-        Uri.parse('https://script.teendev.dev/signal/api/vote'),
-        headers: {
-          'Authorization': 'Bearer $accessToken',
-          'Content-Type': 'application/json',
+    return Padding(
+      padding: EdgeInsets.symmetric(
+        horizontal: screenWidth * 0.03,
+        vertical: screenHeight * 0.01,
+      ),
+      child: InkWell(
+        onTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => SentimentViewCoin(
+                  key: UniqueKey(),
+                  sentimentId: sentiment['id'],
+                  sentimentTitle: sentiment['title'],
+                  sentimentImg: sentiment['image']),
+            ),
+          );
         },
-        body: jsonEncode({
-          'type': type,
-          'group': 'sentiment', // Specify the group if needed
-          'id': sentimentId,
-        }),
-      );
-
-      final responseBody = jsonDecode(response.body);
-
-      if (response.statusCode == 200) {
-        // Update sentiment counts based on the type of vote
-        if (type == 'upvote') {
-          sentiment['upvotes'] =
-              (int.parse(sentiment['upvotes']) + 1).toString();
-        } else {
-          sentiment['downvotes'] =
-              (int.parse(sentiment['downvotes']) + 1).toString();
-        }
-
-        // Recalculate the vote percentage after updating votes
-        int updatedUpvotes = int.parse(sentiment['upvotes']);
-        int updatedDownvotes = int.parse(sentiment['downvotes']);
-        int updatedTotalVotes = updatedUpvotes + updatedDownvotes;
-        upvotePercentage =
-            updatedTotalVotes > 0 ? updatedUpvotes / updatedTotalVotes : 0.0;
-
-        // Show success message
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-                'Successfully ${type == 'upvote' ? 'Upvoted' : 'Downvoted'}'),
-          ),
-        );
-        setState(() {}); // Update the UI
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(responseBody['message'] ?? 'An error occurred'),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
-    }
-
-    return ValueListenableBuilder<bool>(
-      valueListenable: dropdownStateNotifier,
-      builder: (context, dropdownState, _) {
-        return Padding(
-          padding: EdgeInsets.symmetric(
-            horizontal: screenWidth * 0.03,
-            vertical: screenHeight * 0.01,
-          ),
-          child: InkWell(
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => SentimentViewCoin(
-                      key: UniqueKey(),
-                      sentimentId: sentiment['id'],
-                      sentimentTitle: sentiment['title'],
-                      sentimentImg: sentiment['image']),
-                ),
-              );
-            },
-            child: Container(
-              padding: EdgeInsets.all(screenWidth * 0.03),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(15),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.grey.withOpacity(0.3),
-                    spreadRadius: 2,
-                    blurRadius: 4,
-                  ),
-                ],
+        child: Container(
+          padding: EdgeInsets.all(screenWidth * 0.03),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(15),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.grey.withOpacity(0.3),
+                spreadRadius: 2,
+                blurRadius: 4,
               ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+            ],
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
                 children: [
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      ClipRRect(
-                        borderRadius: BorderRadius.circular(35),
-                        child: Container(
-                          width: (48 / MediaQuery.of(context).size.width) *
-                              MediaQuery.of(context).size.width,
-                          height: (48 / MediaQuery.of(context).size.height) *
-                              MediaQuery.of(context).size.height,
-                          color: Colors.grey,
-                          child: Image.network(
-                            sentiment['image'],
-                            fit: BoxFit.cover,
-                          ),
-                        ),
+                  Expanded(
+                    flex: 5,
+                    child: Text(
+                      sentiment['title'],
+                      overflow: TextOverflow.ellipsis,
+                      maxLines: 1,
+                      style: TextStyle(
+                        fontFamily: 'Inconsolata',
+                        fontWeight: FontWeight.bold,
+                        fontSize: screenWidth * 0.05,
+                        color: Colors.black,
                       ),
-                      SizedBox(width: screenWidth * 0.02),
-                      Flexible(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              sentiment['title'],
-                              overflow: TextOverflow.ellipsis,
-                              maxLines: 1,
-                              style: TextStyle(
-                                fontFamily: 'Inconsolata',
-                                fontWeight: FontWeight.bold,
-                                fontSize: screenWidth * 0.05,
-                                color: Colors.black,
-                              ),
-                            ),
-                            Text(
-                              sentiment['created_at'],
-                              style: TextStyle(
-                                fontSize: screenWidth * 0.03,
-                                fontFamily: 'Inconsolata',
-                                fontWeight: FontWeight.bold,
-                                color: Colors.grey,
-                              ),
-                            ),
-                            SizedBox(height: screenHeight * 0.01),
-                            // Row(
-                            //   children: [
-                            //     Text(
-                            //       '151MM Token Unlock ',
-                            //       style: TextStyle(
-                            //         fontFamily: 'Inconsolata',
-                            //         fontWeight: FontWeight.bold,
-                            //         fontSize: screenWidth * 0.04,
-                            //         color: Colors.black,
-                            //       ),
-                            //     ),
-                            //     Image.asset(
-                            //       'images/lets-icons_up.png',
-                            //       width: screenWidth * 0.04,
-                            //       height: screenWidth * 0.04,
-                            //       fit: BoxFit.cover,
-                            //     ),
-                            //     SizedBox(width: screenWidth * 0.01),
-                            //     Image.asset(
-                            //       'images/noto_fire.png',
-                            //       width: screenWidth * 0.04,
-                            //       height: screenWidth * 0.04,
-                            //       fit: BoxFit.cover,
-                            //     ),
-                            //     SizedBox(width: screenWidth * 0.01),
-                            //     Image.asset(
-                            //       'images/noto_crown.png',
-                            //       width: screenWidth * 0.04,
-                            //       height: screenWidth * 0.04,
-                            //       fit: BoxFit.cover,
-                            //     ),
-                            //   ],
-                            // ),
-                            Text(
-                              sentiment['sub_text'],
-                              maxLines: 2, // Limits sub_text to two lines
-                              overflow: TextOverflow.ellipsis,
-                              style: TextStyle(
-                                fontFamily: 'Inconsolata',
-                                fontWeight: FontWeight.bold,
-                                fontSize: screenWidth * 0.04,
-                                color: Colors.black,
-                              ),
-                            ),
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.start,
-                              children: [
-                                Text(
-                                  'Upvotes: ${sentiment['upvotes']} | Downvotes: ${sentiment['downvotes']}',
-                                  style: const TextStyle(
-                                    fontFamily: 'Inconsolata',
-                                    fontSize: 15,
-                                    color: Colors.black,
-                                  ),
-                                ),
-                              ],
-                            ),
-                            SizedBox(height: screenHeight * 0.02),
-                            Stack(
-                              children: [
-                                Container(
-                                  width: MediaQuery.of(context).size.width *
-                                      0.2 *
-                                      upvotePercentage,
-                                  height: 5,
-                                  decoration: BoxDecoration(
-                                    color: const Color(0xFF0000FF),
-                                    borderRadius: BorderRadius.circular(0),
-                                  ),
-                                ),
-                                Container(
-                                  width:
-                                      MediaQuery.of(context).size.width * 0.2,
-                                  height: 5,
-                                  decoration: BoxDecoration(
-                                    border: Border.all(
-                                        width: 0.5, color: Colors.black),
-                                    borderRadius: BorderRadius.circular(0),
-                                  ),
-                                ),
-                              ],
-                            ),
-                            SizedBox(height: screenHeight * 0.02),
-                            Row(
-                              children: [
-                                Text(
-                                  'Insight',
-                                  style: TextStyle(
-                                    fontFamily: 'Inconsolata',
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: screenWidth * 0.04,
-                                    color: Colors.black,
-                                  ),
-                                ),
-                                GestureDetector(
-                                  onTap: () {
-                                    dropdownStateNotifier.value =
-                                        !dropdownStateNotifier.value;
-                                  },
-                                  child: Image.asset(
-                                    dropdownState
-                                        ? 'images/material-symbols_arrow-drop-down-upwards.png'
-                                        : 'images/material-symbols_arrow-drop-down.png',
-                                    width: screenWidth * 0.05,
-                                    height: screenWidth * 0.05,
-                                    fit: BoxFit.cover,
-                                  ),
-                                ),
-                              ],
-                            ),
-                            if (dropdownState)
-                              Padding(
-                                padding: const EdgeInsets.only(top: 10.0),
-                                child: Container(
-                                  width: screenWidth * 0.8,
-                                  decoration: BoxDecoration(
-                                    color: Colors.white,
-                                    borderRadius: BorderRadius.circular(10),
-                                    boxShadow: [
-                                      BoxShadow(
-                                        color: Colors.grey.withOpacity(0.3),
-                                        spreadRadius: 2,
-                                        blurRadius: 4,
-                                      ),
-                                    ],
-                                  ),
-                                  padding: EdgeInsets.symmetric(
-                                    horizontal: screenWidth * 0.04,
-                                    vertical: 6,
-                                  ),
-                                  child: Text(
-                                    sentiment['insight'],
-                                    softWrap: true,
-                                    style: const TextStyle(
-                                      fontSize: 15,
-                                      fontWeight: FontWeight.bold,
-                                      fontFamily: 'Inconsolata',
-                                      color: Colors.black,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                          ],
+                    ),
+                  ),
+                  const Spacer(),
+                  Expanded(
+                    flex: 2,
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children:[
+                        Image.asset(
+                          'images/bi_people.png',
+                          height:15,
                         ),
+                        SizedBox(width: screenWidth * 0.02),
+                    Text(
+                      '$totalVotes Votes',
+                      textAlign: TextAlign.end,
+                      style: TextStyle(
+                        fontFamily: 'Inconsolata',
+                        fontSize: screenWidth * 0.03,
+                        color: Colors.black,
                       ),
-                      SizedBox(width: screenWidth * 0.02),
-                      SizedBox(
-                        height: MediaQuery.of(context).size.height * 0.15,
-                        child: Column(
-                          children: [
-                            GestureDetector(
-                              onTap: () => vote('upvote'),
-                              child: Image.asset(
-                                'images/Thumbs-up.png',
-                              ),
-                            ),
-                            const Spacer(),
-                            GestureDetector(
-                              onTap: () => vote('downvote'),
-                              child: Image.asset(
-                                'images/Thumbs-down.png',
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
+                    ),
                     ],
                   ),
+              )
                 ],
               ),
-            ),
+              SizedBox(height: screenHeight * 0.01),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.only(right: 8.0),
+                    child: Text(
+                      '${upvotePercentage.toStringAsFixed(0)}%',
+                      style: const TextStyle(
+                        fontFamily: 'Inconsolata',
+                        fontSize: 14,
+                        color: Color(0xFF008000),
+                      ),
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.only(left: 8.0),
+                    child: Text(
+                      '${downvotePercentage.toStringAsFixed(0)}%',
+                      style: const TextStyle(
+                        fontFamily: 'Inconsolata',
+                        fontSize: 14,
+                        color: Colors.red,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              SizedBox(height: screenHeight * 0.01),
+              Row(
+                children: [
+                  Expanded(
+                    flex: upvotePercentage.round(), // Green bar flex
+                    child: Container(
+                      height: 10,
+                      decoration: const BoxDecoration(
+                        color: Color(0xFF008000),
+                        borderRadius: BorderRadius.only(
+                          topLeft: Radius.circular(5),
+                          bottomLeft: Radius.circular(5),
+                        ),
+                      ),
+                    ),
+                  ),
+                  Expanded(
+                    flex: downvotePercentage.round(), // Red bar flex
+                    child: Container(
+                      height: 10,
+                      decoration: const BoxDecoration(
+                        color: Colors.red,
+                        borderRadius: BorderRadius.only(
+                          topRight: Radius.circular(5),
+                          bottomRight: Radius.circular(5),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
           ),
-        );
-      },
+        ),
+      ),
     );
   }
 
+
   Widget filterContents(String text, ValueNotifier<bool> notifier) {
-    return  ValueListenableBuilder<bool>(
-        valueListenable: notifier,
-        builder: (context, varName, _) {
-          return Padding(
-              padding: const EdgeInsets.symmetric(vertical: 10.0),
-          child:Container(
+    return ValueListenableBuilder<bool>(
+      valueListenable: notifier,
+      builder: (context, varName, _) {
+        return Padding(
+          padding: const EdgeInsets.symmetric(vertical: 10.0),
+          child: Container(
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.circular(10),
@@ -1347,183 +1007,189 @@ class _SentimentPageState extends State<SentimentPage>
               ],
             ),
           ),
-          );
-        },
+        );
+      },
     );
   }
 
   Widget filterContents2(String text, ValueNotifier<bool> notifier) {
-    return  ValueListenableBuilder<bool>(
-        valueListenable: notifier,
-        builder: (context, varName, _) {
-          return Container(
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(10),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.grey.withOpacity(0.5),
-                  spreadRadius: 3,
-                  blurRadius: 5,
-                ),
-              ],
-            ),
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-            child: Column(
-              children: [
-                SizedBox(
-                  width: MediaQuery.of(context).size.width,
-                  child: Row(
-                    children: [
-                      Expanded(
-                        flex: 5,
-                        child: Text(
-                          text,
-                          overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(
-                            decoration: TextDecoration.none,
-                            fontSize: 15,
-                            fontWeight: FontWeight.bold,
-                            fontFamily: 'Inconsolata',
-                            color: Colors.grey,
-                          ),
+    return ValueListenableBuilder<bool>(
+      valueListenable: notifier,
+      builder: (context, varName, _) {
+        return Container(
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(10),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.grey.withOpacity(0.5),
+                spreadRadius: 3,
+                blurRadius: 5,
+              ),
+            ],
+          ),
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+          child: Column(
+            children: [
+              SizedBox(
+                width: MediaQuery.of(context).size.width,
+                child: Row(
+                  children: [
+                    Expanded(
+                      flex: 5,
+                      child: Text(
+                        text,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          decoration: TextDecoration.none,
+                          fontSize: 15,
+                          fontWeight: FontWeight.bold,
+                          fontFamily: 'Inconsolata',
+                          color: Colors.grey,
                         ),
                       ),
-                      const Spacer(),
-                      GestureDetector(
-                        onTap: () {
-                          notifier.value = !notifier.value;
-                        },
-                        child: Image.asset(
-                          varName
-                              ? 'images/material-symbols_arrow-drop-down-upwards.png'
-                              : 'images/material-symbols_arrow-drop-down.png',
-                        ),
+                    ),
+                    const Spacer(),
+                    GestureDetector(
+                      onTap: () {
+                        notifier.value = !notifier.value;
+                      },
+                      child: Image.asset(
+                        varName
+                            ? 'images/material-symbols_arrow-drop-down-upwards.png'
+                            : 'images/material-symbols_arrow-drop-down.png',
                       ),
-                    ],
+                    ),
+                  ],
+                ),
+              ),
+              if (varName)
+                Padding(
+                  padding: const EdgeInsets.only(top: 10.0),
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(10),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.grey.withOpacity(0.5),
+                          spreadRadius: 3,
+                          blurRadius: 5,
+                        ),
+                      ],
+                    ),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 20, vertical: 6),
+                    child: const Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Expanded(
+                          flex: 2,
+                          child: Text(
+                            'Empty List',
+                            overflow: TextOverflow.ellipsis,
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              decoration: TextDecoration.none,
+                              fontSize: 15,
+                              fontWeight: FontWeight.bold,
+                              fontFamily: 'Inconsolata',
+                              color: Colors.black,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
-                if (varName)
-                  Padding(
-                    padding: const EdgeInsets.only(top: 10.0),
-                    child: Container(
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(10),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.grey.withOpacity(0.5),
-                            spreadRadius: 3,
-                            blurRadius: 5,
-                          ),
-                        ],
-                      ),
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 20, vertical: 6),
-                      child: const Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Expanded(
-                            flex: 2,
-                            child: Text(
-                              'Empty List',
-                              overflow: TextOverflow.ellipsis,
-                              textAlign: TextAlign.center,
-                              style: TextStyle(
-                                decoration: TextDecoration.none,
-                                fontSize: 15,
-                                fontWeight: FontWeight.bold,
-                                fontFamily: 'Inconsolata',
-                                color: Colors.black,
-                              ),
+              if (varName)
+                Padding(
+                  padding: const EdgeInsets.only(top: 10.0),
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(10),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.grey.withOpacity(0.5),
+                          spreadRadius: 3,
+                          blurRadius: 5,
+                        ),
+                      ],
+                    ),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 20, vertical: 6),
+                    child: const Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Expanded(
+                          flex: 2,
+                          child: Text(
+                            'Empty List',
+                            overflow: TextOverflow.ellipsis,
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              decoration: TextDecoration.none,
+                              fontSize: 15,
+                              fontWeight: FontWeight.bold,
+                              fontFamily: 'Inconsolata',
+                              color: Colors.black,
                             ),
                           ),
-                        ],
-                      ),
+                        ),
+                      ],
                     ),
                   ),
-                if (varName)
-                  Padding(
-                    padding: const EdgeInsets.only(top: 10.0),
-                    child: Container(
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(10),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.grey.withOpacity(0.5),
-                            spreadRadius: 3,
-                            blurRadius: 5,
-                          ),
-                        ],
-                      ),
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 20, vertical: 6),
-                      child: const Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Expanded(
-                            flex: 2,
-                            child: Text(
-                              'Empty List',
-                              overflow: TextOverflow.ellipsis,
-                              textAlign: TextAlign.center,
-                              style: TextStyle(
-                                decoration: TextDecoration.none,
-                                fontSize: 15,
-                                fontWeight: FontWeight.bold,
-                                fontFamily: 'Inconsolata',
-                                color: Colors.black,
-                              ),
+                ),
+              if (varName)
+                Padding(
+                  padding: const EdgeInsets.only(top: 10.0),
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(10),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.grey.withOpacity(0.5),
+                          spreadRadius: 3,
+                          blurRadius: 5,
+                        ),
+                      ],
+                    ),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 20, vertical: 6),
+                    child: const Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Expanded(
+                          flex: 2,
+                          child: Text(
+                            'Empty List',
+                            overflow: TextOverflow.ellipsis,
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              decoration: TextDecoration.none,
+                              fontSize: 15,
+                              fontWeight: FontWeight.bold,
+                              fontFamily: 'Inconsolata',
+                              color: Colors.black,
                             ),
                           ),
-                        ],
-                      ),
+                        ),
+                      ],
                     ),
                   ),
-                if (varName)
-                  Padding(
-                    padding: const EdgeInsets.only(top: 10.0),
-                    child: Container(
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(10),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.grey.withOpacity(0.5),
-                            spreadRadius: 3,
-                            blurRadius: 5,
-                          ),
-                        ],
-                      ),
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 20, vertical: 6),
-                      child: const Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Expanded(
-                            flex: 2,
-                            child: Text(
-                              'Empty List',
-                              overflow: TextOverflow.ellipsis,
-                              textAlign: TextAlign.center,
-                              style: TextStyle(
-                                decoration: TextDecoration.none,
-                                fontSize: 15,
-                                fontWeight: FontWeight.bold,
-                                fontFamily: 'Inconsolata',
-                                color: Colors.black,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-              ],
-            ),
-          );
-        },
+                ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildTab(String name) {
+    return Tab(
+      child: Text(name),
     );
   }
 }

@@ -46,6 +46,12 @@ dependencies:
   flutter_secure_storage: ^8.0.0
   shared_preferences: ^2.0.15
   connectivity_plus: ^4.0.1
+  video_player: ^2.5.0
+  chewie: ^1.3.4
+  youtube_player_flutter: ^8.0.0
+  image_picker: ^0.8.5+3
+  image_cropper: ^3.0.1
+
 
 dev_dependencies:
   flutter_test:
@@ -206,6 +212,14 @@ flutter:
   - images/carbon_result-new-white.png
   - images/AppLogo.png
   - images/icons/AppIcon.png
+  - images/profile_edit.png
+  - images/carbon_warning-hex.png
+  - images/ic_baseline-privacy-tip.png
+  - images/mdi_about.png
+  - images/Submitted-Tick.png
+  - images/bi_people.png
+  - images/RadioButBody.png
+  - images/RadioButHandle.png
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware
 

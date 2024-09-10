@@ -1,5 +1,12 @@
+import 'dart:async';
+import 'dart:convert';
+
+import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:signal_app/card_details.dart';
 import 'package:signal_app/events_page.dart';
 import 'package:signal_app/intro_page.dart';
@@ -9,12 +16,10 @@ import 'package:signal_app/packages_page.dart';
 import 'package:signal_app/sentiment_page.dart';
 import 'package:signal_app/trading_web_view.dart';
 import 'package:signal_app/transaction_history.dart';
-import 'package:http/http.dart' as http;
-import 'dart:convert';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import 'package:connectivity_plus/connectivity_plus.dart';
-import 'dart:async';
+import 'package:signal_app/video_player_widget.dart';
+import 'package:signal_app/settings.dart';
+
+import 'edit_profile.dart';
 
 class MainApp extends StatefulWidget {
   const MainApp({
@@ -34,19 +39,20 @@ class _MainAppState extends State<MainApp> with TickerProviderStateMixin {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   final GlobalKey _dropDownKey = GlobalKey();
   ValueNotifier<bool> usdtCurrentPriceDropDownActiveTab1 =
-      ValueNotifier<bool>(false);
+  ValueNotifier<bool>(false);
   ValueNotifier<bool> btcCurrentPriceDropDownActiveTab1 =
-      ValueNotifier<bool>(false);
+  ValueNotifier<bool>(false);
   ValueNotifier<bool> usdtCurrentPriceDropDownActiveTab2 =
-      ValueNotifier<bool>(false);
+  ValueNotifier<bool>(false);
   ValueNotifier<bool> btcCurrentPriceDropDownActiveTab2 =
-      ValueNotifier<bool>(false);
+  ValueNotifier<bool>(false);
   ValueNotifier<bool> usdtCurrentPriceDropDownActiveTab3 =
-      ValueNotifier<bool>(false);
+  ValueNotifier<bool>(false);
   final storage = const FlutterSecureStorage();
   late SharedPreferences prefs;
   String? userName;
   String? userBalance;
+  String? profileImg;
   late Future<List<dynamic>> _signalsFuture1;
   late Future<List<dynamic>> _signalsFuture2;
   late Future<List<dynamic>> _signalsFuture3;
@@ -92,6 +98,7 @@ class _MainAppState extends State<MainApp> with TickerProviderStateMixin {
     prefs = await SharedPreferences.getInstance();
     userName = await getUserName();
     userBalance = await getUserBalance();
+    profileImg = await getProfileImg();
     setState(() {});
   }
 
@@ -132,7 +139,7 @@ class _MainAppState extends State<MainApp> with TickerProviderStateMixin {
       setState(() {
         loading2 = false;
         errorMessage =
-            'Failed to load data. Please check your network connection.';
+        'Failed to load data. Please check your network connection.';
       });
       print('Exception: $e');
     }
@@ -171,7 +178,7 @@ class _MainAppState extends State<MainApp> with TickerProviderStateMixin {
       setState(() {
         loading = false;
         errorMessage =
-            'Failed to load data. Please check your network connection.';
+        'Failed to load data. Please check your network connection.';
       });
       print('Exception: $e');
     }
@@ -201,9 +208,6 @@ class _MainAppState extends State<MainApp> with TickerProviderStateMixin {
     final String? accessToken = await storage.read(key: 'accessToken');
 
     if (accessToken == null) {
-      setState(() {
-        isLoading = false;
-      });
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('You are not logged in.'),
@@ -234,11 +238,9 @@ class _MainAppState extends State<MainApp> with TickerProviderStateMixin {
           ),
         );
 
-        // Clear the stored data
         await storage.delete(key: 'accessToken');
         await prefs.remove('user');
 
-        // Navigate to the login screen
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(
@@ -250,7 +252,7 @@ class _MainAppState extends State<MainApp> with TickerProviderStateMixin {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Error: $message'),
-            backgroundColor: Colors.orange,
+            backgroundColor: Colors.red,
             duration: const Duration(seconds: 3),
           ),
         );
@@ -264,100 +266,79 @@ class _MainAppState extends State<MainApp> with TickerProviderStateMixin {
         );
       }
     } catch (e) {
-      setState(() {
-        isLoading = false;
-      });
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: const Text('Failed to connect to the server. Please check your internet connection.'),
+        const SnackBar(
+          content: const Text(
+              'Failed to connect to the server. Please check your internet connection.'),
           backgroundColor: Colors.red,
           duration: const Duration(seconds: 3),
         ),
       );
+    } finally {
+      setState(() {
+        isLoading = false;
+      });
     }
   }
-
 
   void _showLogoutConfirmationDialog() {
     showDialog(
       context: context,
-      barrierDismissible: false, // Initially set based on isLoading
+      barrierDismissible: false,
       builder: (BuildContext context) {
         return StatefulBuilder(
           builder: (BuildContext context, StateSetter setState) {
-            return PopScope(
-              canPop: false,
-              onPopInvokedWithResult: (didPop, dynamic result) {
-                if (!didPop) {
-                  if (isLoading != true) {
-                    if (Navigator.of(context).canPop()) {
-                      Navigator.of(context).pop();
-                    } else {
-                      SystemChannels.platform
-                          .invokeMethod('SystemNavigator.pop');
-                    }
-                  }
-                }
-              },
-              child: AlertDialog(
-                title: const Text('Confirm Logout'),
-                content: const Text('Are you sure you want to log out?'),
-                actions: <Widget>[
-                  Row(
-                    children: [
-                      TextButton(
-                        child: const Text(
-                          'Cancel',
-                          style: TextStyle(
-                              color: Colors.black, fontFamily: 'Inter'),
+            return AlertDialog(
+              title: const Text('Confirm Logout'),
+              content: const Text('Are you sure you want to log out?'),
+              actions: <Widget>[
+                Row(
+                  children: [
+                    TextButton(
+                      child: const Text(
+                        'Cancel',
+                        style:
+                        TextStyle(color: Colors.black, fontFamily: 'Inter'),
+                      ),
+                      onPressed: () {
+                        Navigator.of(context).pop(); // Dismiss the dialog
+                      },
+                    ),
+                    const Spacer(),
+                    if (isLoading)
+                      const Center(
+                        child: CircularProgressIndicator(
+                          color: Colors.red,
+                        ),
+                      )
+                    else
+                      ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.red,
                         ),
                         onPressed: () {
                           setState(() {
-                            isLoading = false; // Update local state
+                            isLoading = true;
                           });
-                          Navigator.of(context).pop(); // Dismiss the dialog
-                        },
-                      ),
-                      const Spacer(),
-                      if (isLoading == true)
-                        const Center(
-                          child: CircularProgressIndicator(
-                            color: Colors.red,
-                          ),
-                        )
-                      else
-                        ElevatedButton(
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.red,
-                          ),
-                          onPressed: () {
-                            setState(() {
-                              isLoading = true; // Update local state
-                            });
 
-                            _logout().then((_) {
-                              // After logout is done, reset isLoading and close the dialog
-                              setState(() {
-                                isLoading = false;
-                              });
-                              Navigator.of(context).pop(); // Dismiss dialog
-                            }).catchError((error) {
-                              // Handle error if necessary
-                              setState(() {
-                                isLoading = false;
-                              });
+                          _logout().then((_) {
+                            // Navigator.of(context)
+                            //     .pop(); // Dismiss dialog after logout
+                          }).catchError((error) {
+                            setState(() {
+                              isLoading = false;
                             });
-                          },
-                          child: const Text(
-                            'Logout',
-                            style: TextStyle(
-                                color: Colors.black, fontFamily: 'Inter'),
-                          ),
+                          });
+                        },
+                        child: const Text(
+                          'Logout',
+                          style: TextStyle(
+                              color: Colors.black, fontFamily: 'Inter'),
                         ),
-                    ],
-                  ),
-                ],
-              ),
+                      ),
+                  ],
+                ),
+              ],
             );
           },
         );
@@ -367,7 +348,7 @@ class _MainAppState extends State<MainApp> with TickerProviderStateMixin {
 
   void _showPopupMenu(BuildContext context) async {
     final RenderBox renderBox =
-        _dropDownKey.currentContext!.findRenderObject() as RenderBox;
+    _dropDownKey.currentContext!.findRenderObject() as RenderBox;
     final Offset position = renderBox.localToGlobal(Offset.zero);
 
     await showMenu(
@@ -386,7 +367,10 @@ class _MainAppState extends State<MainApp> with TickerProviderStateMixin {
                 'images/share-box-line.png',
               ),
               SizedBox(
-                width: MediaQuery.of(context).size.width * 0.05,
+                width: MediaQuery
+                    .of(context)
+                    .size
+                    .width * 0.05,
               ),
               const Text(
                 'Share',
@@ -407,7 +391,10 @@ class _MainAppState extends State<MainApp> with TickerProviderStateMixin {
                 'images/feedback-line.png',
               ),
               SizedBox(
-                width: MediaQuery.of(context).size.width * 0.05,
+                width: MediaQuery
+                    .of(context)
+                    .size
+                    .width * 0.05,
               ),
               const Text(
                 'Report',
@@ -428,7 +415,10 @@ class _MainAppState extends State<MainApp> with TickerProviderStateMixin {
                 'images/save-line.png',
               ),
               SizedBox(
-                width: MediaQuery.of(context).size.width * 0.05,
+                width: MediaQuery
+                    .of(context)
+                    .size
+                    .width * 0.05,
               ),
               const Text(
                 'Save',
@@ -449,7 +439,10 @@ class _MainAppState extends State<MainApp> with TickerProviderStateMixin {
                 'images/basketball-line.png',
               ),
               SizedBox(
-                width: MediaQuery.of(context).size.width * 0.05,
+                width: MediaQuery
+                    .of(context)
+                    .size
+                    .width * 0.05,
               ),
               const Text(
                 'Open in browser',
@@ -499,6 +492,16 @@ class _MainAppState extends State<MainApp> with TickerProviderStateMixin {
     if (userJson != null) {
       final Map<String, dynamic> userMap = jsonDecode(userJson);
       return userMap['balance'];
+    } else {
+      return null;
+    }
+  }
+
+  Future<String?> getProfileImg() async {
+    final String? userJson = prefs.getString('user');
+    if (userJson != null) {
+      final Map<String, dynamic> userMap = jsonDecode(userJson);
+      return userMap['profile_photo_path'];
     } else {
       return null;
     }
@@ -557,6 +560,7 @@ class _MainAppState extends State<MainApp> with TickerProviderStateMixin {
       await fetchCourses();
     } else if (_currentBottomIndex == 4) {
       userName = await getUserName();
+      profileImg = await getProfileImg();
     }
   }
 
@@ -693,7 +697,7 @@ class _MainAppState extends State<MainApp> with TickerProviderStateMixin {
                     DrawerHeader(
                       decoration: const BoxDecoration(
                         color:
-                            Colors.black, // Set your desired header color here
+                        Colors.black, // Set your desired header color here
                       ),
                       padding: const EdgeInsets.fromLTRB(16.0, 36.0, 16.0, 8.0),
                       child: Row(children: [
@@ -701,7 +705,10 @@ class _MainAppState extends State<MainApp> with TickerProviderStateMixin {
                           'images/ProfileImg.png',
                         ),
                         SizedBox(
-                            width: MediaQuery.of(context).size.width * 0.03),
+                            width: MediaQuery
+                                .of(context)
+                                .size
+                                .width * 0.03),
                         if (userName != null)
                           Text(
                             userName!,
@@ -826,6 +833,7 @@ class _MainAppState extends State<MainApp> with TickerProviderStateMixin {
                     ListTile(
                       leading: Image.asset(
                         'images/solar_settings-outline.png',
+                        height: 25,
                       ),
                       title: const Text(
                         'Settings',
@@ -868,6 +876,7 @@ class _MainAppState extends State<MainApp> with TickerProviderStateMixin {
                     ListTile(
                       leading: Image.asset(
                         'images/fluent_person-support-16-regular.png',
+                        height: 25,
                       ),
                       title: const Text(
                         'Customer Support',
@@ -887,6 +896,7 @@ class _MainAppState extends State<MainApp> with TickerProviderStateMixin {
                       contentPadding: const EdgeInsets.only(top: 16, left: 16),
                       leading: Image.asset(
                         'images/material-symbols-light_logout-sharp.png',
+                        height: 25,
                       ),
                       title: const Text(
                         'Log out',
@@ -1022,7 +1032,7 @@ class _MainAppState extends State<MainApp> with TickerProviderStateMixin {
                         children: [
                           Padding(
                             padding:
-                                const EdgeInsets.symmetric(horizontal: 20.0),
+                            const EdgeInsets.symmetric(horizontal: 20.0),
                             child: Row(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
@@ -1060,17 +1070,23 @@ class _MainAppState extends State<MainApp> with TickerProviderStateMixin {
                           ),
                           SizedBox(
                               height:
-                                  MediaQuery.of(context).size.height * 0.05),
+                              MediaQuery
+                                  .of(context)
+                                  .size
+                                  .height * 0.05),
                           Padding(
                             padding:
-                                const EdgeInsets.symmetric(horizontal: 20.0),
+                            const EdgeInsets.symmetric(horizontal: 20.0),
                             child: Row(children: [
                               Image.asset(
                                 'images/ProfileImg.png',
                               ),
                               SizedBox(
                                   width:
-                                      MediaQuery.of(context).size.width * 0.03),
+                                  MediaQuery
+                                      .of(context)
+                                      .size
+                                      .width * 0.03),
                               if (userName != null)
                                 Text(
                                   userName!,
@@ -1087,31 +1103,46 @@ class _MainAppState extends State<MainApp> with TickerProviderStateMixin {
                           ),
                           SizedBox(
                               height:
-                                  MediaQuery.of(context).size.height * 0.05),
+                              MediaQuery
+                                  .of(context)
+                                  .size
+                                  .height * 0.05),
                           Padding(
                             padding:
-                                const EdgeInsets.symmetric(horizontal: 20.0),
+                            const EdgeInsets.symmetric(horizontal: 20.0),
                             child: Container(
                               height:
-                                  (130 / MediaQuery.of(context).size.height) *
-                                      MediaQuery.of(context).size.height,
+                              (130 / MediaQuery
+                                  .of(context)
+                                  .size
+                                  .height) *
+                                  MediaQuery
+                                      .of(context)
+                                      .size
+                                      .height,
                               padding: const EdgeInsets.all(10.0),
                               decoration: BoxDecoration(
                                 color: Colors.black,
                                 border:
-                                    Border.all(width: 0, color: Colors.grey),
+                                Border.all(width: 0, color: Colors.grey),
                                 borderRadius: BorderRadius.circular(15),
                               ),
                               child: Row(
                                 children: [
                                   SizedBox(
-                                      width: MediaQuery.of(context).size.width *
+                                      width: MediaQuery
+                                          .of(context)
+                                          .size
+                                          .width *
                                           0.02),
                                   Image.asset(
                                     'images/Balance.png',
                                   ),
                                   SizedBox(
-                                      width: MediaQuery.of(context).size.width *
+                                      width: MediaQuery
+                                          .of(context)
+                                          .size
+                                          .width *
                                           0.02),
                                   const VerticalDivider(
                                     color: Colors.grey,
@@ -1119,14 +1150,17 @@ class _MainAppState extends State<MainApp> with TickerProviderStateMixin {
                                     width: 20.0,
                                   ),
                                   SizedBox(
-                                      width: MediaQuery.of(context).size.width *
+                                      width: MediaQuery
+                                          .of(context)
+                                          .size
+                                          .width *
                                           0.02),
                                   Expanded(
                                     child: Column(
                                       mainAxisAlignment:
-                                          MainAxisAlignment.center,
+                                      MainAxisAlignment.center,
                                       crossAxisAlignment:
-                                          CrossAxisAlignment.start,
+                                      CrossAxisAlignment.start,
                                       children: [
                                         const Text(
                                           'Total Balance',
@@ -1138,9 +1172,10 @@ class _MainAppState extends State<MainApp> with TickerProviderStateMixin {
                                           ),
                                         ),
                                         SizedBox(
-                                            height: MediaQuery.of(context)
-                                                    .size
-                                                    .height *
+                                            height: MediaQuery
+                                                .of(context)
+                                                .size
+                                                .height *
                                                 0.02),
                                         if (userBalance != null)
                                           Text(
@@ -1165,31 +1200,46 @@ class _MainAppState extends State<MainApp> with TickerProviderStateMixin {
                           ),
                           SizedBox(
                               height:
-                                  MediaQuery.of(context).size.height * 0.02),
+                              MediaQuery
+                                  .of(context)
+                                  .size
+                                  .height * 0.02),
                           Padding(
                             padding:
-                                const EdgeInsets.symmetric(horizontal: 20.0),
+                            const EdgeInsets.symmetric(horizontal: 20.0),
                             child: Container(
                               height:
-                                  (130 / MediaQuery.of(context).size.height) *
-                                      MediaQuery.of(context).size.height,
+                              (130 / MediaQuery
+                                  .of(context)
+                                  .size
+                                  .height) *
+                                  MediaQuery
+                                      .of(context)
+                                      .size
+                                      .height,
                               padding: const EdgeInsets.all(10.0),
                               decoration: BoxDecoration(
                                 color: Colors.black,
                                 border:
-                                    Border.all(width: 0, color: Colors.grey),
+                                Border.all(width: 0, color: Colors.grey),
                                 borderRadius: BorderRadius.circular(15),
                               ),
                               child: Row(
                                 children: [
                                   SizedBox(
-                                      width: MediaQuery.of(context).size.width *
+                                      width: MediaQuery
+                                          .of(context)
+                                          .size
+                                          .width *
                                           0.02),
                                   Image.asset(
                                     'images/Package.png',
                                   ),
                                   SizedBox(
-                                      width: MediaQuery.of(context).size.width *
+                                      width: MediaQuery
+                                          .of(context)
+                                          .size
+                                          .width *
                                           0.02),
                                   const VerticalDivider(
                                     color: Colors.grey,
@@ -1197,14 +1247,17 @@ class _MainAppState extends State<MainApp> with TickerProviderStateMixin {
                                     width: 20.0,
                                   ),
                                   SizedBox(
-                                      width: MediaQuery.of(context).size.width *
+                                      width: MediaQuery
+                                          .of(context)
+                                          .size
+                                          .width *
                                           0.02),
                                   Expanded(
                                     child: Column(
                                       mainAxisAlignment:
-                                          MainAxisAlignment.center,
+                                      MainAxisAlignment.center,
                                       crossAxisAlignment:
-                                          CrossAxisAlignment.start,
+                                      CrossAxisAlignment.start,
                                       children: [
                                         const Text(
                                           'Package',
@@ -1216,9 +1269,10 @@ class _MainAppState extends State<MainApp> with TickerProviderStateMixin {
                                           ),
                                         ),
                                         SizedBox(
-                                            height: MediaQuery.of(context)
-                                                    .size
-                                                    .height *
+                                            height: MediaQuery
+                                                .of(context)
+                                                .size
+                                                .height *
                                                 0.02),
                                         const Text(
                                           "N/A (validity)",
@@ -1239,31 +1293,46 @@ class _MainAppState extends State<MainApp> with TickerProviderStateMixin {
                           ),
                           SizedBox(
                               height:
-                                  MediaQuery.of(context).size.height * 0.02),
+                              MediaQuery
+                                  .of(context)
+                                  .size
+                                  .height * 0.02),
                           Padding(
                             padding:
-                                const EdgeInsets.symmetric(horizontal: 20.0),
+                            const EdgeInsets.symmetric(horizontal: 20.0),
                             child: Container(
                               height:
-                                  (130 / MediaQuery.of(context).size.height) *
-                                      MediaQuery.of(context).size.height,
+                              (130 / MediaQuery
+                                  .of(context)
+                                  .size
+                                  .height) *
+                                  MediaQuery
+                                      .of(context)
+                                      .size
+                                      .height,
                               padding: const EdgeInsets.all(10.0),
                               decoration: BoxDecoration(
                                 color: Colors.black,
                                 border:
-                                    Border.all(width: 0, color: Colors.grey),
+                                Border.all(width: 0, color: Colors.grey),
                                 borderRadius: BorderRadius.circular(15),
                               ),
                               child: Row(
                                 children: [
                                   SizedBox(
-                                      width: MediaQuery.of(context).size.width *
+                                      width: MediaQuery
+                                          .of(context)
+                                          .size
+                                          .width *
                                           0.02),
                                   Image.asset(
                                     'images/Signals.png',
                                   ),
                                   SizedBox(
-                                      width: MediaQuery.of(context).size.width *
+                                      width: MediaQuery
+                                          .of(context)
+                                          .size
+                                          .width *
                                           0.02),
                                   const VerticalDivider(
                                     color: Colors.grey,
@@ -1271,14 +1340,17 @@ class _MainAppState extends State<MainApp> with TickerProviderStateMixin {
                                     width: 20.0,
                                   ),
                                   SizedBox(
-                                      width: MediaQuery.of(context).size.width *
+                                      width: MediaQuery
+                                          .of(context)
+                                          .size
+                                          .width *
                                           0.02),
                                   Expanded(
                                     child: Column(
                                       mainAxisAlignment:
-                                          MainAxisAlignment.center,
+                                      MainAxisAlignment.center,
                                       crossAxisAlignment:
-                                          CrossAxisAlignment.start,
+                                      CrossAxisAlignment.start,
                                       children: [
                                         const Text(
                                           'Total Signals',
@@ -1291,9 +1363,10 @@ class _MainAppState extends State<MainApp> with TickerProviderStateMixin {
                                           ),
                                         ),
                                         SizedBox(
-                                            height: MediaQuery.of(context)
-                                                    .size
-                                                    .height *
+                                            height: MediaQuery
+                                                .of(context)
+                                                .size
+                                                .height *
                                                 0.02),
                                         const Text(
                                           "0",
@@ -1313,10 +1386,13 @@ class _MainAppState extends State<MainApp> with TickerProviderStateMixin {
                           ),
                           SizedBox(
                               height:
-                                  MediaQuery.of(context).size.height * 0.05),
+                              MediaQuery
+                                  .of(context)
+                                  .size
+                                  .height * 0.05),
                           Padding(
                             padding:
-                                const EdgeInsets.symmetric(horizontal: 20.0),
+                            const EdgeInsets.symmetric(horizontal: 20.0),
                             child: Row(
                               children: [
                                 const Text(
@@ -1356,10 +1432,13 @@ class _MainAppState extends State<MainApp> with TickerProviderStateMixin {
                           ),
                           SizedBox(
                               height:
-                                  MediaQuery.of(context).size.height * 0.03),
+                              MediaQuery
+                                  .of(context)
+                                  .size
+                                  .height * 0.03),
                           Padding(
                             padding:
-                                const EdgeInsets.symmetric(horizontal: 20.0),
+                            const EdgeInsets.symmetric(horizontal: 20.0),
                             child: TabBar(
                               tabAlignment: TabAlignment.start,
                               controller: homeTab,
@@ -1395,10 +1474,19 @@ class _MainAppState extends State<MainApp> with TickerProviderStateMixin {
                           ),
                           SizedBox(
                               height:
-                                  MediaQuery.of(context).size.height * 0.03),
+                              MediaQuery
+                                  .of(context)
+                                  .size
+                                  .height * 0.03),
                           SizedBox(
-                            height: (400 / MediaQuery.of(context).size.height) *
-                                MediaQuery.of(context).size.height,
+                            height: (400 / MediaQuery
+                                .of(context)
+                                .size
+                                .height) *
+                                MediaQuery
+                                    .of(context)
+                                    .size
+                                    .height,
                             child: TabBarView(
                               controller: homeTab,
                               children: [
@@ -1407,93 +1495,99 @@ class _MainAppState extends State<MainApp> with TickerProviderStateMixin {
                                     child: CircularProgressIndicator(
                                         color: Colors.black),
                                   )
-                                else if (errorMessage != null)
-                                  Center(
-                                    child: Column(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.center,
-                                      children: [
-                                        Text(
-                                          errorMessage!,
-                                          textAlign: TextAlign.center,
-                                          style: const TextStyle(
-                                            fontFamily: 'Inconsolata',
-                                            color: Colors.red,
-                                          ),
-                                        ),
-                                        const SizedBox(height: 16),
-                                        ElevatedButton(
-                                          onPressed: _refreshData,
-                                          child: const Text(
-                                            'Retry',
-                                            style: TextStyle(
+                                else
+                                  if (errorMessage != null)
+                                    Center(
+                                      child: Column(
+                                        mainAxisAlignment:
+                                        MainAxisAlignment.center,
+                                        children: [
+                                          Text(
+                                            errorMessage!,
+                                            textAlign: TextAlign.center,
+                                            style: const TextStyle(
                                               fontFamily: 'Inconsolata',
-                                              fontWeight: FontWeight.bold,
-                                              fontSize: 18,
-                                              color: Colors.black,
+                                              color: Colors.red,
                                             ),
                                           ),
-                                        ),
-                                      ],
+                                          const SizedBox(height: 16),
+                                          ElevatedButton(
+                                            onPressed: _refreshData,
+                                            child: const Text(
+                                              'Retry',
+                                              style: TextStyle(
+                                                fontFamily: 'Inconsolata',
+                                                fontWeight: FontWeight.bold,
+                                                fontSize: 18,
+                                                color: Colors.black,
+                                              ),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    )
+                                  else
+                                    ListView.builder(
+                                      itemCount: news.length,
+                                      itemBuilder: (context, index) {
+                                        return Padding(
+                                          padding: const EdgeInsets.only(
+                                              left: 20.0,
+                                              right: 20.0,
+                                              top: 10.0),
+                                          child: newsCard(news[index]),
+                                        );
+                                      },
                                     ),
-                                  )
-                                else
-                                  ListView.builder(
-                                    itemCount: news.length,
-                                    itemBuilder: (context, index) {
-                                      return Padding(
-                                        padding: const EdgeInsets.only(
-                                            left: 20.0, right: 20.0, top: 10.0),
-                                        child: newsCard(news[index]),
-                                      );
-                                    },
-                                  ),
                                 if (loading2)
                                   const Center(
                                     child: CircularProgressIndicator(
                                         color: Colors.black),
                                   )
-                                else if (errorMessage != null)
-                                  Center(
-                                    child: Column(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.center,
-                                      children: [
-                                        Text(
-                                          errorMessage!,
-                                          textAlign: TextAlign.center,
-                                          style: const TextStyle(
-                                            fontFamily: 'Inconsolata',
-                                            color: Colors.red,
-                                          ),
-                                        ),
-                                        const SizedBox(height: 16),
-                                        ElevatedButton(
-                                          onPressed: _refreshData,
-                                          child: const Text(
-                                            'Retry',
-                                            style: TextStyle(
+                                else
+                                  if (errorMessage != null)
+                                    Center(
+                                      child: Column(
+                                        mainAxisAlignment:
+                                        MainAxisAlignment.center,
+                                        children: [
+                                          Text(
+                                            errorMessage!,
+                                            textAlign: TextAlign.center,
+                                            style: const TextStyle(
                                               fontFamily: 'Inconsolata',
-                                              fontWeight: FontWeight.bold,
-                                              fontSize: 18,
-                                              color: Colors.black,
+                                              color: Colors.red,
                                             ),
                                           ),
-                                        ),
-                                      ],
+                                          const SizedBox(height: 16),
+                                          ElevatedButton(
+                                            onPressed: _refreshData,
+                                            child: const Text(
+                                              'Retry',
+                                              style: TextStyle(
+                                                fontFamily: 'Inconsolata',
+                                                fontWeight: FontWeight.bold,
+                                                fontSize: 18,
+                                                color: Colors.black,
+                                              ),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    )
+                                  else
+                                    ListView.builder(
+                                      itemCount: courses.length,
+                                      itemBuilder: (context, index) {
+                                        return Padding(
+                                          padding: const EdgeInsets.only(
+                                              left: 20.0,
+                                              right: 20.0,
+                                              top: 5.0),
+                                          child: courseCard(courses[index]),
+                                        );
+                                      },
                                     ),
-                                  )
-                                else
-                                  ListView.builder(
-                                    itemCount: courses.length,
-                                    itemBuilder: (context, index) {
-                                      return Padding(
-                                        padding: const EdgeInsets.only(
-                                            left: 20.0, right: 20.0, top: 5.0),
-                                        child: courseCard(courses[index]),
-                                      );
-                                    },
-                                  ),
                               ],
                             ),
                           ),
@@ -1558,7 +1652,10 @@ class _MainAppState extends State<MainApp> with TickerProviderStateMixin {
                         ],
                       ),
                     ),
-                    SizedBox(height: MediaQuery.of(context).size.height * 0.03),
+                    SizedBox(height: MediaQuery
+                        .of(context)
+                        .size
+                        .height * 0.03),
                     TabBar(
                       controller: signalTab,
                       tabs: [
@@ -1582,7 +1679,10 @@ class _MainAppState extends State<MainApp> with TickerProviderStateMixin {
                       indicatorSize: TabBarIndicatorSize.tab,
                       indicatorColor: Colors.black,
                     ),
-                    SizedBox(height: MediaQuery.of(context).size.height * 0.03),
+                    SizedBox(height: MediaQuery
+                        .of(context)
+                        .size
+                        .height * 0.03),
                     Expanded(
                       child: TabBarView(
                         controller: signalTab,
@@ -1676,7 +1776,7 @@ class _MainAppState extends State<MainApp> with TickerProviderStateMixin {
                                           decoration: BoxDecoration(
                                             color: Colors.white,
                                             borderRadius:
-                                                BorderRadius.circular(15),
+                                            BorderRadius.circular(15),
                                             boxShadow: [
                                               BoxShadow(
                                                 color: Colors.grey
@@ -1688,7 +1788,7 @@ class _MainAppState extends State<MainApp> with TickerProviderStateMixin {
                                           ),
                                           child: Column(
                                             mainAxisAlignment:
-                                                MainAxisAlignment.spaceEvenly,
+                                            MainAxisAlignment.spaceEvenly,
                                             children: [
                                               buildStatRow(
                                                   'Trades last  7 days: ----',
@@ -1709,7 +1809,7 @@ class _MainAppState extends State<MainApp> with TickerProviderStateMixin {
                                         1]; // -1 to adjust for the stats container
 
                                     Map<String, dynamic> targetsMap =
-                                        jsonDecode(signal['targets']);
+                                    jsonDecode(signal['targets']);
 
                                     return signals(
                                       img: signal['coin_image'],
@@ -1720,10 +1820,12 @@ class _MainAppState extends State<MainApp> with TickerProviderStateMixin {
                                       targets: targetsMap,
                                       createdAt: signal['created_at'],
                                       insight: signal['insight'],
+                                      trend: signal['trend'],
+                                      pair: signal['pair'],
                                       analysisNotifier:
-                                          ValueNotifier<bool>(false),
+                                      ValueNotifier<bool>(false),
                                       currentPriceNotifier:
-                                          ValueNotifier<bool>(false),
+                                      ValueNotifier<bool>(false),
                                     );
                                   },
                                 ),
@@ -1819,7 +1921,7 @@ class _MainAppState extends State<MainApp> with TickerProviderStateMixin {
                                           decoration: BoxDecoration(
                                             color: Colors.white,
                                             borderRadius:
-                                                BorderRadius.circular(15),
+                                            BorderRadius.circular(15),
                                             boxShadow: [
                                               BoxShadow(
                                                 color: Colors.grey
@@ -1831,7 +1933,7 @@ class _MainAppState extends State<MainApp> with TickerProviderStateMixin {
                                           ),
                                           child: Column(
                                             mainAxisAlignment:
-                                                MainAxisAlignment.spaceEvenly,
+                                            MainAxisAlignment.spaceEvenly,
                                             children: [
                                               buildStatRow(
                                                   'Trades last 7 days: ----',
@@ -1852,7 +1954,7 @@ class _MainAppState extends State<MainApp> with TickerProviderStateMixin {
                                         1]; // -1 to adjust for the stats container
 
                                     Map<String, dynamic> targetsMap =
-                                        jsonDecode(signal['targets']);
+                                    jsonDecode(signal['targets']);
 
                                     return signals(
                                       img: signal['coin_image'],
@@ -1863,10 +1965,12 @@ class _MainAppState extends State<MainApp> with TickerProviderStateMixin {
                                       targets: targetsMap,
                                       createdAt: signal['created_at'],
                                       insight: signal['insight'],
+                                      trend: signal['trend'],
+                                      pair: signal['pair'],
                                       analysisNotifier:
-                                          ValueNotifier<bool>(false),
+                                      ValueNotifier<bool>(false),
                                       currentPriceNotifier:
-                                          ValueNotifier<bool>(false),
+                                      ValueNotifier<bool>(false),
                                     );
                                   },
                                 ),
@@ -1962,7 +2066,7 @@ class _MainAppState extends State<MainApp> with TickerProviderStateMixin {
                                           decoration: BoxDecoration(
                                             color: Colors.white,
                                             borderRadius:
-                                                BorderRadius.circular(15),
+                                            BorderRadius.circular(15),
                                             boxShadow: [
                                               BoxShadow(
                                                 color: Colors.grey
@@ -1974,7 +2078,7 @@ class _MainAppState extends State<MainApp> with TickerProviderStateMixin {
                                           ),
                                           child: Column(
                                             mainAxisAlignment:
-                                                MainAxisAlignment.spaceEvenly,
+                                            MainAxisAlignment.spaceEvenly,
                                             children: [
                                               buildStatRow(
                                                   'Trades last 7 days: ----',
@@ -1995,7 +2099,7 @@ class _MainAppState extends State<MainApp> with TickerProviderStateMixin {
                                         1]; // -1 to adjust for the stats container
 
                                     Map<String, dynamic> targetsMap =
-                                        jsonDecode(signal['targets']);
+                                    jsonDecode(signal['targets']);
 
                                     return signals(
                                       img: signal['coin_image'],
@@ -2006,10 +2110,12 @@ class _MainAppState extends State<MainApp> with TickerProviderStateMixin {
                                       targets: targetsMap,
                                       createdAt: signal['created_at'],
                                       insight: signal['insight'],
+                                      trend: signal['trend'],
+                                      pair: signal['pair'],
                                       analysisNotifier:
-                                          ValueNotifier<bool>(false),
+                                      ValueNotifier<bool>(false),
                                       currentPriceNotifier:
-                                          ValueNotifier<bool>(false),
+                                      ValueNotifier<bool>(false),
                                     );
                                   },
                                 ),
@@ -2052,56 +2158,59 @@ class _MainAppState extends State<MainApp> with TickerProviderStateMixin {
                         ),
                       ),
                     ),
-                    SizedBox(height: MediaQuery.of(context).size.height * 0.02),
+                    SizedBox(height: MediaQuery
+                        .of(context)
+                        .size
+                        .height * 0.02),
                     Expanded(
                       child: RefreshIndicator(
                         onRefresh: _refreshData,
                         child: loading
                             ? const Center(
-                                child: CircularProgressIndicator(
-                                    color: Colors.black),
-                              )
+                          child: CircularProgressIndicator(
+                              color: Colors.black),
+                        )
                             : errorMessage != null
-                                ? Center(
-                                    child: Column(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.center,
-                                      children: [
-                                        Text(
-                                          errorMessage!,
-                                          textAlign: TextAlign.center,
-                                          style: const TextStyle(
-                                            fontFamily: 'Inconsolata',
-                                            color: Colors.red,
-                                          ),
-                                        ),
-                                        const SizedBox(height: 16),
-                                        ElevatedButton(
-                                          onPressed: _refreshData,
-                                          child: const Text(
-                                            'Retry',
-                                            style: TextStyle(
-                                              fontFamily: 'Inconsolata',
-                                              fontWeight: FontWeight.bold,
-                                              fontSize: 18,
-                                              color: Colors.black,
-                                            ),
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  )
-                                : ListView.builder(
-                                    controller: _scrollController,
-                                    itemCount: news.length,
-                                    itemBuilder: (context, index) {
-                                      return Padding(
-                                        padding: const EdgeInsets.only(
-                                            left: 20.0, right: 20.0, top: 10.0),
-                                        child: newsCard(news[index]),
-                                      );
-                                    },
+                            ? Center(
+                          child: Column(
+                            mainAxisAlignment:
+                            MainAxisAlignment.center,
+                            children: [
+                              Text(
+                                errorMessage!,
+                                textAlign: TextAlign.center,
+                                style: const TextStyle(
+                                  fontFamily: 'Inconsolata',
+                                  color: Colors.red,
+                                ),
+                              ),
+                              const SizedBox(height: 16),
+                              ElevatedButton(
+                                onPressed: _refreshData,
+                                child: const Text(
+                                  'Retry',
+                                  style: TextStyle(
+                                    fontFamily: 'Inconsolata',
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 18,
+                                    color: Colors.black,
                                   ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        )
+                            : ListView.builder(
+                          controller: _scrollController,
+                          itemCount: news.length,
+                          itemBuilder: (context, index) {
+                            return Padding(
+                              padding: const EdgeInsets.only(
+                                  left: 20.0, right: 20.0, top: 10.0),
+                              child: newsCard(news[index]),
+                            );
+                          },
+                        ),
                       ),
                     ),
                   ],
@@ -2130,56 +2239,59 @@ class _MainAppState extends State<MainApp> with TickerProviderStateMixin {
                         ),
                       ),
                     ),
-                    SizedBox(height: MediaQuery.of(context).size.height * 0.02),
+                    SizedBox(height: MediaQuery
+                        .of(context)
+                        .size
+                        .height * 0.02),
                     Expanded(
                       child: RefreshIndicator(
                         onRefresh: _refreshData,
                         child: loading2
                             ? const Center(
-                                child: CircularProgressIndicator(
-                                    color: Colors.black),
-                              )
+                          child: CircularProgressIndicator(
+                              color: Colors.black),
+                        )
                             : errorMessage != null
-                                ? Center(
-                                    child: Column(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.center,
-                                      children: [
-                                        Text(
-                                          errorMessage!,
-                                          textAlign: TextAlign.center,
-                                          style: const TextStyle(
-                                            fontFamily: 'Inconsolata',
-                                            color: Colors.red,
-                                          ),
-                                        ),
-                                        const SizedBox(height: 16),
-                                        ElevatedButton(
-                                          onPressed: _refreshData,
-                                          child: const Text(
-                                            'Retry',
-                                            style: TextStyle(
-                                              fontFamily: 'Inconsolata',
-                                              fontWeight: FontWeight.bold,
-                                              fontSize: 18,
-                                              color: Colors.black,
-                                            ),
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  )
-                                : ListView.builder(
-                                    controller: _scrollController,
-                                    itemCount: courses.length,
-                                    itemBuilder: (context, index) {
-                                      return Padding(
-                                        padding: const EdgeInsets.only(
-                                            left: 20.0, right: 20.0, top: 5.0),
-                                        child: courseCard(courses[index]),
-                                      );
-                                    },
+                            ? Center(
+                          child: Column(
+                            mainAxisAlignment:
+                            MainAxisAlignment.center,
+                            children: [
+                              Text(
+                                errorMessage!,
+                                textAlign: TextAlign.center,
+                                style: const TextStyle(
+                                  fontFamily: 'Inconsolata',
+                                  color: Colors.red,
+                                ),
+                              ),
+                              const SizedBox(height: 16),
+                              ElevatedButton(
+                                onPressed: _refreshData,
+                                child: const Text(
+                                  'Retry',
+                                  style: TextStyle(
+                                    fontFamily: 'Inconsolata',
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 18,
+                                    color: Colors.black,
                                   ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        )
+                            : ListView.builder(
+                          controller: _scrollController,
+                          itemCount: courses.length,
+                          itemBuilder: (context, index) {
+                            return Padding(
+                              padding: const EdgeInsets.only(
+                                  left: 20.0, right: 20.0, top: 5.0),
+                              child: courseCard(courses[index]),
+                            );
+                          },
+                        ),
                       ),
                     ),
                   ],
@@ -2225,30 +2337,121 @@ class _MainAppState extends State<MainApp> with TickerProviderStateMixin {
                           ],
                         ),
                         SizedBox(
-                            height: MediaQuery.of(context).size.height * 0.05),
+                            height: MediaQuery
+                                .of(context)
+                                .size
+                                .height * 0.05),
                         Center(
-                          child: Image.asset(
-                            'images/Pexels Photo by 3Motional Studio.png',
+                          child: Stack(
+                            children: [
+                              if (profileImg == null)
+                                ClipRRect(
+                                  borderRadius: BorderRadius.circular(55),
+                                  child: Container(
+                                    width: (111 /
+                                        MediaQuery
+                                            .of(context)
+                                            .size
+                                            .width) *
+                                        MediaQuery
+                                            .of(context)
+                                            .size
+                                            .width,
+                                    height: (111 /
+                                        MediaQuery
+                                            .of(context)
+                                            .size
+                                            .height) *
+                                        MediaQuery
+                                            .of(context)
+                                            .size
+                                            .height,
+                                    color: Colors.grey,
+                                    child: Image.asset(
+                                      'images/Pexels Photo by 3Motional Studio.png',
+                                      fit: BoxFit.cover,
+                                    ),
+                                  ),
+                                )
+                              else
+                                if (profileImg != null)
+                                  ClipRRect(
+                                    borderRadius: BorderRadius.circular(55),
+                                    child: Container(
+                                      width: (111 /
+                                          MediaQuery
+                                              .of(context)
+                                              .size
+                                              .width) *
+                                          MediaQuery
+                                              .of(context)
+                                              .size
+                                              .width,
+                                      height: (111 /
+                                          MediaQuery
+                                              .of(context)
+                                              .size
+                                              .height) *
+                                          MediaQuery
+                                              .of(context)
+                                              .size
+                                              .height,
+                                      color: Colors.grey,
+                                      child: Image.network(
+                                        profileImg!,
+                                        fit: BoxFit.cover,
+                                      ),
+                                    ),
+                                  ),
+                              Positioned(
+                                bottom: 0,
+                                right: 0,
+                                child: InkWell(
+                                  onTap: () {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) =>
+                                            EditProfile(
+                                                key: UniqueKey(),
+                                                profileImgUrl: profileImg ??
+                                                    ""),
+                                      ),
+                                    );
+                                  },
+                                  child: Image.asset(
+                                    height: 40,
+                                    'images/profile_edit.png',
+                                  ),
+                                ),
+                              ),
+                            ],
                           ),
                         ),
                         SizedBox(
-                            height: MediaQuery.of(context).size.height * 0.05),
+                            height: MediaQuery
+                                .of(context)
+                                .size
+                                .height * 0.05),
                         Center(
                           child: userName != null
                               ? Text(
-                                  userName!,
-                                  style: const TextStyle(
-                                    fontFamily: 'Inter',
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 15,
-                                    color: Colors.black,
-                                  ),
-                                )
+                            userName!,
+                            style: const TextStyle(
+                              fontFamily: 'Inter',
+                              fontWeight: FontWeight.bold,
+                              fontSize: 15,
+                              color: Colors.black,
+                            ),
+                          )
                               : const CircularProgressIndicator(
-                                  color: Colors.black),
+                              color: Colors.black),
                         ),
                         SizedBox(
-                            height: MediaQuery.of(context).size.height * 0.01),
+                            height: MediaQuery
+                                .of(context)
+                                .size
+                                .height * 0.01),
                         Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
@@ -2266,98 +2469,161 @@ class _MainAppState extends State<MainApp> with TickerProviderStateMixin {
                           ],
                         ),
                         SizedBox(
-                            height: MediaQuery.of(context).size.height * 0.1),
+                            height: MediaQuery
+                                .of(context)
+                                .size
+                                .height * 0.1),
                         Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                          child: Container(
-                            height: (50 / MediaQuery.of(context).size.height) *
-                                MediaQuery.of(context).size.height,
-                            padding: const EdgeInsets.all(10.0),
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                              borderRadius: BorderRadius.circular(5),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Colors.grey.withOpacity(0.5),
-                                  spreadRadius: 3,
-                                  blurRadius: 5,
+                          child: InkWell(
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) =>
+                                      AccountSettings(key: UniqueKey()),
                                 ),
-                              ],
-                            ),
-                            child: Row(
-                              children: [
-                                SizedBox(
-                                    width: MediaQuery.of(context).size.width *
-                                        0.02),
-                                Image.asset(
-                                  'images/ep_edit-black.png',
-                                ),
-                                SizedBox(
-                                    width: MediaQuery.of(context).size.width *
-                                        0.04),
-                                const Text(
-                                  'Edit Profile',
-                                  style: TextStyle(
-                                    fontFamily: 'Inter',
-                                    fontSize: 15,
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.black,
+                              );
+                            },
+                            child: Container(
+                              height:
+                              (50 / MediaQuery
+                                  .of(context)
+                                  .size
+                                  .height) *
+                                  MediaQuery
+                                      .of(context)
+                                      .size
+                                      .height,
+                              padding: const EdgeInsets.all(10.0),
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(5),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.grey.withOpacity(0.5),
+                                    spreadRadius: 3,
+                                    blurRadius: 5,
                                   ),
-                                ),
-                              ],
+                                ],
+                              ),
+                              child: Row(
+                                children: [
+                                  SizedBox(
+                                      width: MediaQuery
+                                          .of(context)
+                                          .size
+                                          .width *
+                                          0.02),
+                                  Image.asset(
+                                    'images/solar_settings-outline-black.png',
+                                  ),
+                                  SizedBox(
+                                      width: MediaQuery
+                                          .of(context)
+                                          .size
+                                          .width *
+                                          0.04),
+                                  const Text(
+                                    'Account Settings',
+                                    style: TextStyle(
+                                      fontFamily: 'Inter',
+                                      fontSize: 15,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.black,
+                                    ),
+                                  ),
+                                ],
+                              ),
                             ),
                           ),
                         ),
                         SizedBox(
-                            height: MediaQuery.of(context).size.height * 0.05),
+                            height: MediaQuery
+                                .of(context)
+                                .size
+                                .height * 0.05),
                         Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                          child: Container(
-                            height: (50 / MediaQuery.of(context).size.height) *
-                                MediaQuery.of(context).size.height,
-                            padding: const EdgeInsets.all(10.0),
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                              borderRadius: BorderRadius.circular(5),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Colors.grey.withOpacity(0.5),
-                                  spreadRadius: 3,
-                                  blurRadius: 5,
+                          child: InkWell(
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) =>
+                                      PackagesPage(key: UniqueKey()),
                                 ),
-                              ],
-                            ),
-                            child: Row(
-                              children: [
-                                SizedBox(
-                                    width: MediaQuery.of(context).size.width *
-                                        0.02),
-                                Image.asset(
-                                  'images/ic_round-add-card-black.png',
-                                ),
-                                SizedBox(
-                                    width: MediaQuery.of(context).size.width *
-                                        0.04),
-                                const Text(
-                                  'Payment Method',
-                                  style: TextStyle(
-                                    fontFamily: 'Inter',
-                                    fontSize: 15,
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.black,
+                              );
+                            },
+                            child: Container(
+                              height:
+                              (50 / MediaQuery
+                                  .of(context)
+                                  .size
+                                  .height) *
+                                  MediaQuery
+                                      .of(context)
+                                      .size
+                                      .height,
+                              padding: const EdgeInsets.all(10.0),
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(5),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.grey.withOpacity(0.5),
+                                    spreadRadius: 3,
+                                    blurRadius: 5,
                                   ),
-                                ),
-                              ],
+                                ],
+                              ),
+                              child: Row(
+                                children: [
+                                  SizedBox(
+                                      width: MediaQuery
+                                          .of(context)
+                                          .size
+                                          .width *
+                                          0.02),
+                                  Image.asset(
+                                    'images/Packages-dollarsign-black.png',
+                                  ),
+                                  SizedBox(
+                                      width: MediaQuery
+                                          .of(context)
+                                          .size
+                                          .width *
+                                          0.04),
+                                  const Text(
+                                    'Manage Subscription',
+                                    style: TextStyle(
+                                      fontFamily: 'Inter',
+                                      fontSize: 15,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.black,
+                                    ),
+                                  ),
+                                ],
+                              ),
                             ),
                           ),
                         ),
                         SizedBox(
-                            height: MediaQuery.of(context).size.height * 0.05),
+                            height: MediaQuery
+                                .of(context)
+                                .size
+                                .height * 0.05),
                         Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 20.0),
                           child: Container(
-                            height: (50 / MediaQuery.of(context).size.height) *
-                                MediaQuery.of(context).size.height,
+                            height: (50 / MediaQuery
+                                .of(context)
+                                .size
+                                .height) *
+                                MediaQuery
+                                    .of(context)
+                                    .size
+                                    .height,
                             padding: const EdgeInsets.all(10.0),
                             decoration: BoxDecoration(
                               color: Colors.white,
@@ -2373,56 +2639,19 @@ class _MainAppState extends State<MainApp> with TickerProviderStateMixin {
                             child: Row(
                               children: [
                                 SizedBox(
-                                    width: MediaQuery.of(context).size.width *
-                                        0.02),
-                                Image.asset(
-                                  'images/streamline_user-profile-focus-black.png',
-                                ),
-                                SizedBox(
-                                    width: MediaQuery.of(context).size.width *
-                                        0.04),
-                                const Text(
-                                  'Personal Information',
-                                  style: TextStyle(
-                                    fontFamily: 'Inter',
-                                    fontSize: 15,
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.black,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                        SizedBox(
-                            height: MediaQuery.of(context).size.height * 0.05),
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                          child: Container(
-                            height: (50 / MediaQuery.of(context).size.height) *
-                                MediaQuery.of(context).size.height,
-                            padding: const EdgeInsets.all(10.0),
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                              borderRadius: BorderRadius.circular(5),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Colors.grey.withOpacity(0.5),
-                                  spreadRadius: 3,
-                                  blurRadius: 5,
-                                ),
-                              ],
-                            ),
-                            child: Row(
-                              children: [
-                                SizedBox(
-                                    width: MediaQuery.of(context).size.width *
+                                    width: MediaQuery
+                                        .of(context)
+                                        .size
+                                        .width *
                                         0.02),
                                 Image.asset(
                                   'images/fluent_person-support-16-regular-black.png',
                                 ),
                                 SizedBox(
-                                    width: MediaQuery.of(context).size.width *
+                                    width: MediaQuery
+                                        .of(context)
+                                        .size
+                                        .width *
                                         0.04),
                                 const Text(
                                   'Customer Support',
@@ -2438,105 +2667,10 @@ class _MainAppState extends State<MainApp> with TickerProviderStateMixin {
                           ),
                         ),
                         SizedBox(
-                            height: MediaQuery.of(context).size.height * 0.05),
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                          child: Container(
-                            height: (50 / MediaQuery.of(context).size.height) *
-                                MediaQuery.of(context).size.height,
-                            padding: const EdgeInsets.all(10.0),
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                              borderRadius: BorderRadius.circular(5),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Colors.grey.withOpacity(0.5),
-                                  spreadRadius: 3,
-                                  blurRadius: 5,
-                                ),
-                              ],
-                            ),
-                            child: Row(
-                              children: [
-                                SizedBox(
-                                    width: MediaQuery.of(context).size.width *
-                                        0.02),
-                                Image.asset(
-                                  'images/solar_settings-outline-black.png',
-                                ),
-                                SizedBox(
-                                    width: MediaQuery.of(context).size.width *
-                                        0.04),
-                                const Text(
-                                  'Settings',
-                                  style: TextStyle(
-                                    fontFamily: 'Inter',
-                                    fontSize: 15,
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.black,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                        SizedBox(
-                            height: MediaQuery.of(context).size.height * 0.05),
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                          child: InkWell(
-                            onTap: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) =>
-                                      PackagesPage(key: UniqueKey()),
-                                ),
-                              );
-                            },
-                            child: Container(
-                              height:
-                                  (50 / MediaQuery.of(context).size.height) *
-                                      MediaQuery.of(context).size.height,
-                              padding: const EdgeInsets.all(10.0),
-                              decoration: BoxDecoration(
-                                color: Colors.white,
-                                borderRadius: BorderRadius.circular(5),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: Colors.grey.withOpacity(0.5),
-                                    spreadRadius: 3,
-                                    blurRadius: 5,
-                                  ),
-                                ],
-                              ),
-                              child: Row(
-                                children: [
-                                  SizedBox(
-                                      width: MediaQuery.of(context).size.width *
-                                          0.02),
-                                  Image.asset(
-                                    'images/Packages-dollarsign-black.png',
-                                  ),
-                                  SizedBox(
-                                      width: MediaQuery.of(context).size.width *
-                                          0.04),
-                                  const Text(
-                                    'Packages',
-                                    style: TextStyle(
-                                      fontFamily: 'Inter',
-                                      fontSize: 15,
-                                      fontWeight: FontWeight.bold,
-                                      color: Colors.black,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                        ),
-                        SizedBox(
-                            height: MediaQuery.of(context).size.height * 0.05),
+                            height: MediaQuery
+                                .of(context)
+                                .size
+                                .height * 0.05),
                         Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 20.0),
                           child: InkWell(
@@ -2545,8 +2679,14 @@ class _MainAppState extends State<MainApp> with TickerProviderStateMixin {
                             },
                             child: Container(
                               height:
-                                  (50 / MediaQuery.of(context).size.height) *
-                                      MediaQuery.of(context).size.height,
+                              (50 / MediaQuery
+                                  .of(context)
+                                  .size
+                                  .height) *
+                                  MediaQuery
+                                      .of(context)
+                                      .size
+                                      .height,
                               padding: const EdgeInsets.all(10.0),
                               decoration: BoxDecoration(
                                 color: Colors.white,
@@ -2562,13 +2702,19 @@ class _MainAppState extends State<MainApp> with TickerProviderStateMixin {
                               child: Row(
                                 children: [
                                   SizedBox(
-                                      width: MediaQuery.of(context).size.width *
+                                      width: MediaQuery
+                                          .of(context)
+                                          .size
+                                          .width *
                                           0.02),
                                   Image.asset(
                                     'images/material-symbols-light_logout-sharp-black.png',
                                   ),
                                   SizedBox(
-                                      width: MediaQuery.of(context).size.width *
+                                      width: MediaQuery
+                                          .of(context)
+                                          .size
+                                          .width *
                                           0.04),
                                   const Text(
                                     'Log out',
@@ -2585,7 +2731,10 @@ class _MainAppState extends State<MainApp> with TickerProviderStateMixin {
                           ),
                         ),
                         SizedBox(
-                            height: MediaQuery.of(context).size.height * 0.05),
+                            height: MediaQuery
+                                .of(context)
+                                .size
+                                .height * 0.05),
                       ],
                     ),
                   ),
@@ -2694,10 +2843,22 @@ class _MainAppState extends State<MainApp> with TickerProviderStateMixin {
                   ClipRRect(
                     borderRadius: BorderRadius.circular(5),
                     child: Container(
-                      width: (120 / MediaQuery.of(context).size.width) *
-                          MediaQuery.of(context).size.width,
-                      height: (110 / MediaQuery.of(context).size.height) *
-                          MediaQuery.of(context).size.height,
+                      width: (120 / MediaQuery
+                          .of(context)
+                          .size
+                          .width) *
+                          MediaQuery
+                              .of(context)
+                              .size
+                              .width,
+                      height: (110 / MediaQuery
+                          .of(context)
+                          .size
+                          .height) *
+                          MediaQuery
+                              .of(context)
+                              .size
+                              .height,
                       color: Colors.grey,
                       child: Image.network(
                         newsItem['images'],
@@ -2721,7 +2882,10 @@ class _MainAppState extends State<MainApp> with TickerProviderStateMixin {
                           ),
                         ),
                         SizedBox(
-                          height: MediaQuery.of(context).size.height * 0.01,
+                          height: MediaQuery
+                              .of(context)
+                              .size
+                              .height * 0.01,
                         ),
                         Text(
                           newsItem['title'],
@@ -2741,7 +2905,10 @@ class _MainAppState extends State<MainApp> with TickerProviderStateMixin {
                 ],
               ),
               SizedBox(
-                height: MediaQuery.of(context).size.height * 0.01,
+                height: MediaQuery
+                    .of(context)
+                    .size
+                    .height * 0.01,
               ),
               Row(
                 children: [
@@ -2750,7 +2917,10 @@ class _MainAppState extends State<MainApp> with TickerProviderStateMixin {
                     width: 20,
                     height: 20,
                   ),
-                  SizedBox(width: MediaQuery.of(context).size.width * 0.01),
+                  SizedBox(width: MediaQuery
+                      .of(context)
+                      .size
+                      .width * 0.01),
                   const Text(
                     '10K', // Placeholder text
                     overflow: TextOverflow.ellipsis,
@@ -2761,7 +2931,10 @@ class _MainAppState extends State<MainApp> with TickerProviderStateMixin {
                       color: Colors.black,
                     ),
                   ),
-                  SizedBox(width: MediaQuery.of(context).size.width * 0.03),
+                  SizedBox(width: MediaQuery
+                      .of(context)
+                      .size
+                      .width * 0.03),
                   Expanded(
                     child: Text(
                       newsItem['tags'],
@@ -2804,14 +2977,42 @@ class _MainAppState extends State<MainApp> with TickerProviderStateMixin {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  SizedBox(
-                    width: cardWidth,
-                    height: MediaQuery.of(context).size.height * 0.3,
-                    child: Image.network(
-                      course['images'],
-                      fit: BoxFit.cover,
-                    ),
-                  ),
+                  if (course['videos'] == null)
+                  // Display the image first
+                    SizedBox(
+                      width: cardWidth,
+                      height: MediaQuery
+                          .of(context)
+                          .size
+                          .height * 0.3,
+                      child: Image.network(
+                        course['images'],
+                        fit: BoxFit.cover,
+                      ),
+                    )
+                  else
+                    if (course['videos'] != null)
+                    // Wrap the VideoPlayerWidget with GestureDetector
+                      GestureDetector(
+                        onTap: () {
+                          // Prevents tap from propagating
+                        },
+                        child: SizedBox(
+                          width: cardWidth,
+                          height: MediaQuery
+                              .of(context)
+                              .size
+                              .height * 0.3,
+                          child: AspectRatio(
+                            aspectRatio: 16 / 9,
+                            // Adjust the aspect ratio as needed
+                            child: ClipRect(
+                              child:
+                              VideoPlayerWidget(videoUrl: course['videos']),
+                            ),
+                          ),
+                        ),
+                      ),
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 20.0),
                     child: Column(
@@ -2826,10 +3027,7 @@ class _MainAppState extends State<MainApp> with TickerProviderStateMixin {
                             color: Colors.black,
                           ),
                         ),
-                        SizedBox(
-                            height: 8 /
-                                MediaQuery.of(context).size.height *
-                                MediaQuery.of(context).size.height),
+                        const SizedBox(height: 8),
                         Text(
                           course['article'],
                           overflow: TextOverflow.ellipsis,
@@ -2842,19 +3040,13 @@ class _MainAppState extends State<MainApp> with TickerProviderStateMixin {
                             color: Colors.grey,
                           ),
                         ),
-                        SizedBox(
-                            height: 8 /
-                                MediaQuery.of(context).size.height *
-                                MediaQuery.of(context).size.height),
+                        const SizedBox(height: 8),
                         Row(
                           children: [
                             Image.asset(
                               'images/Pexels Photo by Pixabay.png',
                             ),
-                            SizedBox(
-                                width: 8 /
-                                    MediaQuery.of(context).size.width *
-                                    MediaQuery.of(context).size.width),
+                            const SizedBox(width: 8),
                             Expanded(
                               child: Text(
                                 course['username'],
@@ -2877,10 +3069,7 @@ class _MainAppState extends State<MainApp> with TickerProviderStateMixin {
                             ),
                           ],
                         ),
-                        SizedBox(
-                            height: 8 /
-                                MediaQuery.of(context).size.height *
-                                MediaQuery.of(context).size.height),
+                        const SizedBox(height: 8),
                       ],
                     ),
                   ),
@@ -2901,10 +3090,12 @@ class _MainAppState extends State<MainApp> with TickerProviderStateMixin {
     required String currentPrice,
     required Map<String, dynamic> targets,
     required String createdAt,
-    required String? insight, // Include insight for analysis dropdown
+    required String? insight,
+    required String? trend,
+    required String? pair,
     required ValueNotifier<bool> currentPriceNotifier,
     required ValueNotifier<bool>
-        analysisNotifier, // Add a new notifier for analysis dropdown
+    analysisNotifier, // Add a new notifier for analysis dropdown
   }) {
     return ValueListenableBuilder<bool>(
       valueListenable: currentPriceNotifier,
@@ -2965,7 +3156,10 @@ class _MainAppState extends State<MainApp> with TickerProviderStateMixin {
                       ),
                     ),
                     SizedBox(
-                      height: MediaQuery.of(context).size.height * 0.02,
+                      height: MediaQuery
+                          .of(context)
+                          .size
+                          .height * 0.02,
                     ),
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 25.0),
@@ -2974,11 +3168,23 @@ class _MainAppState extends State<MainApp> with TickerProviderStateMixin {
                           ClipRRect(
                             borderRadius: BorderRadius.circular(35),
                             child: Container(
-                              width: (50 / MediaQuery.of(context).size.width) *
-                                  MediaQuery.of(context).size.width,
+                              width: (50 / MediaQuery
+                                  .of(context)
+                                  .size
+                                  .width) *
+                                  MediaQuery
+                                      .of(context)
+                                      .size
+                                      .width,
                               height:
-                                  (50 / MediaQuery.of(context).size.height) *
-                                      MediaQuery.of(context).size.height,
+                              (50 / MediaQuery
+                                  .of(context)
+                                  .size
+                                  .height) *
+                                  MediaQuery
+                                      .of(context)
+                                      .size
+                                      .height,
                               color: Colors.grey,
                               child: Image.network(
                                 img,
@@ -2987,7 +3193,10 @@ class _MainAppState extends State<MainApp> with TickerProviderStateMixin {
                             ),
                           ),
                           SizedBox(
-                              width: MediaQuery.of(context).size.width * 0.03),
+                              width: MediaQuery
+                                  .of(context)
+                                  .size
+                                  .width * 0.03),
                           Container(
                             decoration: BoxDecoration(
                               color: Colors.black,
@@ -2995,9 +3204,9 @@ class _MainAppState extends State<MainApp> with TickerProviderStateMixin {
                             ),
                             padding: const EdgeInsets.symmetric(
                                 horizontal: 12, vertical: 6),
-                            child: const Text(
-                              'LONG',
-                              style: TextStyle(
+                            child: Text(
+                              (trend ?? 'No Trend'),
+                              style: const TextStyle(
                                 fontSize: 15,
                                 fontFamily: 'Inconsolata',
                                 fontWeight: FontWeight.bold,
@@ -3006,7 +3215,10 @@ class _MainAppState extends State<MainApp> with TickerProviderStateMixin {
                             ),
                           ),
                           SizedBox(
-                              width: MediaQuery.of(context).size.width * 0.02),
+                              width: MediaQuery
+                                  .of(context)
+                                  .size
+                                  .width * 0.02),
                           const SizedBox(
                             height: 35,
                             child: VerticalDivider(
@@ -3015,11 +3227,14 @@ class _MainAppState extends State<MainApp> with TickerProviderStateMixin {
                             ),
                           ),
                           SizedBox(
-                              width: MediaQuery.of(context).size.width * 0.02),
+                              width: MediaQuery
+                                  .of(context)
+                                  .size
+                                  .width * 0.02),
                           Expanded(
                             flex: 5,
                             child: Text(
-                              name,
+                              name + (pair ?? ''),
                               overflow: TextOverflow.ellipsis,
                               style: const TextStyle(
                                 fontSize: 15,
@@ -3064,7 +3279,10 @@ class _MainAppState extends State<MainApp> with TickerProviderStateMixin {
                       ),
                     ),
                     SizedBox(
-                      height: MediaQuery.of(context).size.height * 0.02,
+                      height: MediaQuery
+                          .of(context)
+                          .size
+                          .height * 0.02,
                     ),
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 25.0),
@@ -3097,7 +3315,10 @@ class _MainAppState extends State<MainApp> with TickerProviderStateMixin {
                       ),
                     ),
                     SizedBox(
-                      height: MediaQuery.of(context).size.height * 0.01,
+                      height: MediaQuery
+                          .of(context)
+                          .size
+                          .height * 0.01,
                     ),
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 25.0),
@@ -3132,7 +3353,10 @@ class _MainAppState extends State<MainApp> with TickerProviderStateMixin {
                       ),
                     ),
                     SizedBox(
-                      height: MediaQuery.of(context).size.height * 0.02,
+                      height: MediaQuery
+                          .of(context)
+                          .size
+                          .height * 0.02,
                     ),
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 10.0),
@@ -3199,7 +3423,7 @@ class _MainAppState extends State<MainApp> with TickerProviderStateMixin {
                                 GestureDetector(
                                   onTap: () {
                                     currentPriceNotifier.value =
-                                        !currentPriceNotifier.value;
+                                    !currentPriceNotifier.value;
                                   },
                                   child: Image.asset(
                                     currentPriceExpanded
@@ -3211,60 +3435,66 @@ class _MainAppState extends State<MainApp> with TickerProviderStateMixin {
                             ),
                             if (currentPriceExpanded)
                               ...targets.entries.map(
-                                (entry) => Padding(
-                                  padding: const EdgeInsets.only(top: 10.0),
-                                  child: Container(
-                                    decoration: BoxDecoration(
-                                      color: Colors.white,
-                                      borderRadius: BorderRadius.circular(10),
-                                      boxShadow: [
-                                        BoxShadow(
-                                          color: Colors.grey.withOpacity(0.5),
-                                          spreadRadius: 3,
-                                          blurRadius: 5,
-                                        ),
-                                      ],
-                                    ),
-                                    padding: const EdgeInsets.symmetric(
-                                        horizontal: 20, vertical: 6),
-                                    child: Row(
-                                      children: [
-                                        Expanded(
-                                          flex: 2,
-                                          child: Text(
-                                            entry.key,
-                                            overflow: TextOverflow.ellipsis,
-                                            style: const TextStyle(
-                                              fontFamily: 'Inconsolata',
-                                              fontSize: 15,
-                                              color: Colors.black,
+                                    (entry) =>
+                                    Padding(
+                                      padding: const EdgeInsets.only(top: 10.0),
+                                      child: Container(
+                                        decoration: BoxDecoration(
+                                          color: Colors.white,
+                                          borderRadius: BorderRadius.circular(
+                                              10),
+                                          boxShadow: [
+                                            BoxShadow(
+                                              color: Colors.grey.withOpacity(
+                                                  0.5),
+                                              spreadRadius: 3,
+                                              blurRadius: 5,
                                             ),
-                                          ),
+                                          ],
                                         ),
-                                        Expanded(
-                                          flex: 2,
-                                          child: Text(
-                                            entry.value.toString(),
-                                            textAlign: TextAlign.end,
-                                            overflow: TextOverflow.ellipsis,
-                                            style: const TextStyle(
-                                              fontFamily: 'Inconsolata',
-                                              fontSize: 15,
-                                              color: Colors.black,
+                                        padding: const EdgeInsets.symmetric(
+                                            horizontal: 20, vertical: 6),
+                                        child: Row(
+                                          children: [
+                                            Expanded(
+                                              flex: 2,
+                                              child: Text(
+                                                entry.key,
+                                                overflow: TextOverflow.ellipsis,
+                                                style: const TextStyle(
+                                                  fontFamily: 'Inconsolata',
+                                                  fontSize: 15,
+                                                  color: Colors.black,
+                                                ),
+                                              ),
                                             ),
-                                          ),
+                                            Expanded(
+                                              flex: 2,
+                                              child: Text(
+                                                entry.value.toString(),
+                                                textAlign: TextAlign.end,
+                                                overflow: TextOverflow.ellipsis,
+                                                style: const TextStyle(
+                                                  fontFamily: 'Inconsolata',
+                                                  fontSize: 15,
+                                                  color: Colors.black,
+                                                ),
+                                              ),
+                                            ),
+                                          ],
                                         ),
-                                      ],
+                                      ),
                                     ),
-                                  ),
-                                ),
                               ),
                           ],
                         ),
                       ),
                     ),
                     SizedBox(
-                      height: MediaQuery.of(context).size.height * 0.02,
+                      height: MediaQuery
+                          .of(context)
+                          .size
+                          .height * 0.02,
                     ),
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 10.0),
@@ -3291,7 +3521,7 @@ class _MainAppState extends State<MainApp> with TickerProviderStateMixin {
                                   Row(
                                     mainAxisAlignment: MainAxisAlignment.center,
                                     crossAxisAlignment:
-                                        CrossAxisAlignment.center,
+                                    CrossAxisAlignment.center,
                                     children: [
                                       const Text(
                                         'View Analysis',
@@ -3305,7 +3535,7 @@ class _MainAppState extends State<MainApp> with TickerProviderStateMixin {
                                       GestureDetector(
                                         onTap: () {
                                           analysisNotifier.value =
-                                              !analysisNotifier.value;
+                                          !analysisNotifier.value;
                                         },
                                         child: Image.asset(
                                           analysisExpanded
@@ -3374,7 +3604,10 @@ class _MainAppState extends State<MainApp> with TickerProviderStateMixin {
                                       ),
                                     ),
                                     SizedBox(
-                                      width: MediaQuery.of(context).size.width *
+                                      width: MediaQuery
+                                          .of(context)
+                                          .size
+                                          .width *
                                           0.02,
                                     ),
                                     Image.asset(

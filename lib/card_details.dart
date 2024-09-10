@@ -1,9 +1,11 @@
-import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
-import 'dart:convert';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'package:connectivity_plus/connectivity_plus.dart';
 import 'dart:async';
+import 'dart:convert';
+
+import 'package:connectivity_plus/connectivity_plus.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:http/http.dart' as http;
+import 'package:signal_app/video_player_widget.dart';
 
 class CardDetails extends StatefulWidget {
   final int course;
@@ -77,7 +79,8 @@ class CardDetailsState extends State<CardDetails> {
       }
     } catch (e) {
       setState(() {
-        errorMessage = 'Failed to load data. Please check your network connection.';
+        errorMessage =
+            'Failed to load data. Please check your network connection.';
       });
       print('Exception caught: $e');
     }
@@ -286,13 +289,35 @@ class CardDetailsState extends State<CardDetails> {
                               height:
                                   MediaQuery.of(context).size.height * 0.03),
                           ClipRRect(
-                              borderRadius: BorderRadius.circular(10),
-                              child: Image.network(
-                            courseDetails!['images'],
-                            width: double.infinity,
-                            fit: BoxFit.cover,
+                            borderRadius: BorderRadius.circular(10),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                if (courseDetails!['videos'] == null)
+                                  // Display the image first
+                                  Image.network(
+                                    courseDetails!['images'],
+                                    width: double.infinity,
+                                    fit: BoxFit.cover,
+                                  )
+                                else if (courseDetails!['videos'] != null)
+                                  // Wrap the VideoPlayerWidget with GestureDetector
+                                  GestureDetector(
+                                    onTap: () {
+                                      // Prevents tap from propagating
+                                    },
+                                    child: AspectRatio(
+                                      aspectRatio: 16 / 9,
+                                      // Adjust the aspect ratio as needed
+                                      child: ClipRect(
+                                        child: VideoPlayerWidget(
+                                            videoUrl: courseDetails!['videos']),
+                                      ),
+                                    ),
+                                  ),
+                              ],
+                            ),
                           ),
-        ),
                           SizedBox(
                             height: MediaQuery.of(context).size.height * 0.03,
                           ),

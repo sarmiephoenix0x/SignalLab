@@ -86,14 +86,14 @@ class NotificationPageState extends State<NotificationPage> {
       // Handle cases like "5 days ago"
       if (dateString.contains('days ago')) {
         int daysAgo = int.tryParse(dateString.split(' ')[0]) ?? 0;
-        DateTime calculatedDate = DateTime.now().subtract(Duration(days: daysAgo));
+        DateTime calculatedDate = DateTime.now().subtract(
+            Duration(days: daysAgo));
         return DateFormat('yMMMd').format(calculatedDate);
       }
       // If the date format is unknown, return the original string
       return dateString;
     }
   }
-
 
 
   Future<void> _refreshData() async {

@@ -1,20 +1,21 @@
-import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
-import 'dart:convert';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'package:connectivity_plus/connectivity_plus.dart';
 import 'dart:async';
+import 'dart:convert';
+
+import 'package:connectivity_plus/connectivity_plus.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:http/http.dart' as http;
+import 'package:webview_flutter/webview_flutter.dart';
 
 class SentimentViewCoin extends StatefulWidget {
   final int sentimentId;
   final String sentimentTitle;
   final String sentimentImg;
 
-  const SentimentViewCoin(
-      {super.key,
-      required this.sentimentId,
-      required this.sentimentTitle,
-      required this.sentimentImg});
+  const SentimentViewCoin({super.key,
+    required this.sentimentId,
+    required this.sentimentTitle,
+    required this.sentimentImg});
 
   @override
   // ignore: library_private_types_in_public_api
@@ -24,17 +25,25 @@ class SentimentViewCoin extends StatefulWidget {
 class _SentimentViewCoinState extends State<SentimentViewCoin>
     with TickerProviderStateMixin {
   TabController? tabController;
+  TabController? tabController2;
   String? errorMessage;
   final storage = const FlutterSecureStorage();
   List<dynamic> sentiments = [];
   bool loading = true;
   final ScrollController _scrollController = ScrollController();
   bool _isRefreshing = false;
+  Color _indicatorColor = Colors.green;
+  bool isLoading = false;
+  late final WebViewController _controller;
+  final String coinSymbol = "BINANCE:BTCUSDT";
+  String voteText = "UP";
 
   @override
   void initState() {
     super.initState();
     tabController = TabController(length: 2, vsync: this);
+    tabController2 = TabController(length: 3, vsync: this);
+    tabController!.addListener(_handleTabSelection);
     _fetchSentimentDetails(widget.sentimentId);
     _scrollController.addListener(() {
       if (_scrollController.offset <= 0) {
@@ -46,12 +55,32 @@ class _SentimentViewCoinState extends State<SentimentViewCoin>
         }
       }
     });
+    _controller = WebViewController()
+      ..setJavaScriptMode(JavaScriptMode.unrestricted)
+      ..loadRequest(Uri.parse(
+          'https://s.tradingview.com/widgetembed/?symbol=$coinSymbol&interval=D&hidesidetoolbar=1&symboledit=1&saveimage=1&toolbarbg=f1f3f6&studies=[]&theme=Dark&style=1&timezone=Etc/UTC&studies_overrides={}&overrides={}&enabled_features=[]&disabled_features=[]&locale=en'));
   }
 
   @override
   void dispose() {
     tabController?.dispose();
+    tabController2?.dispose();
     super.dispose();
+  }
+
+  void _handleTabSelection() {
+    setState(() {
+      switch (tabController!.index) {
+        case 0:
+          _indicatorColor = Colors.green;
+          voteText = "UP";
+          break;
+        case 1:
+          _indicatorColor = Colors.red;
+          voteText = "DOWN";
+          break;
+      }
+    });
   }
 
   Future<void> _fetchSentimentDetails(int id) async {
@@ -73,7 +102,7 @@ class _SentimentViewCoinState extends State<SentimentViewCoin>
         setState(() {
           final responseData = json.decode(response.body);
           sentiments =
-              responseData is List<dynamic> ? responseData : [responseData];
+          responseData is List<dynamic> ? responseData : [responseData];
           loading = false;
         });
       } else if (response.statusCode == 401) {
@@ -100,7 +129,7 @@ class _SentimentViewCoinState extends State<SentimentViewCoin>
       setState(() {
         loading = false;
         errorMessage =
-            'Failed to load data. Please check your network connection.';
+        'Failed to load data. Please check your network connection.';
       });
       print('Exception: $e');
     }
@@ -144,6 +173,8 @@ class _SentimentViewCoinState extends State<SentimentViewCoin>
 
   Future<void> _performDataFetch() async {
     await _fetchSentimentDetails(widget.sentimentId);
+    _controller.loadRequest(Uri.parse(
+        'https://s.tradingview.com/widgetembed/?symbol=$coinSymbol&interval=D&hidesidetoolbar=1&symboledit=1&saveimage=1&toolbarbg=f1f3f6&studies=[]&theme=Dark&style=1&timezone=Etc/UTC&studies_overrides={}&overrides={}&enabled_features=[]&disabled_features=[]&locale=en'));
   }
 
   void _showNoInternetDialog(BuildContext context) {
@@ -230,6 +261,46 @@ class _SentimentViewCoinState extends State<SentimentViewCoin>
     );
   }
 
+  Future<void> vote(String type) async {
+    final String? accessToken = await storage.read(key: 'accessToken');
+
+    final response = await http.post(
+      Uri.parse('https://script.teendev.dev/signal/api/vote'),
+      headers: {
+        'Authorization': 'Bearer $accessToken',
+        'Content-Type': 'application/json',
+      },
+      body: jsonEncode({
+        'type': type,
+        'group': 'sentiment', // Specify the group if needed
+        'id': widget.sentimentId,
+      }),
+    );
+
+    final responseBody = jsonDecode(response.body);
+
+    if (response.statusCode == 200) {
+      // Show success message
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+              'Successfully ${type == 'upvote' ? 'Upvoted' : 'Downvoted'}'),
+          backgroundColor: Colors.green,
+        ),
+      );
+      setState(() {}); // Update the UI
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(responseBody['message'] ?? 'An error occurred'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
+
+  void _share() {}
+
   @override
   Widget build(BuildContext context) {
     return OrientationBuilder(
@@ -237,1303 +308,240 @@ class _SentimentViewCoinState extends State<SentimentViewCoin>
         return Scaffold(
           body: loading
               ? const Center(
-                  child: CircularProgressIndicator(color: Colors.black))
+              child: CircularProgressIndicator(color: Colors.black))
               : Center(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      SizedBox(
-                          height: MediaQuery.of(context).size.height * 0.1),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                        child: Row(
-                          children: [
-                            InkWell(
-                              onTap: () {
-                                Navigator.pop(context);
-                              },
-                              child:
-                                  Image.asset('images/tabler_arrow-back.png'),
-                            ),
-                            const Spacer(),
-                            ClipRRect(
-                              borderRadius: BorderRadius.circular(35),
-                              child: Container(
-                                width:
-                                    (48 / MediaQuery.of(context).size.width) *
-                                        MediaQuery.of(context).size.width,
-                                height:
-                                    (48 / MediaQuery.of(context).size.height) *
-                                        MediaQuery.of(context).size.height,
-                                color: Colors.grey,
-                                child: Image.network(
-                                  widget.sentimentImg,
-                                  fit: BoxFit.cover,
-                                ),
+            child: RefreshIndicator(
+              onRefresh: _refreshData,
+              color: Colors.black,
+              child: SingleChildScrollView(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    SizedBox(
+                        height: MediaQuery
+                            .of(context)
+                            .size
+                            .height * 0.1),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                      child: Row(
+                        children: [
+                          InkWell(
+                            onTap: () {
+                              Navigator.pop(context);
+                            },
+                            child:
+                            Image.asset('images/tabler_arrow-back.png'),
+                          ),
+                          const Spacer(),
+                          Expanded(
+                            flex: 10,
+                            child: Text(
+                              widget.sentimentTitle,
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(
+                                fontFamily: 'Inconsolata',
+                                fontWeight: FontWeight.bold,
+                                fontSize: 22,
+                                color: Colors.black,
                               ),
                             ),
-                            SizedBox(
-                                width:
-                                    MediaQuery.of(context).size.width * 0.03),
-                            Expanded(
-                              flex: 10,
-                              child: Text(
-                                widget.sentimentTitle,
-                                overflow: TextOverflow.ellipsis,
+                          ),
+                          const Spacer(),
+                        ],
+                      ),
+                    ),
+                    SizedBox(
+                        height: MediaQuery
+                            .of(context)
+                            .size
+                            .height * 0.05),
+                    if (loading)
+                      const Center(
+                        child: CircularProgressIndicator(
+                            color: Colors.black),
+                      )
+                    else
+                      if (errorMessage != null)
+                        Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Text(
+                                errorMessage!,
+                                textAlign: TextAlign.center,
                                 style: const TextStyle(
                                   fontFamily: 'Inconsolata',
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 22,
-                                  color: Colors.black,
+                                  color: Colors.red,
                                 ),
                               ),
-                            ),
-                            const Spacer(),
-                            Image.asset('images/NextButton.png'),
-                          ],
+                              const SizedBox(height: 16),
+                              ElevatedButton(
+                                onPressed: _refreshData,
+                                child: const Text(
+                                  'Retry',
+                                  style: TextStyle(
+                                    fontFamily: 'Inconsolata',
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 18,
+                                    color: Colors.black,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        )
+                      else
+                        Padding(
+                          padding: const EdgeInsets.only(
+                              left: 20.0, right: 20.0, bottom: 20.0),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              // WebView content
+                              SizedBox(
+                                height: MediaQuery
+                                    .of(context)
+                                    .size
+                                    .height * 0.7, // Specify the height
+                                child: WebViewWidget(controller: _controller),
+                              ),
+                              Center(
+                                child:
+                                Text(
+                                  'Share your opinion',
+                                  style: TextStyle(
+                                    fontFamily: 'Inconsolata',
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.black,
+                                  ),
+                                ),
+                              ),
+                              SizedBox(height: MediaQuery
+                                  .of(context)
+                                  .size
+                                  .height * 0.02),
+                              Center(
+                                child: Text(
+                                  widget.sentimentTitle,
+                                  style: TextStyle(
+                                    fontFamily: 'Inconsolata',
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.black,
+                                  ),
+                                ),
+                              ),
+                              SizedBox(height: MediaQuery
+                                  .of(context)
+                                  .size
+                                  .height * 0.02),
+                              // Voting buttons
+                              _voteButtons(),
+                              SizedBox(height: MediaQuery
+                                  .of(context)
+                                  .size
+                                  .height * 0.02),
+                              Center(
+                                child: Text(
+                                  "${widget
+                                      .sentimentTitle} will go $voteText over the",
+                                  style: TextStyle(
+                                    fontFamily: 'Inconsolata',
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.black,
+                                  ),
+                                ),
+                              ),
+                              SizedBox(height: MediaQuery
+                                  .of(context)
+                                  .size
+                                  .height * 0.02),
+                              _voteButtons2(),
+                              SizedBox(height: MediaQuery
+                                  .of(context)
+                                  .size
+                                  .height * 0.05),
+                              Center(
+                                child: Text(
+                                  'Share your opinion',
+                                  style: TextStyle(
+                                    fontFamily: 'Inconsolata',
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.black,
+                                  ),
+                                ),
+                              ),
+                              SizedBox(height: MediaQuery
+                                  .of(context)
+                                  .size
+                                  .height * 0.05),
+
+                              // Share button
+                              Container(
+                                width: double.infinity,
+                                height: (60 / MediaQuery.of(context).size.height) *
+                                    MediaQuery.of(context).size.height,
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 20.0),
+                                child: ElevatedButton(
+                                  onPressed:
+                                  isLoading ? null : () => _share(),
+                                  style: ButtonStyle(
+                                    backgroundColor: MaterialStateProperty
+                                        .resolveWith<Color>(
+                                          (Set<MaterialState> states) {
+                                        if (states.contains(
+                                            MaterialState.pressed)) {
+                                          return Colors.white;
+                                        }
+                                        return Colors.black;
+                                      },
+                                    ),
+                                    foregroundColor: MaterialStateProperty
+                                        .resolveWith<Color>(
+                                          (Set<MaterialState> states) {
+                                        if (states.contains(
+                                            MaterialState.pressed)) {
+                                          return Colors.black;
+                                        }
+                                        return Colors.white;
+                                      },
+                                    ),
+                                    elevation:
+                                    MaterialStateProperty.all<double>(
+                                        4.0),
+                                    shape: MaterialStateProperty.all<
+                                        RoundedRectangleBorder>(
+                                      const RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.all(
+                                            Radius.circular(15)),
+                                      ),
+                                    ),
+                                  ),
+                                  child: isLoading
+                                      ? const CircularProgressIndicator(
+                                    color: Colors.white,
+                                  )
+                                      : const Text('Share',style: TextStyle(
+                                    fontFamily: 'Inter',
+                                    fontWeight: FontWeight.bold,
+                                  ),),
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
-                      ),
-                      SizedBox(
-                          height: MediaQuery.of(context).size.height * 0.05),
-                      _tabBar(),
-                      SizedBox(
-                          height: MediaQuery.of(context).size.height * 0.05),
-                      Expanded(
-                          child: TabBarView(
-                        controller: tabController,
-                        children: [
-                          if (loading)
-                            const Center(
-                              child: CircularProgressIndicator(
-                                  color: Colors.black),
-                            )
-                          else if (errorMessage != null)
-                            Center(
-                              child: Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Text(
-                                    errorMessage!,
-                                    textAlign: TextAlign.center,
-                                    style: const TextStyle(
-                                      fontFamily: 'Inconsolata',
-                                      color: Colors.red,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 16),
-                                  ElevatedButton(
-                                    onPressed: _refreshData,
-                                    child: const Text(
-                                      'Retry',
-                                      style: TextStyle(
-                                        fontFamily: 'Inconsolata',
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 18,
-                                        color: Colors.black,
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            )
-                          else
-                            RefreshIndicator(
-                              onRefresh: _refreshData,
-                              color: Colors.black,
-                              child: SingleChildScrollView(
-                                controller: _scrollController,
-                                child: Padding(
-                                  padding: const EdgeInsets.only(
-                                      left: 20.0, right: 20.0, bottom: 20.0),
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Row(
-                                        children: [
-                                          Expanded(
-                                            flex: 10,
-                                            child: Row(
-                                              crossAxisAlignment:
-                                                  CrossAxisAlignment.start,
-                                              children: [
-                                                Image.asset(
-                                                  'images/ph_coin-duotone.png',
-                                                ),
-                                                SizedBox(
-                                                    width:
-                                                        MediaQuery.of(context)
-                                                                .size
-                                                                .width *
-                                                            0.03),
-                                                const Expanded(
-                                                  flex: 10,
-                                                  child: Column(
-                                                    crossAxisAlignment:
-                                                        CrossAxisAlignment
-                                                            .start,
-                                                    children: [
-                                                      Text(
-                                                        'Price',
-                                                        overflow: TextOverflow
-                                                            .ellipsis,
-                                                        style: TextStyle(
-                                                          fontFamily:
-                                                              'Inconsolata',
-                                                          fontWeight:
-                                                              FontWeight.bold,
-                                                          fontSize: 20,
-                                                          color: Colors.black,
-                                                        ),
-                                                      ),
-                                                      Text(
-                                                        '\$N/A',
-                                                        overflow: TextOverflow
-                                                            .ellipsis,
-                                                        style: TextStyle(
-                                                          fontFamily:
-                                                              'Inconsolata',
-                                                          fontWeight:
-                                                              FontWeight.bold,
-                                                          fontSize: 18,
-                                                          color: Colors.black,
-                                                        ),
-                                                      ),
-                                                      Text(
-                                                        '\$N/A',
-                                                        overflow: TextOverflow
-                                                            .ellipsis,
-                                                        style: TextStyle(
-                                                          fontFamily:
-                                                              'Inconsolata',
-                                                          fontWeight:
-                                                              FontWeight.bold,
-                                                          fontSize: 18,
-                                                          color: Colors.black,
-                                                        ),
-                                                      ),
-                                                    ],
-                                                  ),
-                                                ),
-                                              ],
-                                            ),
-                                          ),
-                                          const Spacer(),
-                                          Expanded(
-                                            flex: 10,
-                                            child: Row(
-                                              crossAxisAlignment:
-                                                  CrossAxisAlignment.start,
-                                              children: [
-                                                Image.asset(
-                                                  'images/oui_vis-pie.png',
-                                                ),
-                                                SizedBox(
-                                                    width:
-                                                        MediaQuery.of(context)
-                                                                .size
-                                                                .width *
-                                                            0.03),
-                                                const Expanded(
-                                                  flex: 10,
-                                                  child: Column(
-                                                    crossAxisAlignment:
-                                                        CrossAxisAlignment
-                                                            .start,
-                                                    children: [
-                                                      Text(
-                                                        'Market cap',
-                                                        overflow: TextOverflow
-                                                            .ellipsis,
-                                                        style: TextStyle(
-                                                          fontFamily:
-                                                              'Inconsolata',
-                                                          fontWeight:
-                                                              FontWeight.bold,
-                                                          fontSize: 20,
-                                                          color: Colors.black,
-                                                        ),
-                                                      ),
-                                                      Text(
-                                                        '\$N/A',
-                                                        overflow: TextOverflow
-                                                            .ellipsis,
-                                                        style: TextStyle(
-                                                          fontFamily:
-                                                              'Inconsolata',
-                                                          fontWeight:
-                                                              FontWeight.bold,
-                                                          fontSize: 18,
-                                                          color: Colors.black,
-                                                        ),
-                                                      ),
-                                                      Text(
-                                                        '\$N/A',
-                                                        overflow: TextOverflow
-                                                            .ellipsis,
-                                                        style: TextStyle(
-                                                          fontFamily:
-                                                              'Inconsolata',
-                                                          fontWeight:
-                                                              FontWeight.bold,
-                                                          fontSize: 18,
-                                                          color: Colors.black,
-                                                        ),
-                                                      ),
-                                                    ],
-                                                  ),
-                                                ),
-                                              ],
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                      SizedBox(
-                                          height: MediaQuery.of(context)
-                                                  .size
-                                                  .height *
-                                              0.03),
-                                      Row(
-                                        children: [
-                                          Expanded(
-                                            flex: 10,
-                                            child: Row(
-                                              crossAxisAlignment:
-                                                  CrossAxisAlignment.start,
-                                              children: [
-                                                Image.asset(
-                                                  'images/vaadin_coin-piles.png',
-                                                ),
-                                                SizedBox(
-                                                    width:
-                                                        MediaQuery.of(context)
-                                                                .size
-                                                                .width *
-                                                            0.03),
-                                                const Expanded(
-                                                  flex: 10,
-                                                  child: Column(
-                                                    crossAxisAlignment:
-                                                        CrossAxisAlignment
-                                                            .start,
-                                                    children: [
-                                                      Text(
-                                                        'Volume (24h)',
-                                                        overflow: TextOverflow
-                                                            .ellipsis,
-                                                        style: TextStyle(
-                                                          fontFamily:
-                                                              'Inconsolata',
-                                                          fontWeight:
-                                                              FontWeight.bold,
-                                                          fontSize: 20,
-                                                          color: Colors.black,
-                                                        ),
-                                                      ),
-                                                      Text(
-                                                        '\$N/A',
-                                                        overflow: TextOverflow
-                                                            .ellipsis,
-                                                        style: TextStyle(
-                                                          fontFamily:
-                                                              'Inconsolata',
-                                                          fontWeight:
-                                                              FontWeight.bold,
-                                                          fontSize: 18,
-                                                          color: Colors.black,
-                                                        ),
-                                                      ),
-                                                      Text(
-                                                        '\$N/A',
-                                                        overflow: TextOverflow
-                                                            .ellipsis,
-                                                        style: TextStyle(
-                                                          fontFamily:
-                                                              'Inconsolata',
-                                                          fontWeight:
-                                                              FontWeight.bold,
-                                                          fontSize: 18,
-                                                          color: Colors.black,
-                                                        ),
-                                                      ),
-                                                    ],
-                                                  ),
-                                                ),
-                                              ],
-                                            ),
-                                          ),
-                                          const Spacer(),
-                                          Expanded(
-                                            flex: 10,
-                                            child: Row(
-                                              crossAxisAlignment:
-                                                  CrossAxisAlignment.start,
-                                              children: [
-                                                Image.asset(
-                                                  'images/clarity_block-line.png',
-                                                ),
-                                                SizedBox(
-                                                    width:
-                                                        MediaQuery.of(context)
-                                                                .size
-                                                                .width *
-                                                            0.03),
-                                                const Expanded(
-                                                  flex: 10,
-                                                  child: Column(
-                                                    crossAxisAlignment:
-                                                        CrossAxisAlignment
-                                                            .start,
-                                                    children: [
-                                                      Text(
-                                                        'Volume (24h)',
-                                                        overflow: TextOverflow
-                                                            .ellipsis,
-                                                        style: TextStyle(
-                                                          fontFamily:
-                                                              'Inconsolata',
-                                                          fontWeight:
-                                                              FontWeight.bold,
-                                                          fontSize: 20,
-                                                          color: Colors.black,
-                                                        ),
-                                                      ),
-                                                      Text(
-                                                        '\$ (Max)',
-                                                        overflow: TextOverflow
-                                                            .ellipsis,
-                                                        style: TextStyle(
-                                                          fontFamily:
-                                                              'Inconsolata',
-                                                          fontWeight:
-                                                              FontWeight.bold,
-                                                          fontSize: 18,
-                                                          color: Colors.black,
-                                                        ),
-                                                      ),
-                                                      Text(
-                                                        '\$ (Available)',
-                                                        overflow: TextOverflow
-                                                            .ellipsis,
-                                                        style: TextStyle(
-                                                          fontFamily:
-                                                              'Inconsolata',
-                                                          fontWeight:
-                                                              FontWeight.bold,
-                                                          fontSize: 18,
-                                                          color: Colors.black,
-                                                        ),
-                                                      ),
-                                                    ],
-                                                  ),
-                                                ),
-                                              ],
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                      SizedBox(
-                                          height: MediaQuery.of(context)
-                                                  .size
-                                                  .height *
-                                              0.03),
-                                      Padding(
-                                        padding: const EdgeInsets.only(
-                                            left: 20.0,
-                                            right: 20.0,
-                                            bottom: 20.0),
-                                        child: RichText(
-                                          text: TextSpan(
-                                            children: [
-                                              const TextSpan(
-                                                text:
-                                                    'Events are managed by official representatives',
-                                                style: TextStyle(
-                                                  fontSize: 17,
-                                                  fontWeight: FontWeight.bold,
-                                                  fontFamily: 'Inconsolata',
-                                                  color: Colors.black,
-                                                ),
-                                              ),
-                                              WidgetSpan(
-                                                child: Image.asset(
-                                                  'images/mdi_tick-decagram-green.png',
-                                                  width: 20,
-                                                  height: 20,
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-                                        ),
-                                      ),
-                                      Padding(
-                                        padding: const EdgeInsets.only(
-                                            left: 20.0,
-                                            right: 20.0,
-                                            bottom: 20.0),
-                                        child: Row(
-                                          mainAxisAlignment:
-                                              MainAxisAlignment.center,
-                                          children: [
-                                            Padding(
-                                              padding: const EdgeInsets.only(
-                                                left: 10.0,
-                                                right: 10.0,
-                                              ),
-                                              child: Row(
-                                                mainAxisAlignment:
-                                                    MainAxisAlignment.center,
-                                                children: [
-                                                  Image.asset(
-                                                    'images/streamline_web.png',
-                                                  ),
-                                                  SizedBox(
-                                                      width:
-                                                          MediaQuery.of(context)
-                                                                  .size
-                                                                  .width *
-                                                              0.03),
-                                                  const Text(
-                                                    'Website',
-                                                    overflow:
-                                                        TextOverflow.ellipsis,
-                                                    style: TextStyle(
-                                                      fontFamily: 'Inconsolata',
-                                                      fontWeight:
-                                                          FontWeight.bold,
-                                                      fontSize: 16,
-                                                      color: Colors.black,
-                                                    ),
-                                                  ),
-                                                ],
-                                              ),
-                                            ),
-                                            Padding(
-                                              padding: const EdgeInsets.only(
-                                                left: 10.0,
-                                                right: 10.0,
-                                              ),
-                                              child: Row(
-                                                mainAxisAlignment:
-                                                    MainAxisAlignment.center,
-                                                children: [
-                                                  Image.asset(
-                                                    'images/logos_telegram.png',
-                                                  ),
-                                                  SizedBox(
-                                                      width:
-                                                          MediaQuery.of(context)
-                                                                  .size
-                                                                  .width *
-                                                              0.03),
-                                                  const Text(
-                                                    'Telegram',
-                                                    overflow:
-                                                        TextOverflow.ellipsis,
-                                                    style: TextStyle(
-                                                      fontFamily: 'Inconsolata',
-                                                      fontWeight:
-                                                          FontWeight.bold,
-                                                      fontSize: 16,
-                                                      color: Colors.black,
-                                                    ),
-                                                  ),
-                                                ],
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                      Padding(
-                                        padding: const EdgeInsets.only(
-                                            left: 20.0,
-                                            right: 20.0,
-                                            bottom: 20.0),
-                                        child: Row(
-                                          mainAxisAlignment:
-                                              MainAxisAlignment.center,
-                                          children: [
-                                            Padding(
-                                              padding: const EdgeInsets.only(
-                                                left: 10.0,
-                                                right: 10.0,
-                                              ),
-                                              child: Row(
-                                                mainAxisAlignment:
-                                                    MainAxisAlignment.center,
-                                                children: [
-                                                  Image.asset(
-                                                    'images/logos_reddit-icon.png',
-                                                  ),
-                                                  SizedBox(
-                                                      width:
-                                                          MediaQuery.of(context)
-                                                                  .size
-                                                                  .width *
-                                                              0.03),
-                                                  const Text(
-                                                    'Reddit',
-                                                    overflow:
-                                                        TextOverflow.ellipsis,
-                                                    style: TextStyle(
-                                                      fontFamily: 'Inconsolata',
-                                                      fontWeight:
-                                                          FontWeight.bold,
-                                                      fontSize: 16,
-                                                      color: Colors.black,
-                                                    ),
-                                                  ),
-                                                ],
-                                              ),
-                                            ),
-                                            Padding(
-                                              padding: const EdgeInsets.only(
-                                                left: 10.0,
-                                                right: 10.0,
-                                              ),
-                                              child: Row(
-                                                mainAxisAlignment:
-                                                    MainAxisAlignment.center,
-                                                children: [
-                                                  Image.asset(
-                                                    'images/icon-park_github.png',
-                                                  ),
-                                                  SizedBox(
-                                                      width:
-                                                          MediaQuery.of(context)
-                                                                  .size
-                                                                  .width *
-                                                              0.03),
-                                                  const Text(
-                                                    'Github',
-                                                    overflow:
-                                                        TextOverflow.ellipsis,
-                                                    style: TextStyle(
-                                                      fontFamily: 'Inconsolata',
-                                                      fontWeight:
-                                                          FontWeight.bold,
-                                                      fontSize: 16,
-                                                      color: Colors.black,
-                                                    ),
-                                                  ),
-                                                ],
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                      Padding(
-                                        padding: const EdgeInsets.only(
-                                            left: 20.0,
-                                            right: 20.0,
-                                            bottom: 20.0),
-                                        child: Container(
-                                          padding: const EdgeInsets.only(
-                                              left: 12.0,
-                                              right: 12.0,
-                                              bottom: 20.0,
-                                              top: 20.0),
-                                          decoration: BoxDecoration(
-                                            color: Colors.white,
-                                            borderRadius:
-                                                BorderRadius.circular(15),
-                                            boxShadow: [
-                                              BoxShadow(
-                                                color: Colors.grey
-                                                    .withOpacity(0.5),
-                                                spreadRadius: 3,
-                                                blurRadius: 5,
-                                              ),
-                                            ],
-                                          ),
-                                          child: Column(
-                                            children: [
-                                              const Text(
-                                                'Statistics',
-                                                style: TextStyle(
-                                                  fontFamily: 'Inconsolata',
-                                                  fontWeight: FontWeight.bold,
-                                                  fontSize: 20,
-                                                  color: Colors.black,
-                                                ),
-                                              ),
-                                              SizedBox(
-                                                  height: MediaQuery.of(context)
-                                                          .size
-                                                          .height *
-                                                      0.03),
-                                              Row(
-                                                mainAxisAlignment:
-                                                    MainAxisAlignment.center,
-                                                children: [
-                                                  Column(
-                                                    children: [
-                                                      Container(
-                                                        width: (120 /
-                                                                MediaQuery.of(
-                                                                        context)
-                                                                    .size
-                                                                    .width) *
-                                                            MediaQuery.of(
-                                                                    context)
-                                                                .size
-                                                                .width,
-                                                        padding:
-                                                            const EdgeInsets
-                                                                .all(12.0),
-                                                        decoration:
-                                                            BoxDecoration(
-                                                          color: Colors.white,
-                                                          borderRadius:
-                                                              BorderRadius
-                                                                  .circular(0),
-                                                          boxShadow: [
-                                                            BoxShadow(
-                                                              color: Colors.grey
-                                                                  .withOpacity(
-                                                                      0.5),
-                                                              spreadRadius: 3,
-                                                              blurRadius: 5,
-                                                            ),
-                                                          ],
-                                                        ),
-                                                        child: Column(
-                                                          children: [
-                                                            Row(
-                                                              mainAxisAlignment:
-                                                                  MainAxisAlignment
-                                                                      .center,
-                                                              children: [
-                                                                Image.asset(
-                                                                  'images/noto_fire.png',
-                                                                ),
-                                                                SizedBox(
-                                                                    width: MediaQuery.of(context)
-                                                                            .size
-                                                                            .width *
-                                                                        0.01),
-                                                                const Expanded(
-                                                                  child: Text(
-                                                                    'Upcoming',
-                                                                    overflow:
-                                                                        TextOverflow
-                                                                            .ellipsis,
-                                                                    style:
-                                                                        TextStyle(
-                                                                      fontFamily:
-                                                                          'Inconsolata',
-                                                                      fontWeight:
-                                                                          FontWeight
-                                                                              .bold,
-                                                                      fontSize:
-                                                                          16,
-                                                                      color: Colors
-                                                                          .black,
-                                                                    ),
-                                                                  ),
-                                                                ),
-                                                              ],
-                                                            ),
-                                                            SizedBox(
-                                                                height: MediaQuery.of(
-                                                                            context)
-                                                                        .size
-                                                                        .height *
-                                                                    0.03),
-                                                            const Text(
-                                                              '1',
-                                                              style: TextStyle(
-                                                                fontFamily:
-                                                                    'Inconsolata',
-                                                                fontWeight:
-                                                                    FontWeight
-                                                                        .bold,
-                                                                fontSize: 30,
-                                                                color: Colors
-                                                                    .black,
-                                                              ),
-                                                            ),
-                                                          ],
-                                                        ),
-                                                      ),
-                                                    ],
-                                                  ),
-                                                  SizedBox(
-                                                      width:
-                                                          MediaQuery.of(context)
-                                                                  .size
-                                                                  .width *
-                                                              0.03),
-                                                  Column(
-                                                    children: [
-                                                      Container(
-                                                        width: (120 /
-                                                                MediaQuery.of(
-                                                                        context)
-                                                                    .size
-                                                                    .width) *
-                                                            MediaQuery.of(
-                                                                    context)
-                                                                .size
-                                                                .width,
-                                                        padding:
-                                                            const EdgeInsets
-                                                                .all(12.0),
-                                                        decoration:
-                                                            BoxDecoration(
-                                                          color: Colors.white,
-                                                          borderRadius:
-                                                              BorderRadius
-                                                                  .circular(0),
-                                                          boxShadow: [
-                                                            BoxShadow(
-                                                              color: Colors.grey
-                                                                  .withOpacity(
-                                                                      0.5),
-                                                              spreadRadius: 3,
-                                                              blurRadius: 5,
-                                                            ),
-                                                          ],
-                                                        ),
-                                                        child: Column(
-                                                          children: [
-                                                            Row(
-                                                              mainAxisAlignment:
-                                                                  MainAxisAlignment
-                                                                      .center,
-                                                              children: [
-                                                                Image.asset(
-                                                                  'images/lets-icons_up.png',
-                                                                ),
-                                                                SizedBox(
-                                                                    width: MediaQuery.of(context)
-                                                                            .size
-                                                                            .width *
-                                                                        0.01),
-                                                                const Expanded(
-                                                                  child: Text(
-                                                                    'Trending',
-                                                                    overflow:
-                                                                        TextOverflow
-                                                                            .ellipsis,
-                                                                    style:
-                                                                        TextStyle(
-                                                                      fontFamily:
-                                                                          'Inconsolata',
-                                                                      fontWeight:
-                                                                          FontWeight
-                                                                              .bold,
-                                                                      fontSize:
-                                                                          16,
-                                                                      color: Colors
-                                                                          .black,
-                                                                    ),
-                                                                  ),
-                                                                ),
-                                                              ],
-                                                            ),
-                                                            SizedBox(
-                                                                height: MediaQuery.of(
-                                                                            context)
-                                                                        .size
-                                                                        .height *
-                                                                    0.03),
-                                                            const Text(
-                                                              '#1',
-                                                              style: TextStyle(
-                                                                fontFamily:
-                                                                    'Inconsolata',
-                                                                fontWeight:
-                                                                    FontWeight
-                                                                        .bold,
-                                                                fontSize: 30,
-                                                                color: Colors
-                                                                    .black,
-                                                              ),
-                                                            ),
-                                                          ],
-                                                        ),
-                                                      ),
-                                                    ],
-                                                  ),
-                                                ],
-                                              ),
-                                              SizedBox(
-                                                  height: MediaQuery.of(context)
-                                                          .size
-                                                          .height *
-                                                      0.03),
-                                              Row(
-                                                mainAxisAlignment:
-                                                    MainAxisAlignment.center,
-                                                children: [
-                                                  Column(
-                                                    children: [
-                                                      Container(
-                                                        width: (120 /
-                                                                MediaQuery.of(
-                                                                        context)
-                                                                    .size
-                                                                    .width) *
-                                                            MediaQuery.of(
-                                                                    context)
-                                                                .size
-                                                                .width,
-                                                        padding:
-                                                            const EdgeInsets
-                                                                .all(12.0),
-                                                        decoration:
-                                                            BoxDecoration(
-                                                          color: Colors.white,
-                                                          borderRadius:
-                                                              BorderRadius
-                                                                  .circular(0),
-                                                          boxShadow: [
-                                                            BoxShadow(
-                                                              color: Colors.grey
-                                                                  .withOpacity(
-                                                                      0.5),
-                                                              spreadRadius: 3,
-                                                              blurRadius: 5,
-                                                            ),
-                                                          ],
-                                                        ),
-                                                        child: Column(
-                                                          children: [
-                                                            Row(
-                                                              mainAxisAlignment:
-                                                                  MainAxisAlignment
-                                                                      .center,
-                                                              children: [
-                                                                Image.asset(
-                                                                  'images/noto_crown.png',
-                                                                ),
-                                                                SizedBox(
-                                                                    width: MediaQuery.of(context)
-                                                                            .size
-                                                                            .width *
-                                                                        0.01),
-                                                                const Expanded(
-                                                                  child: Text(
-                                                                    'Significance',
-                                                                    overflow:
-                                                                        TextOverflow
-                                                                            .ellipsis,
-                                                                    style:
-                                                                        TextStyle(
-                                                                      fontFamily:
-                                                                          'Inconsolata',
-                                                                      fontWeight:
-                                                                          FontWeight
-                                                                              .bold,
-                                                                      fontSize:
-                                                                          16,
-                                                                      color: Colors
-                                                                          .black,
-                                                                    ),
-                                                                  ),
-                                                                ),
-                                                              ],
-                                                            ),
-                                                            SizedBox(
-                                                                height: MediaQuery.of(
-                                                                            context)
-                                                                        .size
-                                                                        .height *
-                                                                    0.03),
-                                                            const Text(
-                                                              '1',
-                                                              style: TextStyle(
-                                                                fontFamily:
-                                                                    'Inconsolata',
-                                                                fontWeight:
-                                                                    FontWeight
-                                                                        .bold,
-                                                                fontSize: 30,
-                                                                color: Colors
-                                                                    .black,
-                                                              ),
-                                                            ),
-                                                          ],
-                                                        ),
-                                                      ),
-                                                    ],
-                                                  ),
-                                                  SizedBox(
-                                                      width:
-                                                          MediaQuery.of(context)
-                                                                  .size
-                                                                  .width *
-                                                              0.03),
-                                                  Column(
-                                                    children: [
-                                                      Container(
-                                                        width: (120 /
-                                                                MediaQuery.of(
-                                                                        context)
-                                                                    .size
-                                                                    .width) *
-                                                            MediaQuery.of(
-                                                                    context)
-                                                                .size
-                                                                .width,
-                                                        padding:
-                                                            const EdgeInsets
-                                                                .all(12.0),
-                                                        decoration:
-                                                            BoxDecoration(
-                                                          color: Colors.white,
-                                                          borderRadius:
-                                                              BorderRadius
-                                                                  .circular(0),
-                                                          boxShadow: [
-                                                            BoxShadow(
-                                                              color: Colors.grey
-                                                                  .withOpacity(
-                                                                      0.5),
-                                                              spreadRadius: 3,
-                                                              blurRadius: 5,
-                                                            ),
-                                                          ],
-                                                        ),
-                                                        child: Column(
-                                                          children: [
-                                                            Row(
-                                                              mainAxisAlignment:
-                                                                  MainAxisAlignment
-                                                                      .center,
-                                                              children: [
-                                                                Image.asset(
-                                                                  'images/noto_fire.png',
-                                                                ),
-                                                                SizedBox(
-                                                                    width: MediaQuery.of(context)
-                                                                            .size
-                                                                            .width *
-                                                                        0.01),
-                                                                const Text(
-                                                                  'Hot',
-                                                                  overflow:
-                                                                      TextOverflow
-                                                                          .ellipsis,
-                                                                  style:
-                                                                      TextStyle(
-                                                                    fontFamily:
-                                                                        'Inconsolata',
-                                                                    fontWeight:
-                                                                        FontWeight
-                                                                            .bold,
-                                                                    fontSize:
-                                                                        16,
-                                                                    color: Colors
-                                                                        .black,
-                                                                  ),
-                                                                ),
-                                                              ],
-                                                            ),
-                                                            SizedBox(
-                                                                height: MediaQuery.of(
-                                                                            context)
-                                                                        .size
-                                                                        .height *
-                                                                    0.03),
-                                                            const Text(
-                                                              '1',
-                                                              style: TextStyle(
-                                                                fontFamily:
-                                                                    'Inconsolata',
-                                                                fontWeight:
-                                                                    FontWeight
-                                                                        .bold,
-                                                                fontSize: 30,
-                                                                color: Colors
-                                                                    .black,
-                                                              ),
-                                                            ),
-                                                          ],
-                                                        ),
-                                                      ),
-                                                    ],
-                                                  ),
-                                                ],
-                                              ),
-                                            ],
-                                          ),
-                                        ),
-                                      ),
-                                      Padding(
-                                        padding: const EdgeInsets.only(
-                                            left: 20.0,
-                                            right: 20.0,
-                                            bottom: 20.0),
-                                        child: Container(
-                                          padding: const EdgeInsets.all(12.0),
-                                          decoration: BoxDecoration(
-                                            color: Colors.white,
-                                            borderRadius:
-                                                BorderRadius.circular(15),
-                                            boxShadow: [
-                                              BoxShadow(
-                                                color: Colors.grey
-                                                    .withOpacity(0.5),
-                                                spreadRadius: 3,
-                                                blurRadius: 5,
-                                              ),
-                                            ],
-                                          ),
-                                          child: Column(
-                                            children: [
-                                              const Text(
-                                                'Validation',
-                                                style: TextStyle(
-                                                  fontFamily: 'Inconsolata',
-                                                  fontWeight: FontWeight.bold,
-                                                  fontSize: 20,
-                                                  color: Colors.black,
-                                                ),
-                                              ),
-                                              SizedBox(
-                                                  height: MediaQuery.of(context)
-                                                          .size
-                                                          .height *
-                                                      0.03),
-                                              Row(
-                                                mainAxisAlignment:
-                                                    MainAxisAlignment.center,
-                                                children: [
-                                                  Column(
-                                                    children: [
-                                                      Container(
-                                                        width: (120 /
-                                                                MediaQuery.of(
-                                                                        context)
-                                                                    .size
-                                                                    .width) *
-                                                            MediaQuery.of(
-                                                                    context)
-                                                                .size
-                                                                .width,
-                                                        padding:
-                                                            const EdgeInsets
-                                                                .all(12.0),
-                                                        decoration:
-                                                            BoxDecoration(
-                                                          color: Colors.white,
-                                                          borderRadius:
-                                                              BorderRadius
-                                                                  .circular(0),
-                                                          boxShadow: [
-                                                            BoxShadow(
-                                                              color: Colors.grey
-                                                                  .withOpacity(
-                                                                      0.5),
-                                                              spreadRadius: 3,
-                                                              blurRadius: 5,
-                                                            ),
-                                                          ],
-                                                        ),
-                                                        child: Column(
-                                                          children: [
-                                                            const Text(
-                                                              'Confidence',
-                                                              style: TextStyle(
-                                                                fontFamily:
-                                                                    'Inconsolata',
-                                                                fontWeight:
-                                                                    FontWeight
-                                                                        .bold,
-                                                                fontSize: 16,
-                                                                color: Colors
-                                                                    .black,
-                                                              ),
-                                                            ),
-                                                            SizedBox(
-                                                                height: MediaQuery.of(
-                                                                            context)
-                                                                        .size
-                                                                        .height *
-                                                                    0.03),
-                                                            const Text(
-                                                              '88%',
-                                                              style: TextStyle(
-                                                                fontFamily:
-                                                                    'Inconsolata',
-                                                                fontWeight:
-                                                                    FontWeight
-                                                                        .bold,
-                                                                fontSize: 30,
-                                                                color: Colors
-                                                                    .black,
-                                                              ),
-                                                            ),
-                                                          ],
-                                                        ),
-                                                      ),
-                                                      SizedBox(
-                                                          height: MediaQuery.of(
-                                                                      context)
-                                                                  .size
-                                                                  .height *
-                                                              0.03),
-                                                      Image.asset(
-                                                        'images/Thumbs-up.png',
-                                                      ),
-                                                    ],
-                                                  ),
-                                                  SizedBox(
-                                                      width:
-                                                          MediaQuery.of(context)
-                                                                  .size
-                                                                  .width *
-                                                              0.03),
-                                                  Column(
-                                                    children: [
-                                                      Container(
-                                                        width: (120 /
-                                                                MediaQuery.of(
-                                                                        context)
-                                                                    .size
-                                                                    .width) *
-                                                            MediaQuery.of(
-                                                                    context)
-                                                                .size
-                                                                .width,
-                                                        padding:
-                                                            const EdgeInsets
-                                                                .all(12.0),
-                                                        decoration:
-                                                            BoxDecoration(
-                                                          color: Colors.white,
-                                                          borderRadius:
-                                                              BorderRadius
-                                                                  .circular(0),
-                                                          boxShadow: [
-                                                            BoxShadow(
-                                                              color: Colors.grey
-                                                                  .withOpacity(
-                                                                      0.5),
-                                                              spreadRadius: 3,
-                                                              blurRadius: 5,
-                                                            ),
-                                                          ],
-                                                        ),
-                                                        child: Column(
-                                                          children: [
-                                                            const Text(
-                                                              'Votes',
-                                                              style: TextStyle(
-                                                                fontFamily:
-                                                                    'Inconsolata',
-                                                                fontWeight:
-                                                                    FontWeight
-                                                                        .bold,
-                                                                fontSize: 16,
-                                                                color: Colors
-                                                                    .black,
-                                                              ),
-                                                            ),
-                                                            SizedBox(
-                                                                height: MediaQuery.of(
-                                                                            context)
-                                                                        .size
-                                                                        .height *
-                                                                    0.03),
-                                                            const Text(
-                                                              '76',
-                                                              style: TextStyle(
-                                                                fontFamily:
-                                                                    'Inconsolata',
-                                                                fontWeight:
-                                                                    FontWeight
-                                                                        .bold,
-                                                                fontSize: 30,
-                                                                color: Colors
-                                                                    .black,
-                                                              ),
-                                                            ),
-                                                          ],
-                                                        ),
-                                                      ),
-                                                      SizedBox(
-                                                          height: MediaQuery.of(
-                                                                      context)
-                                                                  .size
-                                                                  .height *
-                                                              0.03),
-                                                      Image.asset(
-                                                        'images/Thumbs-down.png',
-                                                      ),
-                                                    ],
-                                                  ),
-                                                ],
-                                              ),
-                                            ],
-                                          ),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                            ),
-                          if (loading)
-                            const Center(
-                              child: CircularProgressIndicator(
-                                  color: Colors.black),
-                            )
-                          else if (errorMessage != null)
-                            Center(
-                              child: Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Text(
-                                    errorMessage!,
-                                    textAlign: TextAlign.center,
-                                    style: const TextStyle(
-                                      fontFamily: 'Inconsolata',
-                                      color: Colors.red,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 16),
-                                  ElevatedButton(
-                                    onPressed: _refreshData,
-                                    child: const Text(
-                                      'Retry',
-                                      style: TextStyle(
-                                        fontFamily: 'Inconsolata',
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 18,
-                                        color: Colors.black,
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            )
-                          else
-                            RefreshIndicator(
-                              onRefresh: _refreshData,
-                              color: Colors.black,
-                              child: ListView.builder(
-                                controller: _scrollController,
-                                itemCount: sentiments.length,
-                                itemBuilder: (context, index) {
-                                  return cryptoCard(ValueNotifier<bool>(false),
-                                      sentiments[index]);
-                                },
-                              ),
-                            ),
-                        ],
-                      )),
-                    ],
-                  ),
+                  ],
                 ),
+              ),
+            ),
+          ),
         );
       },
     );
   }
 
-  Widget _tabBar() {
+  Widget _voteButtons() {
     if (tabController != null) {
       return Padding(
         padding: const EdgeInsets.symmetric(horizontal: 20.0),
@@ -1541,24 +549,77 @@ class _SentimentViewCoinState extends State<SentimentViewCoin>
           decoration: BoxDecoration(
             border: Border.all(width: 1, color: Colors.black),
             borderRadius: BorderRadius.circular(25),
+            color: Colors.black,
           ),
           child: TabBar(
+            onTap: (index) {
+              if (index == 0) {
+                vote('upvote');
+              } else if (index == 1) {
+                vote('downvote');
+              }
+            },
             indicator: BoxDecoration(
-              color: Colors.black,
+              color: _indicatorColor,
               borderRadius: BorderRadius.circular(25),
             ),
             indicatorSize: TabBarIndicatorSize.tab,
-            overlayColor: const WidgetStatePropertyAll(Colors.black),
+            overlayColor: WidgetStatePropertyAll(_indicatorColor),
             splashBorderRadius: BorderRadius.circular(25),
             dividerHeight: 0,
             controller: tabController!,
             tabs: [
-              _buildCurvedTab('Infos'),
-              _buildCurvedTab('Events'),
+              _buildCurvedTab('UP'),
+              _buildCurvedTab('DOWN'),
             ],
             labelPadding: const EdgeInsets.symmetric(horizontal: 6),
             labelColor: Colors.white,
-            unselectedLabelColor: Colors.black,
+            unselectedLabelColor: Colors.white,
+            indicatorColor: Colors.transparent,
+            labelStyle: const TextStyle(
+              fontSize: 16,
+              fontFamily: 'Inter',
+            ),
+            unselectedLabelStyle: const TextStyle(
+              fontSize: 16,
+              fontFamily: 'Inter',
+            ),
+          ),
+        ),
+      );
+    } else {
+      return const SizedBox.shrink();
+    }
+  }
+
+  Widget _voteButtons2() {
+    if (tabController2 != null) {
+      return Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 20.0),
+        child: Container(
+          decoration: BoxDecoration(
+            border: Border.all(width: 1, color: Colors.black),
+            borderRadius: BorderRadius.circular(25),
+            color: Colors.black,
+          ),
+          child: TabBar(
+            indicator: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(25),
+            ),
+            indicatorSize: TabBarIndicatorSize.tab,
+            overlayColor: WidgetStatePropertyAll(Colors.white),
+            splashBorderRadius: BorderRadius.circular(25),
+            dividerHeight: 0,
+            controller: tabController2!,
+            tabs: [
+              _buildCurvedTab('DAY'),
+              _buildCurvedTab('WEEK'),
+              _buildCurvedTab('MONTH'),
+            ],
+            labelPadding: const EdgeInsets.symmetric(horizontal: 6),
+            labelColor: Colors.black,
+            unselectedLabelColor: Colors.white,
             indicatorColor: Colors.transparent,
             labelStyle: const TextStyle(
               fontSize: 16,
@@ -1586,321 +647,6 @@ class _SentimentViewCoinState extends State<SentimentViewCoin>
           fontFamily: 'Inter',
         ),
       ),
-    );
-  }
-
-  Widget cryptoCard(ValueNotifier<bool> dropdownStateNotifier,
-      Map<String, dynamic> sentiment) {
-    final screenWidth = MediaQuery.of(context).size.width;
-    final screenHeight = MediaQuery.of(context).size.height;
-
-    int upvotes = sentiment['upvotes'] is int
-        ? sentiment['upvotes']
-        : int.parse(sentiment['upvotes']);
-    int downvotes = sentiment['downvotes'] is int
-        ? sentiment['downvotes']
-        : int.parse(sentiment['downvotes']);
-    int totalVotes = upvotes + downvotes;
-    double upvotePercentage = totalVotes > 0 ? upvotes / totalVotes : 0.0;
-
-    Future<void> vote(String type) async {
-      final String sentimentId =
-          sentiment['id'].toString(); // Ensure ID is a string
-      final String? accessToken = await storage.read(key: 'accessToken');
-
-      final response = await http.post(
-        Uri.parse('https://script.teendev.dev/signal/api/vote'),
-        headers: {
-          'Authorization': 'Bearer $accessToken',
-          'Content-Type': 'application/json',
-        },
-        body: jsonEncode({
-          'type': type,
-          'group': 'sentiment', // Specify the group if needed
-          'id': sentimentId,
-        }),
-      );
-
-      final responseBody = jsonDecode(response.body);
-
-      if (response.statusCode == 200) {
-        // Update sentiment counts based on the type of vote
-        if (type == 'upvote') {
-          sentiment['upvotes'] =
-              (int.parse(sentiment['upvotes']) + 1).toString();
-        } else {
-          sentiment['downvotes'] =
-              (int.parse(sentiment['downvotes']) + 1).toString();
-        }
-
-        // Recalculate the vote percentage after updating votes
-        int updatedUpvotes = int.parse(sentiment['upvotes']);
-        int updatedDownvotes = int.parse(sentiment['downvotes']);
-        int updatedTotalVotes = updatedUpvotes + updatedDownvotes;
-        upvotePercentage =
-            updatedTotalVotes > 0 ? updatedUpvotes / updatedTotalVotes : 0.0;
-
-        // Show success message
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-                'Successfully ${type == 'upvote' ? 'Upvoted' : 'Downvoted'}'),
-          ),
-        );
-        setState(() {}); // Update the UI
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(responseBody['message'] ?? 'An error occurred'),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
-    }
-
-    return ValueListenableBuilder<bool>(
-      valueListenable: dropdownStateNotifier,
-      builder: (context, dropdownState, _) {
-        return Padding(
-          padding: EdgeInsets.symmetric(
-            horizontal: screenWidth * 0.03,
-            vertical: screenHeight * 0.01,
-          ),
-          child: InkWell(
-            onTap: () {},
-            child: Container(
-              padding: EdgeInsets.all(screenWidth * 0.03),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(15),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.grey.withOpacity(0.3),
-                    spreadRadius: 2,
-                    blurRadius: 4,
-                  ),
-                ],
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      ClipRRect(
-                        borderRadius: BorderRadius.circular(35),
-                        child: Container(
-                          width: (48 / MediaQuery.of(context).size.width) *
-                              MediaQuery.of(context).size.width,
-                          height: (48 / MediaQuery.of(context).size.height) *
-                              MediaQuery.of(context).size.height,
-                          color: Colors.grey,
-                          child: Image.network(
-                            sentiment['image'],
-                            fit: BoxFit.cover,
-                          ),
-                        ),
-                      ),
-                      SizedBox(width: screenWidth * 0.02),
-                      Flexible(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              sentiment['title'],
-                              overflow: TextOverflow.ellipsis,
-                              maxLines: 1,
-                              style: TextStyle(
-                                fontFamily: 'Inconsolata',
-                                fontWeight: FontWeight.bold,
-                                fontSize: screenWidth * 0.05,
-                                color: Colors.black,
-                              ),
-                            ),
-                            Text(
-                              sentiment['created_at'],
-                              style: TextStyle(
-                                fontSize: screenWidth * 0.03,
-                                fontFamily: 'Inconsolata',
-                                fontWeight: FontWeight.bold,
-                                color: Colors.grey,
-                              ),
-                            ),
-                            SizedBox(height: screenHeight * 0.01),
-                            // Row(
-                            //   children: [
-                            //     Text(
-                            //       '151MM Token Unlock ',
-                            //       style: TextStyle(
-                            //         fontFamily: 'Inconsolata',
-                            //         fontWeight: FontWeight.bold,
-                            //         fontSize: screenWidth * 0.04,
-                            //         color: Colors.black,
-                            //       ),
-                            //     ),
-                            //     Image.asset(
-                            //       'images/lets-icons_up.png',
-                            //       width: screenWidth * 0.04,
-                            //       height: screenWidth * 0.04,
-                            //       fit: BoxFit.cover,
-                            //     ),
-                            //     SizedBox(width: screenWidth * 0.01),
-                            //     Image.asset(
-                            //       'images/noto_fire.png',
-                            //       width: screenWidth * 0.04,
-                            //       height: screenWidth * 0.04,
-                            //       fit: BoxFit.cover,
-                            //     ),
-                            //     SizedBox(width: screenWidth * 0.01),
-                            //     Image.asset(
-                            //       'images/noto_crown.png',
-                            //       width: screenWidth * 0.04,
-                            //       height: screenWidth * 0.04,
-                            //       fit: BoxFit.cover,
-                            //     ),
-                            //   ],
-                            // ),
-                            Text(
-                              sentiment['sub_text'],
-                              maxLines: 2, // Limits sub_text to two lines
-                              overflow: TextOverflow.ellipsis,
-                              style: TextStyle(
-                                fontFamily: 'Inconsolata',
-                                fontWeight: FontWeight.bold,
-                                fontSize: screenWidth * 0.04,
-                                color: Colors.black,
-                              ),
-                            ),
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.start,
-                              children: [
-                                Text(
-                                  'Upvotes: ${sentiment['upvotes']} | Downvotes: ${sentiment['downvotes']}',
-                                  style: const TextStyle(
-                                    fontFamily: 'Inconsolata',
-                                    fontSize: 15,
-                                    color: Colors.black,
-                                  ),
-                                ),
-                              ],
-                            ),
-                            SizedBox(height: screenHeight * 0.02),
-                            Stack(
-                              children: [
-                                Container(
-                                  width: MediaQuery.of(context).size.width *
-                                      0.2 *
-                                      upvotePercentage,
-                                  height: 5,
-                                  decoration: BoxDecoration(
-                                    color: const Color(0xFF0000FF),
-                                    borderRadius: BorderRadius.circular(0),
-                                  ),
-                                ),
-                                Container(
-                                  width:
-                                      MediaQuery.of(context).size.width * 0.2,
-                                  height: 5,
-                                  decoration: BoxDecoration(
-                                    border: Border.all(
-                                        width: 0.5, color: Colors.black),
-                                    borderRadius: BorderRadius.circular(0),
-                                  ),
-                                ),
-                              ],
-                            ),
-                            SizedBox(height: screenHeight * 0.02),
-                            Row(
-                              children: [
-                                Text(
-                                  'Insight',
-                                  style: TextStyle(
-                                    fontFamily: 'Inconsolata',
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: screenWidth * 0.04,
-                                    color: Colors.black,
-                                  ),
-                                ),
-                                GestureDetector(
-                                  onTap: () {
-                                    dropdownStateNotifier.value =
-                                        !dropdownStateNotifier.value;
-                                  },
-                                  child: Image.asset(
-                                    dropdownState
-                                        ? 'images/material-symbols_arrow-drop-down-upwards.png'
-                                        : 'images/material-symbols_arrow-drop-down.png',
-                                    width: screenWidth * 0.05,
-                                    height: screenWidth * 0.05,
-                                    fit: BoxFit.cover,
-                                  ),
-                                ),
-                              ],
-                            ),
-                            if (dropdownState)
-                              Padding(
-                                padding: const EdgeInsets.only(top: 10.0),
-                                child: Container(
-                                  width: screenWidth * 0.8,
-                                  decoration: BoxDecoration(
-                                    color: Colors.white,
-                                    borderRadius: BorderRadius.circular(10),
-                                    boxShadow: [
-                                      BoxShadow(
-                                        color: Colors.grey.withOpacity(0.3),
-                                        spreadRadius: 2,
-                                        blurRadius: 4,
-                                      ),
-                                    ],
-                                  ),
-                                  padding: EdgeInsets.symmetric(
-                                    horizontal: screenWidth * 0.04,
-                                    vertical: 6,
-                                  ),
-                                  child: Text(
-                                    sentiment['insight'],
-                                    softWrap: true,
-                                    style: const TextStyle(
-                                      fontSize: 15,
-                                      fontWeight: FontWeight.bold,
-                                      fontFamily: 'Inconsolata',
-                                      color: Colors.black,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                          ],
-                        ),
-                      ),
-                      SizedBox(width: screenWidth * 0.02),
-                      SizedBox(
-                        height: MediaQuery.of(context).size.height * 0.15,
-                        child: Column(
-                          children: [
-                            GestureDetector(
-                              onTap: () => vote('upvote'),
-                              child: Image.asset(
-                                'images/Thumbs-up.png',
-                              ),
-                            ),
-                            const Spacer(),
-                            GestureDetector(
-                              onTap: () => vote('downvote'),
-                              child: Image.asset(
-                                'images/Thumbs-down.png',
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-          ),
-        );
-      },
     );
   }
 }
