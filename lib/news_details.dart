@@ -1,9 +1,10 @@
-import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
-import 'dart:convert';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'package:connectivity_plus/connectivity_plus.dart';
 import 'dart:async';
+import 'dart:convert';
+
+import 'package:connectivity_plus/connectivity_plus.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:http/http.dart' as http;
 
 class NewsDetails extends StatefulWidget {
   final int newsId;
@@ -23,6 +24,8 @@ class NewsDetailsState extends State<NewsDetails> {
   final TextEditingController commentController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
   bool _isRefreshing = false;
+  bool isLiked = false;
+  bool isBookmarked = false;
 
   void _showPopupMenu(BuildContext context) async {
     final RenderBox renderBox =
@@ -322,8 +325,57 @@ class NewsDetailsState extends State<NewsDetails> {
     );
   }
 
+  Future<void> vote() async {
+    final String? accessToken = await storage.read(key: 'accessToken');
+    final response = await http.post(
+      Uri.parse('https://script.teendev.dev/signal/api/news/vote'),
+      headers: {
+        'Authorization': 'Bearer $accessToken',
+        'Content-Type': 'application/json',
+      },
+      body: jsonEncode({
+        'news_id': widget.newsId,
+      }),
+    );
+
+    final responseBody = jsonDecode(response.body);
+
+    if (response.statusCode == 200) {
+      // Show success message
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+              responseBody['message']),
+          backgroundColor: Colors.green,
+        ),
+      );
+      setState(() {
+        isLiked = true;
+        _newsFuture = fetchNewsDetails(widget.newsId);
+      });
+      setState(() {}); // Update the UI
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(responseBody['message'] ?? 'An error occurred'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
+
+
+  String _formatUpvotes(int count) {
+    if (count >= 1000) {
+      return '${(count / 1000).toStringAsFixed(1)}K'; // Appends 'K' for 1000+
+    } else {
+      return count.toString();
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    Color originalIconColor = IconTheme.of(context).color ?? Colors.black;
     return Scaffold(
       body: OrientationBuilder(
         builder: (context, orientation) {
@@ -474,6 +526,16 @@ class NewsDetailsState extends State<NewsDetails> {
                                         ),
                                       ),
                                       const Spacer(),
+                                      SizedBox(
+                                        key: _key,
+                                        child: IconButton(
+                                          icon: const Icon(
+                                              Icons.more_vert_outlined),
+                                          onPressed: () {
+                                            _showPopupMenu(context);
+                                          },
+                                        ),
+                                      ),
                                     ],
                                   ),
                                   SizedBox(
@@ -516,7 +578,7 @@ class NewsDetailsState extends State<NewsDetails> {
                             bottom: 0,
                             child: Container(
                               height:
-                                  (80 / MediaQuery.of(context).size.height) *
+                                  (70 / MediaQuery.of(context).size.height) *
                                       MediaQuery.of(context).size.height,
                               padding: const EdgeInsets.all(12.0),
                               decoration: BoxDecoration(
@@ -538,72 +600,128 @@ class NewsDetailsState extends State<NewsDetails> {
                                   padding: const EdgeInsets.symmetric(
                                       horizontal: 20.0),
                                   child: Row(children: [
-                                    Image.asset(
-                                      'images/camera-3-line.png',
+                                    Row(
+                                      children: [
+                                        IconButton(
+                                          icon: Icon(
+                                              isLiked
+                                                  ? Icons.favorite
+                                                  : Icons.favorite_border,
+                                              color: isLiked
+                                                  ? Colors.red
+                                                  : originalIconColor),
+                                          onPressed: () {
+                                            if (!isLiked) {
+                                              vote();
+                                            }
+                                          },
+                                        ),
+                                        Text(
+                                          _formatUpvotes(news['upvotes']),
+                                          style: const TextStyle(
+                                            fontFamily: 'Inconsolata',
+                                            fontSize: 15,
+                                            fontWeight: FontWeight.bold,
+                                            color: Colors.black,
+                                          ),
+                                        ),
+                                      ],
                                     ),
                                     SizedBox(
                                         width:
                                             MediaQuery.of(context).size.width *
-                                                0.04),
-                                    Expanded(
-                                      child: Stack(
-                                        children: [
-                                          Container(
-                                            decoration: BoxDecoration(
-                                              color:
-                                                  Colors.grey.withOpacity(0.1),
-                                              borderRadius:
-                                                  BorderRadius.circular(25),
-                                            ),
-                                            child: SingleChildScrollView(
-                                              child: TextFormField(
-                                                keyboardType:
-                                                    TextInputType.multiline,
-                                                maxLines: null,
-                                                controller: commentController,
-                                                focusNode: _commentFocusNode,
-                                                style: const TextStyle(
-                                                  fontSize: 16.0,
-                                                  decoration:
-                                                      TextDecoration.none,
-                                                ),
-                                                decoration:
-                                                    const InputDecoration(
-                                                  contentPadding:
-                                                      EdgeInsets.only(
-                                                          left: 20,
-                                                          right: 65,
-                                                          bottom: 20,
-                                                          top: 0),
-                                                  labelText: 'Write a comment',
-                                                  labelStyle: TextStyle(
-                                                    color: Colors.grey,
-                                                    fontFamily: 'Inter',
-                                                    fontSize: 16.0,
-                                                  ),
-                                                  floatingLabelBehavior:
-                                                      FloatingLabelBehavior
-                                                          .never,
-                                                  border: InputBorder.none,
-                                                ),
-                                                cursorColor: Colors.black,
-                                              ),
-                                            ),
+                                                0.06),
+                                    Row(
+                                      children: [
+                                        IconButton(
+                                          icon: const Icon(Icons.comment),
+                                          onPressed: () {},
+                                        ),
+                                        const Text(
+                                          '1K',
+                                          style: TextStyle(
+                                            fontFamily: 'Inconsolata',
+                                            fontSize: 15,
+                                            fontWeight: FontWeight.bold,
+                                            color: Colors.black,
                                           ),
-                                          Positioned(
-                                            top: 0,
-                                            right: MediaQuery.of(context)
-                                                    .padding
-                                                    .left +
-                                                10,
-                                            bottom: 0,
-                                            child: Image.asset(
-                                              'images/user-smile-line.png',
-                                            ),
-                                          ),
-                                        ],
-                                      ),
+                                        ),
+                                      ],
                                     ),
+                                    const Spacer(),
+                                    IconButton(
+                                      icon: Icon(
+                                          isBookmarked
+                                              ? Icons.bookmark
+                                              : Icons.bookmark_border,
+                                          color: isBookmarked
+                                              ? Colors.blue
+                                              : originalIconColor),
+                                      onPressed: () {
+                                        setState(() {
+                                          isBookmarked = !isBookmarked;
+                                        });
+                                      },
+                                    ),
+                                    // Expanded(
+                                    //   child: Stack(
+                                    //     children: [
+                                    //       Container(
+                                    //         decoration: BoxDecoration(
+                                    //           color:
+                                    //               Colors.grey.withOpacity(0.1),
+                                    //           borderRadius:
+                                    //               BorderRadius.circular(25),
+                                    //         ),
+                                    //         child: SingleChildScrollView(
+                                    //           child: TextFormField(
+                                    //             keyboardType:
+                                    //                 TextInputType.multiline,
+                                    //             maxLines: null,
+                                    //             controller: commentController,
+                                    //             focusNode: _commentFocusNode,
+                                    //             style: const TextStyle(
+                                    //               fontSize: 16.0,
+                                    //               decoration:
+                                    //                   TextDecoration.none,
+                                    //             ),
+                                    //             decoration:
+                                    //                 const InputDecoration(
+                                    //               contentPadding:
+                                    //                   EdgeInsets.only(
+                                    //                       left: 20,
+                                    //                       right: 65,
+                                    //                       bottom: 20,
+                                    //                       top: 0),
+                                    //               labelText: 'Write a comment',
+                                    //               labelStyle: TextStyle(
+                                    //                 color: Colors.grey,
+                                    //                 fontFamily: 'Inter',
+                                    //                 fontSize: 16.0,
+                                    //               ),
+                                    //               floatingLabelBehavior:
+                                    //                   FloatingLabelBehavior
+                                    //                       .never,
+                                    //               border: InputBorder.none,
+                                    //             ),
+                                    //             cursorColor: Colors.black,
+                                    //           ),
+                                    //         ),
+                                    //       ),
+                                    //       Positioned(
+                                    //         top: 0,
+                                    //         right: MediaQuery.of(context)
+                                    //                 .padding
+                                    //                 .left +
+                                    //             10,
+                                    //         bottom: 0,
+                                    //         child: Image.asset(
+                                    //           'images/user-smile-line.png',
+                                    //         ),
+                                    //       ),
+                                    //     ],
+                                    //   ),
+                                    // ),
                                   ]),
                                 ),
                               ),

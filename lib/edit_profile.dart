@@ -45,7 +45,7 @@ class _EditProfileState extends State<EditProfile> with WidgetsBindingObserver {
     if (pickedFile != null) {
       File imageFile = File(pickedFile.path);
       final decodedImage =
-          await decodeImageFromList(imageFile.readAsBytesSync());
+      await decodeImageFromList(imageFile.readAsBytesSync());
 
       if (decodedImage.width > maxWidth || decodedImage.height > maxHeight) {
         var cropper = ImageCropper();
@@ -85,11 +85,10 @@ class _EditProfileState extends State<EditProfile> with WidgetsBindingObserver {
 
     // Check if name is empty or profile image is not selected
     if (name.isEmpty || _profileImage == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text("Make sure you've selected an image and filled in a name"),
-          backgroundColor: Colors.red,
-        ),
+      _showCustomSnackBar(
+        context,
+        'Make sure you\'ve selected an image and filled in a name.',
+        isError: true,
       );
       return;
     }
@@ -100,14 +99,14 @@ class _EditProfileState extends State<EditProfile> with WidgetsBindingObserver {
 
     try {
       final String? accessToken = await storage.read(key: 'accessToken');
-      File imageFile = File(_profileImage);
-      var stream =
-      http.ByteStream(DelegatingStream.typed(imageFile.openRead()));
-      var length = await imageFile.length();
-
       if (accessToken == null) {
         throw Exception("No access token found.");
       }
+
+      File imageFile = File(_profileImage);
+      var stream = http.ByteStream(
+          DelegatingStream.typed(imageFile.openRead()));
+      var length = await imageFile.length();
 
       final request = http.MultipartRequest(
         'POST',
@@ -125,11 +124,10 @@ class _EditProfileState extends State<EditProfile> with WidgetsBindingObserver {
       final responseData = await http.Response.fromStream(response);
 
       if (response.statusCode == 200) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Profile updated successfully.'),
-            backgroundColor: Colors.green,
-          ),
+        _showCustomSnackBar(
+          context,
+          'Profile updated successfully.',
+          isError: false,
         );
 
         // Navigate back to the main app
@@ -138,24 +136,54 @@ class _EditProfileState extends State<EditProfile> with WidgetsBindingObserver {
           MaterialPageRoute(builder: (context) => MainApp(key: UniqueKey())),
         );
       } else {
-        // Parse error message from the response
-        final Map<String, dynamic> errorResponse = jsonDecode(responseData.body);
+        final Map<String, dynamic> errorResponse = jsonDecode(
+            responseData.body);
         throw Exception(errorResponse['message'] ?? 'Unknown error occurred');
       }
     } catch (e) {
-      // Handle any exceptions and display error message
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Error: $e'),
-          backgroundColor: Colors.red,
-        ),
+      // Handle any exceptions and display a professional error message
+      _showCustomSnackBar(
+        context,
+        'Something went wrong. Please try again. Error: $e',
+        isError: true,
       );
     } finally {
-      // Always stop the loading indicator, even if an error occurs
+      // Stop the loading indicator
       setState(() {
         isLoading = false;
       });
     }
+  }
+
+// Custom SnackBar for better styling
+  void _showCustomSnackBar(BuildContext context, String message,
+      {bool isError = false}) {
+    final snackBar = SnackBar(
+      content: Row(
+        children: [
+          Icon(
+            isError ? Icons.error_outline : Icons.check_circle_outline,
+            color: isError ? Colors.red : Colors.green,
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text(
+              message,
+              style: const TextStyle(color: Colors.white),
+            ),
+          ),
+        ],
+      ),
+      backgroundColor: isError ? Colors.red : Colors.green,
+      behavior: SnackBarBehavior.floating,
+      margin: const EdgeInsets.all(10),
+      duration: const Duration(seconds: 3),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(10),
+      ),
+    );
+
+    ScaffoldMessenger.of(context).showSnackBar(snackBar);
   }
 
 
@@ -168,12 +196,21 @@ class _EditProfileState extends State<EditProfile> with WidgetsBindingObserver {
             child: Center(
               child: SizedBox(
                 height: orientation == Orientation.portrait
-                    ? MediaQuery.of(context).size.height * 1
-                    : MediaQuery.of(context).size.height * 1.8,
+                    ? MediaQuery
+                    .of(context)
+                    .size
+                    .height * 1
+                    : MediaQuery
+                    .of(context)
+                    .size
+                    .height * 1.8,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    SizedBox(height: MediaQuery.of(context).size.height * 0.1),
+                    SizedBox(height: MediaQuery
+                        .of(context)
+                        .size
+                        .height * 0.1),
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 20.0),
                       child: Row(
@@ -197,12 +234,18 @@ class _EditProfileState extends State<EditProfile> with WidgetsBindingObserver {
                             ),
                           ),
                           SizedBox(
-                              width: MediaQuery.of(context).size.width * 0.1),
+                              width: MediaQuery
+                                  .of(context)
+                                  .size
+                                  .width * 0.1),
                           const Spacer(),
                         ],
                       ),
                     ),
-                    SizedBox(height: MediaQuery.of(context).size.height * 0.05),
+                    SizedBox(height: MediaQuery
+                        .of(context)
+                        .size
+                        .height * 0.05),
                     Center(
                       child: Stack(
                         children: [
@@ -211,11 +254,23 @@ class _EditProfileState extends State<EditProfile> with WidgetsBindingObserver {
                               borderRadius: BorderRadius.circular(55),
                               child: Container(
                                 width:
-                                    (111 / MediaQuery.of(context).size.width) *
-                                        MediaQuery.of(context).size.width,
+                                (111 / MediaQuery
+                                    .of(context)
+                                    .size
+                                    .width) *
+                                    MediaQuery
+                                        .of(context)
+                                        .size
+                                        .width,
                                 height:
-                                    (111 / MediaQuery.of(context).size.height) *
-                                        MediaQuery.of(context).size.height,
+                                (111 / MediaQuery
+                                    .of(context)
+                                    .size
+                                    .height) *
+                                    MediaQuery
+                                        .of(context)
+                                        .size
+                                        .height,
                                 color: Colors.grey,
                                 child: Image.asset(
                                   'images/Pexels Photo by 3Motional Studio.png',
@@ -228,11 +283,23 @@ class _EditProfileState extends State<EditProfile> with WidgetsBindingObserver {
                               borderRadius: BorderRadius.circular(55),
                               child: Container(
                                 width:
-                                    (111 / MediaQuery.of(context).size.width) *
-                                        MediaQuery.of(context).size.width,
+                                (111 / MediaQuery
+                                    .of(context)
+                                    .size
+                                    .width) *
+                                    MediaQuery
+                                        .of(context)
+                                        .size
+                                        .width,
                                 height:
-                                    (111 / MediaQuery.of(context).size.height) *
-                                        MediaQuery.of(context).size.height,
+                                (111 / MediaQuery
+                                    .of(context)
+                                    .size
+                                    .height) *
+                                    MediaQuery
+                                        .of(context)
+                                        .size
+                                        .height,
                                 color: Colors.grey,
                                 child: Image.file(
                                   File(_profileImage),
@@ -256,7 +323,10 @@ class _EditProfileState extends State<EditProfile> with WidgetsBindingObserver {
                         ],
                       ),
                     ),
-                    SizedBox(height: MediaQuery.of(context).size.height * 0.05),
+                    SizedBox(height: MediaQuery
+                        .of(context)
+                        .size
+                        .height * 0.05),
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 20.0),
                       child: TextFormField(
@@ -287,11 +357,20 @@ class _EditProfileState extends State<EditProfile> with WidgetsBindingObserver {
                         cursorColor: Colors.black,
                       ),
                     ),
-                    SizedBox(height: MediaQuery.of(context).size.height * 0.05),
+                    SizedBox(height: MediaQuery
+                        .of(context)
+                        .size
+                        .height * 0.05),
                     Container(
                       width: double.infinity,
-                      height: (60 / MediaQuery.of(context).size.height) *
-                          MediaQuery.of(context).size.height,
+                      height: (60 / MediaQuery
+                          .of(context)
+                          .size
+                          .height) *
+                          MediaQuery
+                              .of(context)
+                              .size
+                              .height,
                       padding: const EdgeInsets.symmetric(horizontal: 20.0),
                       child: ElevatedButton(
                         onPressed: () {
@@ -301,8 +380,8 @@ class _EditProfileState extends State<EditProfile> with WidgetsBindingObserver {
                         },
                         style: ButtonStyle(
                           backgroundColor:
-                              WidgetStateProperty.resolveWith<Color>(
-                            (Set<WidgetState> states) {
+                          WidgetStateProperty.resolveWith<Color>(
+                                (Set<WidgetState> states) {
                               if (states.contains(WidgetState.pressed)) {
                                 return Colors.white;
                               }
@@ -310,8 +389,8 @@ class _EditProfileState extends State<EditProfile> with WidgetsBindingObserver {
                             },
                           ),
                           foregroundColor:
-                              WidgetStateProperty.resolveWith<Color>(
-                            (Set<WidgetState> states) {
+                          WidgetStateProperty.resolveWith<Color>(
+                                (Set<WidgetState> states) {
                               if (states.contains(WidgetState.pressed)) {
                                 return Colors.black;
                               }
@@ -320,26 +399,26 @@ class _EditProfileState extends State<EditProfile> with WidgetsBindingObserver {
                           ),
                           elevation: WidgetStateProperty.all<double>(4.0),
                           shape:
-                              WidgetStateProperty.all<RoundedRectangleBorder>(
+                          WidgetStateProperty.all<RoundedRectangleBorder>(
                             const RoundedRectangleBorder(
                               borderRadius:
-                                  BorderRadius.all(Radius.circular(15)),
+                              BorderRadius.all(Radius.circular(15)),
                             ),
                           ),
                         ),
                         child: isLoading
                             ? const Center(
-                                child: CircularProgressIndicator(
-                                  color: Colors.white,
-                                ),
-                              )
+                          child: CircularProgressIndicator(
+                            color: Colors.white,
+                          ),
+                        )
                             : const Text(
-                                'Save',
-                                style: TextStyle(
-                                  fontFamily: 'Inter',
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
+                          'Save',
+                          style: TextStyle(
+                            fontFamily: 'Inter',
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
                       ),
                     ),
                   ],

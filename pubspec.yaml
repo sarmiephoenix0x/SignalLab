@@ -51,6 +51,7 @@ dependencies:
   youtube_player_flutter: ^8.0.0
   image_picker: ^0.8.5+3
   image_cropper: ^3.0.1
+  visibility_detector: ^0.3.3
 
 
 dev_dependencies:
@@ -220,6 +221,20 @@ flutter:
   - images/bi_people.png
   - images/RadioButBody.png
   - images/RadioButHandle.png
+  - images/token-branded_binance-smart-chain.png
+  - images/token-branded_solana.png
+  - images/icon _Dogecoin Cryptocurrency_.png
+  - images/icon _Ethereum Cryptocurrency_.png
+  - images/icon _Litecoin Cryptocurrency_.png
+  - images/icon _TRON Cryptocurrency_.png
+  - images/analysis_tab_img.png
+  - images/analysis_tab_img_faded.png
+  - images/chart_tab_img_faded.png
+  - images/financials_tab_img.png
+  - images/financials_tab_img_faded.png
+  - images/news_tab_img_faded.png
+  - images/overview_tab_img.png
+  - images/overview_tab_img_faded.png
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware
 

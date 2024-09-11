@@ -311,7 +311,7 @@ class CardDetailsState extends State<CardDetails> {
                                       // Adjust the aspect ratio as needed
                                       child: ClipRect(
                                         child: VideoPlayerWidget(
-                                            videoUrl: courseDetails!['videos']),
+                                            videoUrl: courseDetails!['videos'], shouldPlay: true,),
                                       ),
                                     ),
                                   ),

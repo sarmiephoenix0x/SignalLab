@@ -3,8 +3,9 @@ import 'package:youtube_player_flutter/youtube_player_flutter.dart';
 
 class VideoPlayerWidget extends StatefulWidget {
   final String videoUrl;
+  final bool shouldPlay;
 
-  const VideoPlayerWidget({required this.videoUrl});
+  const VideoPlayerWidget({required this.videoUrl,required this.shouldPlay});
 
   @override
   VideoPlayerWidgetState createState() => VideoPlayerWidgetState();
@@ -27,7 +28,7 @@ class VideoPlayerWidgetState extends State<VideoPlayerWidget> {
         _youtubeController = YoutubePlayerController(
           initialVideoId: videoId,
           flags: YoutubePlayerFlags(
-            autoPlay: true,
+            autoPlay: false,
             mute: false,
           ),
         );
@@ -44,6 +45,19 @@ class VideoPlayerWidgetState extends State<VideoPlayerWidget> {
       print("Error loading YouTube video: $e");
     }
   }
+
+  @override
+  void didUpdateWidget(covariant VideoPlayerWidget oldWidget) {
+    super.didUpdateWidget(oldWidget);
+
+    // Handle play/pause based on shouldPlay flag
+    if (widget.shouldPlay && !_youtubeController.value.isPlaying) {
+      _youtubeController.play();
+    } else if (!widget.shouldPlay && _youtubeController.value.isPlaying) {
+      _youtubeController.pause();
+    }
+  }
+
 
   @override
   void dispose() {
