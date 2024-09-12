@@ -51,7 +51,10 @@ class _IntroPageState extends State<IntroPage> {
                   CarouselSlider(
                     options: CarouselOptions(
                       enlargeCenterPage: false,
-                      height: MediaQuery.of(context).size.height,
+                      height: MediaQuery
+                          .of(context)
+                          .size
+                          .height,
                       viewportFraction: 1.0,
                       enableInfiniteScroll: true,
                       initialPage: 0,
@@ -66,8 +69,14 @@ class _IntroPageState extends State<IntroPage> {
                       return SingleChildScrollView(
                         child: SizedBox(
                           height: orientation == Orientation.portrait
-                              ? MediaQuery.of(context).size.height
-                              : MediaQuery.of(context).size.height * 2.6,
+                              ? MediaQuery
+                              .of(context)
+                              .size
+                              .height
+                              : MediaQuery
+                              .of(context)
+                              .size
+                              .height * 2.6,
                           child: Column(
                             children: [
                               Image.asset(
@@ -87,12 +96,18 @@ class _IntroPageState extends State<IntroPage> {
                                 textAlign: TextAlign.center,
                               ),
                               SizedBox(
-                                  height: MediaQuery.of(context).size.height *
+                                  height: MediaQuery
+                                      .of(context)
+                                      .size
+                                      .height *
                                       0.02),
                               if (_current != 2)
                                 SizedBox(
                                   width:
-                                      MediaQuery.of(context).size.width * 0.8,
+                                  MediaQuery
+                                      .of(context)
+                                      .size
+                                      .width * 0.8,
                                   child: Text(
                                     imageSubheadings[_current],
                                     style: const TextStyle(
@@ -108,8 +123,14 @@ class _IntroPageState extends State<IntroPage> {
                                 Container(
                                   width: double.infinity,
                                   height: (60 /
-                                          MediaQuery.of(context).size.height) *
-                                      MediaQuery.of(context).size.height,
+                                      MediaQuery
+                                          .of(context)
+                                          .size
+                                          .height) *
+                                      MediaQuery
+                                          .of(context)
+                                          .size
+                                          .height,
                                   padding: const EdgeInsets.symmetric(
                                       horizontal: 20.0),
                                   child: ElevatedButton(
@@ -125,9 +146,10 @@ class _IntroPageState extends State<IntroPage> {
                                     style: ButtonStyle(
                                       backgroundColor: MaterialStateProperty
                                           .resolveWith<Color>(
-                                        (Set<MaterialState> states) {
+                                            (Set<MaterialState> states) {
                                           if (states
-                                              .contains(MaterialState.pressed)) {
+                                              .contains(
+                                              MaterialState.pressed)) {
                                             return Colors.white;
                                           }
                                           return Colors.black;
@@ -135,17 +157,18 @@ class _IntroPageState extends State<IntroPage> {
                                       ),
                                       foregroundColor: MaterialStateProperty
                                           .resolveWith<Color>(
-                                        (Set<MaterialState> states) {
+                                            (Set<MaterialState> states) {
                                           if (states
-                                              .contains(MaterialState.pressed)) {
+                                              .contains(
+                                              MaterialState.pressed)) {
                                             return Colors.black;
                                           }
                                           return Colors.white;
                                         },
                                       ),
                                       elevation:
-                                          MaterialStateProperty.all<double>(
-                                              4.0),
+                                      MaterialStateProperty.all<double>(
+                                          4.0),
                                       shape: MaterialStateProperty.all<
                                           RoundedRectangleBorder>(
                                         const RoundedRectangleBorder(
@@ -165,14 +188,23 @@ class _IntroPageState extends State<IntroPage> {
                                 ),
                               if (_current == 2)
                                 SizedBox(
-                                    height: MediaQuery.of(context).size.height *
+                                    height: MediaQuery
+                                        .of(context)
+                                        .size
+                                        .height *
                                         0.05),
                               if (_current == 2)
                                 Container(
                                   width: double.infinity,
                                   height: (60 /
-                                          MediaQuery.of(context).size.height) *
-                                      MediaQuery.of(context).size.height,
+                                      MediaQuery
+                                          .of(context)
+                                          .size
+                                          .height) *
+                                      MediaQuery
+                                          .of(context)
+                                          .size
+                                          .height,
                                   padding: const EdgeInsets.symmetric(
                                       horizontal: 20.0),
                                   child: ElevatedButton(
@@ -188,9 +220,10 @@ class _IntroPageState extends State<IntroPage> {
                                     style: ButtonStyle(
                                       backgroundColor: MaterialStateProperty
                                           .resolveWith<Color>(
-                                        (Set<MaterialState> states) {
+                                            (Set<MaterialState> states) {
                                           if (states
-                                              .contains(MaterialState.pressed)) {
+                                              .contains(
+                                              MaterialState.pressed)) {
                                             return Colors.black;
                                           }
                                           return Colors.white;
@@ -198,17 +231,18 @@ class _IntroPageState extends State<IntroPage> {
                                       ),
                                       foregroundColor: MaterialStateProperty
                                           .resolveWith<Color>(
-                                        (Set<MaterialState> states) {
+                                            (Set<MaterialState> states) {
                                           if (states
-                                              .contains(MaterialState.pressed)) {
+                                              .contains(
+                                              MaterialState.pressed)) {
                                             return Colors.white;
                                           }
                                           return Colors.black;
                                         },
                                       ),
                                       elevation:
-                                          MaterialStateProperty.all<double>(
-                                              4.0),
+                                      MaterialStateProperty.all<double>(
+                                          4.0),
                                       shape: MaterialStateProperty.all<
                                           RoundedRectangleBorder>(
                                         const RoundedRectangleBorder(
@@ -236,35 +270,57 @@ class _IntroPageState extends State<IntroPage> {
                   ),
                   if (_current != 2)
                     Positioned(
-                      bottom: MediaQuery.of(context).padding.bottom + 5,
+                      bottom: MediaQuery
+                          .of(context)
+                          .padding
+                          .bottom + 5,
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: List.generate(
                           imagePaths.length,
-                          (index) => Padding(
-                            padding:
+                              (index) =>
+                              Padding(
+                                padding:
                                 const EdgeInsets.symmetric(horizontal: 8.0),
-                            child: Image.asset(
-                              _current == index
-                                  ? "images/Active.png"
-                                  : "images/Inactive.png",
-                              width: (10 / MediaQuery.of(context).size.width) *
-                                  MediaQuery.of(context).size.width,
-                              height:
-                                  (10 / MediaQuery.of(context).size.height) *
-                                      MediaQuery.of(context).size.height,
-                            ),
-                          ),
+                                child: Image.asset(
+                                  _current == index
+                                      ? "images/Active.png"
+                                      : "images/Inactive.png",
+                                  width: (10 / MediaQuery
+                                      .of(context)
+                                      .size
+                                      .width) *
+                                      MediaQuery
+                                          .of(context)
+                                          .size
+                                          .width,
+                                  height:
+                                  (10 / MediaQuery
+                                      .of(context)
+                                      .size
+                                      .height) *
+                                      MediaQuery
+                                          .of(context)
+                                          .size
+                                          .height,
+                                ),
+                              ),
                         ),
                       ),
                     ),
                   if (_current != 2)
                     Positioned(
-                      top: MediaQuery.of(context).padding.top + 0,
+                      top: MediaQuery
+                          .of(context)
+                          .padding
+                          .top + 0,
                       child: Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 20.0),
                         child: SizedBox(
-                          width: MediaQuery.of(context).size.width * 0.8,
+                          width: MediaQuery
+                              .of(context)
+                              .size
+                              .width * 0.8,
                           child: Row(
                             children: [
                               const Spacer(),

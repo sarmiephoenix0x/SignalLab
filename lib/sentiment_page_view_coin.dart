@@ -12,11 +12,10 @@ class SentimentViewCoin extends StatefulWidget {
   final String sentimentTitle;
   final String sentimentImg;
 
-  const SentimentViewCoin(
-      {super.key,
-      required this.sentimentId,
-      required this.sentimentTitle,
-      required this.sentimentImg});
+  const SentimentViewCoin({super.key,
+    required this.sentimentId,
+    required this.sentimentTitle,
+    required this.sentimentImg});
 
   @override
   // ignore: library_private_types_in_public_api
@@ -107,7 +106,7 @@ class _SentimentViewCoinState extends State<SentimentViewCoin>
         setState(() {
           final responseData = json.decode(response.body);
           sentiments =
-              responseData is List<dynamic> ? responseData : [responseData];
+          responseData is List<dynamic> ? responseData : [responseData];
           loading = false;
         });
       } else if (response.statusCode == 401) {
@@ -134,7 +133,7 @@ class _SentimentViewCoinState extends State<SentimentViewCoin>
       setState(() {
         loading = false;
         errorMessage =
-            'Failed to load data. Please check your network connection.';
+        'Failed to load data. Please check your network connection.';
       });
       print('Exception: $e');
     }
@@ -288,25 +287,24 @@ class _SentimentViewCoinState extends State<SentimentViewCoin>
 
     if (response.statusCode == 200) {
       // Show success message
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-              'Successfully ${type == 'upvote' ? 'Upvoted' : 'Downvoted'}'),
-          backgroundColor: Colors.green,
-        ),
+      _showCustomSnackBar(
+        context,
+        'Successfully ${type == 'upvote' ? 'Upvoted' : 'Downvoted'}',
+        isError: false,
       );
+
       setState(() {
         shared = true;
         isLoading2 = false;
       });
       setState(() {}); // Update the UI
     } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(responseBody['message'] ?? 'An error occurred'),
-          backgroundColor: Colors.red,
-        ),
+      _showCustomSnackBar(
+        context,
+        responseBody['message'] ?? 'An error occurred',
+        isError: true,
       );
+
       setState(() {
         isLoading2 = false;
       });
@@ -317,6 +315,36 @@ class _SentimentViewCoinState extends State<SentimentViewCoin>
     vote(currentVote);
   }
 
+  void _showCustomSnackBar(BuildContext context, String message,
+      {bool isError = false}) {
+    final snackBar = SnackBar(
+      content: Row(
+        children: [
+          Icon(
+            isError ? Icons.error_outline : Icons.check_circle_outline,
+            color: isError ? Colors.red : Colors.green,
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text(
+              message,
+              style: const TextStyle(color: Colors.white),
+            ),
+          ),
+        ],
+      ),
+      backgroundColor: isError ? Colors.red : Colors.green,
+      behavior: SnackBarBehavior.floating,
+      margin: const EdgeInsets.all(10),
+      duration: const Duration(seconds: 3),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(10),
+      ),
+    );
+
+    ScaffoldMessenger.of(context).showSnackBar(snackBar);
+  }
+
   @override
   Widget build(BuildContext context) {
     return OrientationBuilder(
@@ -324,345 +352,371 @@ class _SentimentViewCoinState extends State<SentimentViewCoin>
         return Scaffold(
           body: loading
               ? const Center(
-                  child: CircularProgressIndicator(color: Colors.black))
+              child: CircularProgressIndicator(color: Colors.black))
               : Center(
-                  child: RefreshIndicator(
-                    onRefresh: _refreshData,
-                    color: Colors.black,
-                    child: Stack(
+            child: RefreshIndicator(
+              onRefresh: _refreshData,
+              color: Colors.black,
+              child: Stack(
+                children: [
+                  SingleChildScrollView(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        SingleChildScrollView(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
+                        SizedBox(
+                            height:
+                            MediaQuery
+                                .of(context)
+                                .size
+                                .height * 0.1),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 20.0),
+                          child: Row(
                             children: [
-                              SizedBox(
-                                  height:
-                                      MediaQuery.of(context).size.height * 0.1),
-                              Padding(
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: 20.0),
-                                child: Row(
-                                  children: [
-                                    InkWell(
-                                      onTap: () {
-                                        Navigator.pop(context);
-                                      },
-                                      child: Image.asset(
-                                          'images/tabler_arrow-back.png'),
+                              InkWell(
+                                onTap: () {
+                                  Navigator.pop(context);
+                                },
+                                child: Image.asset(
+                                    'images/tabler_arrow-back.png'),
+                              ),
+                              const Spacer(),
+                              Expanded(
+                                flex: 10,
+                                child: Text(
+                                  widget.sentimentTitle,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: const TextStyle(
+                                    fontFamily: 'Inconsolata',
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 22,
+                                    color: Colors.black,
+                                  ),
+                                ),
+                              ),
+                              const Spacer(),
+                            ],
+                          ),
+                        ),
+                        SizedBox(
+                            height: MediaQuery
+                                .of(context)
+                                .size
+                                .height *
+                                0.05),
+                        if (loading)
+                          const Center(
+                            child: CircularProgressIndicator(
+                                color: Colors.black),
+                          )
+                        else
+                          if (errorMessage != null)
+                            Center(
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Text(
+                                    errorMessage!,
+                                    textAlign: TextAlign.center,
+                                    style: const TextStyle(
+                                      fontFamily: 'Inconsolata',
+                                      color: Colors.red,
                                     ),
-                                    const Spacer(),
-                                    Expanded(
+                                  ),
+                                  const SizedBox(height: 16),
+                                  ElevatedButton(
+                                    onPressed: _refreshData,
+                                    child: const Text(
+                                      'Retry',
+                                      style: TextStyle(
+                                        fontFamily: 'Inconsolata',
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 18,
+                                        color: Colors.black,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            )
+                          else
+                            Column(
+                              crossAxisAlignment:
+                              CrossAxisAlignment.start,
+                              children: [
+                                // WebView content
+                                SizedBox(
+                                  height:
+                                  MediaQuery
+                                      .of(context)
+                                      .size
+                                      .height *
+                                      0.7, // Specify the height
+                                  child: WebViewWidget(
+                                      controller: _controller),
+                                ),
+                                SizedBox(
+                                    height: MediaQuery
+                                        .of(context)
+                                        .size
+                                        .height *
+                                        0.02),
+                                const Center(
+                                  child: Text(
+                                    'Share your opinion',
+                                    textAlign: TextAlign.center,
+                                    style: TextStyle(
+                                      fontFamily: 'Inconsolata',
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 20,
+                                      color: Colors.black,
+                                    ),
+                                  ),
+                                ),
+                                SizedBox(
+                                    height: MediaQuery
+                                        .of(context)
+                                        .size
+                                        .height *
+                                        0.02),
+                                Center(
+                                  child: Text(
+                                    "${widget.sentimentTitle} will go",
+                                    textAlign: TextAlign.center,
+                                    style: const TextStyle(
+                                      fontFamily: 'Inconsolata',
+                                      fontSize: 18,
+                                      color: Colors.black,
+                                    ),
+                                  ),
+                                ),
+                                SizedBox(
+                                    height: MediaQuery
+                                        .of(context)
+                                        .size
+                                        .height *
+                                        0.02),
+                                // Voting buttons
+                                _voteButtons(),
+                                SizedBox(
+                                    height: MediaQuery
+                                        .of(context)
+                                        .size
+                                        .height *
+                                        0.02),
+                                Center(
+                                  child: Text(
+                                    "${widget
+                                        .sentimentTitle} will go $voteText over the",
+                                    textAlign: TextAlign.center,
+                                    style: const TextStyle(
+                                      fontFamily: 'Inconsolata',
+                                      fontSize: 18,
+                                      color: Colors.black,
+                                    ),
+                                  ),
+                                ),
+                                SizedBox(
+                                    height: MediaQuery
+                                        .of(context)
+                                        .size
+                                        .height *
+                                        0.02),
+                                _voteButtons2(),
+                                SizedBox(
+                                    height: MediaQuery
+                                        .of(context)
+                                        .size
+                                        .height *
+                                        0.05),
+                                Row(
+                                  children: [
+                                    const Expanded(
                                       flex: 10,
                                       child: Text(
-                                        widget.sentimentTitle,
-                                        overflow: TextOverflow.ellipsis,
-                                        style: const TextStyle(
+                                        'Notify me when the prediction has finished',
+                                        softWrap: true,
+                                        textAlign: TextAlign.center,
+                                        style: TextStyle(
                                           fontFamily: 'Inconsolata',
-                                          fontWeight: FontWeight.bold,
-                                          fontSize: 22,
+                                          fontSize: 18,
                                           color: Colors.black,
                                         ),
                                       ),
                                     ),
                                     const Spacer(),
+                                    Padding(
+                                      padding: const EdgeInsets.symmetric(
+                                          horizontal: 20.0),
+                                      child: InkWell(
+                                        onTap: () {
+                                          setState(() {
+                                            _notifyActive =
+                                            !_notifyActive;
+                                          });
+                                        },
+                                        child: Stack(
+                                          children: [
+                                            Image.asset(
+                                              'images/RadioButBody.png',
+                                              fit: BoxFit.cover,
+                                              color: _notifyActive
+                                                  ? Colors.black
+                                                  : null,
+                                            ),
+                                            AnimatedPositioned(
+                                              bottom:
+                                              MediaQuery
+                                                  .of(context)
+                                                  .padding
+                                                  .bottom +
+                                                  -3,
+                                              left: _notifyActive
+                                                  ? MediaQuery
+                                                  .of(context)
+                                                  .padding
+                                                  .left +
+                                                  16
+                                                  : MediaQuery
+                                                  .of(context)
+                                                  .padding
+                                                  .left +
+                                                  -2,
+                                              duration: const Duration(
+                                                  milliseconds: 160),
+                                              child: Image.asset(
+                                                'images/RadioButHandle.png',
+                                                fit: BoxFit.cover,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ),
                                   ],
                                 ),
-                              ),
-                              SizedBox(
-                                  height: MediaQuery.of(context).size.height *
-                                      0.05),
-                              if (loading)
-                                const Center(
-                                  child: CircularProgressIndicator(
-                                      color: Colors.black),
-                                )
-                              else if (errorMessage != null)
-                                Center(
-                                  child: Column(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      Text(
-                                        errorMessage!,
-                                        textAlign: TextAlign.center,
-                                        style: const TextStyle(
-                                          fontFamily: 'Inconsolata',
-                                          color: Colors.red,
-                                        ),
-                                      ),
-                                      const SizedBox(height: 16),
-                                      ElevatedButton(
-                                        onPressed: _refreshData,
-                                        child: const Text(
-                                          'Retry',
-                                          style: TextStyle(
-                                            fontFamily: 'Inconsolata',
-                                            fontWeight: FontWeight.bold,
-                                            fontSize: 18,
-                                            color: Colors.black,
-                                          ),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                )
-                              else
-                                 Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      // WebView content
-                                      SizedBox(
-                                        height:
-                                            MediaQuery.of(context).size.height *
-                                                0.7, // Specify the height
-                                        child: WebViewWidget(
-                                            controller: _controller),
-                                      ),
-                                      SizedBox(
-                                          height: MediaQuery.of(context)
-                                                  .size
-                                                  .height *
-                                              0.02),
-                                      const Center(
-                                        child: Text(
-                                          'Share your opinion',
-                                          textAlign: TextAlign.center,
-                                          style: TextStyle(
-                                            fontFamily: 'Inconsolata',
-                                            fontWeight: FontWeight.bold,
-                                            fontSize: 20,
-                                            color: Colors.black,
-                                          ),
-                                        ),
-                                      ),
-                                      SizedBox(
-                                          height: MediaQuery.of(context)
-                                                  .size
-                                                  .height *
-                                              0.02),
-                                      Center(
-                                        child: Text(
-                                          "${widget.sentimentTitle} will go",
-                                          textAlign: TextAlign.center,
-                                          style: const TextStyle(
-                                            fontFamily: 'Inconsolata',
-                                            fontSize: 18,
-                                            color: Colors.black,
-                                          ),
-                                        ),
-                                      ),
-                                      SizedBox(
-                                          height: MediaQuery.of(context)
-                                                  .size
-                                                  .height *
-                                              0.02),
-                                      // Voting buttons
-                                      _voteButtons(),
-                                      SizedBox(
-                                          height: MediaQuery.of(context)
-                                                  .size
-                                                  .height *
-                                              0.02),
-                                      Center(
-                                        child: Text(
-                                          "${widget.sentimentTitle} will go $voteText over the",
-                                          textAlign: TextAlign.center,
-                                          style: const TextStyle(
-                                            fontFamily: 'Inconsolata',
-                                            fontSize: 18,
-                                            color: Colors.black,
-                                          ),
-                                        ),
-                                      ),
-                                      SizedBox(
-                                          height: MediaQuery.of(context)
-                                                  .size
-                                                  .height *
-                                              0.02),
-                                      _voteButtons2(),
-                                      SizedBox(
-                                          height: MediaQuery.of(context)
-                                                  .size
-                                                  .height *
-                                              0.05),
-                                      Row(
-                                        children: [
-                                          const Expanded(
-                                            flex: 10,
-                                            child: Text(
-                                              'Notify me when the prediction has finished',
-                                              softWrap: true,
-                                              textAlign: TextAlign.center,
-                                              style: TextStyle(
-                                                fontFamily: 'Inconsolata',
-                                                fontSize: 18,
-                                                color: Colors.black,
-                                              ),
-                                            ),
-                                          ),
-                                          const Spacer(),
-                                          Padding(
-                                            padding: const EdgeInsets.symmetric(
-                                                horizontal: 20.0),
-                                            child: InkWell(
-                                              onTap: () {
-                                                setState(() {
-                                                  _notifyActive =
-                                                      !_notifyActive;
-                                                });
-                                              },
-                                              child: Stack(
-                                                children: [
-                                                  Image.asset(
-                                                    'images/RadioButBody.png',
-                                                    fit: BoxFit.cover,
-                                                    color: _notifyActive
-                                                        ? Colors.black
-                                                        : null,
-                                                  ),
-                                                  AnimatedPositioned(
-                                                    bottom:
-                                                        MediaQuery.of(context)
-                                                                .padding
-                                                                .bottom +
-                                                            -3,
-                                                    left: _notifyActive
-                                                        ? MediaQuery.of(context)
-                                                                .padding
-                                                                .left +
-                                                            16
-                                                        : MediaQuery.of(context)
-                                                                .padding
-                                                                .left +
-                                                            -2,
-                                                    duration: const Duration(
-                                                        milliseconds: 160),
-                                                    child: Image.asset(
-                                                      'images/RadioButHandle.png',
-                                                      fit: BoxFit.cover,
-                                                    ),
-                                                  ),
-                                                ],
-                                              ),
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                      SizedBox(
-                                          height: MediaQuery.of(context)
-                                                  .size
-                                                  .height *
-                                              0.05),
+                                SizedBox(
+                                    height: MediaQuery
+                                        .of(context)
+                                        .size
+                                        .height *
+                                        0.05),
 
-                                      // Share button
-                                      Container(
-                                        width: double.infinity,
-                                        height: (60 /
-                                                MediaQuery.of(context)
-                                                    .size
-                                                    .height) *
-                                            MediaQuery.of(context).size.height,
-                                        padding: const EdgeInsets.symmetric(
-                                            horizontal: 20.0),
-                                        child: ElevatedButton(
-                                          onPressed:
-                                              isLoading ? null : () => _share(),
-                                          style: ButtonStyle(
-                                            backgroundColor:
-                                                MaterialStateProperty
-                                                    .resolveWith<Color>(
-                                              (Set<MaterialState> states) {
-                                                if (states.contains(
-                                                    MaterialState.pressed)) {
-                                                  return Colors.white;
-                                                }
-                                                return Colors.black;
-                                              },
-                                            ),
-                                            foregroundColor:
-                                                MaterialStateProperty
-                                                    .resolveWith<Color>(
-                                              (Set<MaterialState> states) {
-                                                if (states.contains(
-                                                    MaterialState.pressed)) {
-                                                  return Colors.black;
-                                                }
-                                                return Colors.white;
-                                              },
-                                            ),
-                                            elevation: MaterialStateProperty
-                                                .all<double>(4.0),
-                                            shape: MaterialStateProperty.all<
-                                                RoundedRectangleBorder>(
-                                              const RoundedRectangleBorder(
-                                                borderRadius: BorderRadius.all(
-                                                    Radius.circular(15)),
-                                              ),
-                                            ),
-                                          ),
-                                          child: isLoading2
-                                              ? const CircularProgressIndicator(
-                                                  color: Colors.white,
-                                                )
-                                              : const Text(
-                                                  'Share',
-                                                  style: TextStyle(
-                                                    fontFamily: 'Inter',
-                                                    fontWeight: FontWeight.bold,
-                                                  ),
-                                                ),
+                                // Share button
+                                Container(
+                                  width: double.infinity,
+                                  height: (60 /
+                                      MediaQuery
+                                          .of(context)
+                                          .size
+                                          .height) *
+                                      MediaQuery
+                                          .of(context)
+                                          .size
+                                          .height,
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 20.0),
+                                  child: ElevatedButton(
+                                    onPressed:
+                                    isLoading ? null : () => _share(),
+                                    style: ButtonStyle(
+                                      backgroundColor:
+                                      MaterialStateProperty
+                                          .resolveWith<Color>(
+                                            (Set<MaterialState> states) {
+                                          if (states.contains(
+                                              MaterialState.pressed)) {
+                                            return Colors.white;
+                                          }
+                                          return Colors.black;
+                                        },
+                                      ),
+                                      foregroundColor:
+                                      MaterialStateProperty
+                                          .resolveWith<Color>(
+                                            (Set<MaterialState> states) {
+                                          if (states.contains(
+                                              MaterialState.pressed)) {
+                                            return Colors.black;
+                                          }
+                                          return Colors.white;
+                                        },
+                                      ),
+                                      elevation: MaterialStateProperty
+                                          .all<double>(4.0),
+                                      shape: MaterialStateProperty.all<
+                                          RoundedRectangleBorder>(
+                                        const RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.all(
+                                              Radius.circular(15)),
                                         ),
                                       ),
-                                    ],
+                                    ),
+                                    child: isLoading2
+                                        ? const CircularProgressIndicator(
+                                      color: Colors.white,
+                                    )
+                                        : const Text(
+                                      'Share',
+                                      style: TextStyle(
+                                        fontFamily: 'Inter',
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                  ),
                                 ),
-                            ],
-                          ),
-                        ),
-                        if (shared)
-                          Positioned.fill(
-                            child: InkWell(
-                              onTap: () {
-                                setState(() {
-                                  shared = false;
-                                });
-                              },
-                              child: Container(
-                                color: Colors.black.withOpacity(0.5),
-                                child: Column(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      Image.asset(
-                                        'images/Submitted-Tick.png',
-                                        height: 60,
-                                      ),
-                                      SizedBox(
-                                          height: MediaQuery.of(context)
-                                                  .size
-                                                  .height *
-                                              0.02),
-                                      const Padding(
-                                        padding: const EdgeInsets.symmetric(
-                                            horizontal: 20.0),
-                                        child: Center(
-                                          child: Text(
-                                            "Your opinion has been shared with the community",
-                                            textAlign: TextAlign.center,
-                                            style: TextStyle(
-                                              fontFamily: 'Inconsolata',
-                                              fontSize: 18,
-                                              color: Colors.white,
-                                            ),
-                                          ),
-                                        ),
-                                      ),
-                                    ]),
-                              ),
+                              ],
                             ),
-                          ),
                       ],
                     ),
                   ),
-                ),
+                  if (shared)
+                    Positioned.fill(
+                      child: InkWell(
+                        onTap: () {
+                          setState(() {
+                            shared = false;
+                          });
+                        },
+                        child: Container(
+                          color: Colors.black.withOpacity(0.5),
+                          child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Image.asset(
+                                  'images/Submitted-Tick.png',
+                                  height: 60,
+                                ),
+                                SizedBox(
+                                    height: MediaQuery
+                                        .of(context)
+                                        .size
+                                        .height *
+                                        0.02),
+                                const Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 20.0),
+                                  child: Center(
+                                    child: Text(
+                                      "Your opinion has been shared with the community",
+                                      textAlign: TextAlign.center,
+                                      style: TextStyle(
+                                        fontFamily: 'Inconsolata',
+                                        fontSize: 18,
+                                        color: Colors.white,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ]),
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+            ),
+          ),
         );
       },
     );

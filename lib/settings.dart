@@ -148,57 +148,57 @@ class _AccountSettingsState extends State<AccountSettings>
                             ),
                           );
                         },
-                        child:Container(
-                        height: (50 / MediaQuery
-                            .of(context)
-                            .size
-                            .height) *
-                            MediaQuery
-                                .of(context)
-                                .size
-                                .height,
-                        padding: const EdgeInsets.all(10.0),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(5),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.grey.withOpacity(0.5),
-                              spreadRadius: 3,
-                              blurRadius: 5,
-                            ),
-                          ],
-                        ),
-                        child: Row(
-                          children: [
-                            SizedBox(
-                                width: MediaQuery
-                                    .of(context)
-                                    .size
-                                    .width *
-                                    0.02),
-                            Image.asset(
-                              'images/ep_edit-black.png',
-                            ),
-                            SizedBox(
-                                width: MediaQuery
-                                    .of(context)
-                                    .size
-                                    .width *
-                                    0.04),
-                            const Text(
-                              'Change Password',
-                              style: TextStyle(
-                                fontFamily: 'Inter',
-                                fontSize: 15,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.black,
+                        child: Container(
+                          height: (50 / MediaQuery
+                              .of(context)
+                              .size
+                              .height) *
+                              MediaQuery
+                                  .of(context)
+                                  .size
+                                  .height,
+                          padding: const EdgeInsets.all(10.0),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(5),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.grey.withOpacity(0.5),
+                                spreadRadius: 3,
+                                blurRadius: 5,
                               ),
-                            ),
-                          ],
+                            ],
+                          ),
+                          child: Row(
+                            children: [
+                              SizedBox(
+                                  width: MediaQuery
+                                      .of(context)
+                                      .size
+                                      .width *
+                                      0.02),
+                              Image.asset(
+                                'images/ep_edit-black.png',
+                              ),
+                              SizedBox(
+                                  width: MediaQuery
+                                      .of(context)
+                                      .size
+                                      .width *
+                                      0.04),
+                              const Text(
+                                'Change Password',
+                                style: TextStyle(
+                                  fontFamily: 'Inter',
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.black,
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
                       ),
-                    ),
                     ),
                     SizedBox(
                         height: MediaQuery

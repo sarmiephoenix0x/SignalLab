@@ -67,53 +67,53 @@ class _SignUpPageState extends State<SignUpPage> with WidgetsBindingObserver {
         phoneNumber.isEmpty ||
         password.isEmpty ||
         passwordConfirmation.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('All fields are required.'),
-          backgroundColor: Colors.red,
-        ),
+      _showCustomSnackBar(
+        context,
+        'All fields are required.',
+        isError: true,
       );
+
       return;
     }
 
     final RegExp emailRegex = RegExp(r'^[^@]+@[^@]+\.[^@]+$');
     if (!emailRegex.hasMatch(email)) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Please enter a valid email address.'),
-          backgroundColor: Colors.red,
-        ),
+      _showCustomSnackBar(
+        context,
+        'Please enter a valid email address.',
+        isError: true,
       );
+
       return;
     }
 
     if (password.length < 6) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Password must be at least 6 characters.'),
-          backgroundColor: Colors.red,
-        ),
+      _showCustomSnackBar(
+        context,
+        'Password must be at least 6 characters.',
+        isError: true,
       );
+
       return;
     }
 
     if (password != passwordConfirmation) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Passwords do not match.'),
-          backgroundColor: Colors.red,
-        ),
+      _showCustomSnackBar(
+        context,
+        'Passwords do not match.',
+        isError: true,
       );
+
       return;
     }
 
     if (phoneNumber.length < 11) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Phone number must be at least 11 characters.'),
-          backgroundColor: Colors.red,
-        ),
+      _showCustomSnackBar(
+        context,
+        'Phone number must be at least 11 characters.',
+        isError: true,
       );
+
       return;
     }
 
@@ -147,12 +147,12 @@ class _SignUpPageState extends State<SignUpPage> with WidgetsBindingObserver {
           'user', jsonEncode(user)); // Store user as a JSON string
 
       // Handle successful response
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Sign up successful! Welcome, ${user['name']}'),
-          backgroundColor: Colors.green,
-        ),
+      _showCustomSnackBar(
+        context,
+        'Sign up successful! Welcome, ${user['name']}',
+        isError: false,
       );
+
 
       // Navigate to the main app or another page
       Navigator.pushReplacement(
@@ -170,22 +170,20 @@ class _SignUpPageState extends State<SignUpPage> with WidgetsBindingObserver {
       final List<dynamic> data = responseData['data']['email'];
 
       // Handle validation error
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Error: $error - $data'),
-          backgroundColor: Colors.red,
-        ),
+      _showCustomSnackBar(
+        context,
+        'Error: $error - $data',
+        isError: true,
       );
     } else {
       setState(() {
         isLoading = false;
       });
       // Handle other unexpected responses
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('An unexpected error occurred.'),
-          backgroundColor: Colors.red,
-        ),
+      _showCustomSnackBar(
+        context,
+        'An unexpected error occurred.',
+        isError: true,
       );
     }
   }
@@ -202,6 +200,36 @@ class _SignUpPageState extends State<SignUpPage> with WidgetsBindingObserver {
     super.dispose();
   }
 
+  void _showCustomSnackBar(BuildContext context, String message,
+      {bool isError = false}) {
+    final snackBar = SnackBar(
+      content: Row(
+        children: [
+          Icon(
+            isError ? Icons.error_outline : Icons.check_circle_outline,
+            color: isError ? Colors.red : Colors.green,
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text(
+              message,
+              style: const TextStyle(color: Colors.white),
+            ),
+          ),
+        ],
+      ),
+      backgroundColor: isError ? Colors.red : Colors.green,
+      behavior: SnackBarBehavior.floating,
+      margin: const EdgeInsets.all(10),
+      duration: const Duration(seconds: 3),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(10),
+      ),
+    );
+
+    ScaffoldMessenger.of(context).showSnackBar(snackBar);
+  }
+
   @override
   Widget build(BuildContext context) {
     return OrientationBuilder(
@@ -211,12 +239,21 @@ class _SignUpPageState extends State<SignUpPage> with WidgetsBindingObserver {
             child: Center(
               child: SizedBox(
                 height: orientation == Orientation.portrait
-                    ? MediaQuery.of(context).size.height * 1.2
-                    : MediaQuery.of(context).size.height * 2,
+                    ? MediaQuery
+                    .of(context)
+                    .size
+                    .height * 1.2
+                    : MediaQuery
+                    .of(context)
+                    .size
+                    .height * 2,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    SizedBox(height: MediaQuery.of(context).size.height * 0.1),
+                    SizedBox(height: MediaQuery
+                        .of(context)
+                        .size
+                        .height * 0.1),
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 20.0),
                       child: Row(
@@ -240,12 +277,18 @@ class _SignUpPageState extends State<SignUpPage> with WidgetsBindingObserver {
                             ),
                           ),
                           SizedBox(
-                              width: MediaQuery.of(context).size.width * 0.1),
+                              width: MediaQuery
+                                  .of(context)
+                                  .size
+                                  .width * 0.1),
                           const Spacer(),
                         ],
                       ),
                     ),
-                    SizedBox(height: MediaQuery.of(context).size.height * 0.05),
+                    SizedBox(height: MediaQuery
+                        .of(context)
+                        .size
+                        .height * 0.05),
                     const Padding(
                       padding: EdgeInsets.symmetric(horizontal: 20.0),
                       child: Text(
@@ -282,7 +325,10 @@ class _SignUpPageState extends State<SignUpPage> with WidgetsBindingObserver {
                         cursorColor: Colors.black,
                       ),
                     ),
-                    SizedBox(height: MediaQuery.of(context).size.height * 0.02),
+                    SizedBox(height: MediaQuery
+                        .of(context)
+                        .size
+                        .height * 0.02),
                     const Padding(
                       padding: EdgeInsets.symmetric(horizontal: 20.0),
                       child: Text(
@@ -319,7 +365,10 @@ class _SignUpPageState extends State<SignUpPage> with WidgetsBindingObserver {
                         cursorColor: Colors.black,
                       ),
                     ),
-                    SizedBox(height: MediaQuery.of(context).size.height * 0.02),
+                    SizedBox(height: MediaQuery
+                        .of(context)
+                        .size
+                        .height * 0.02),
                     const Padding(
                       padding: EdgeInsets.symmetric(horizontal: 20.0),
                       child: Text(
@@ -363,7 +412,10 @@ class _SignUpPageState extends State<SignUpPage> with WidgetsBindingObserver {
                         cursorColor: Colors.black,
                       ),
                     ),
-                    SizedBox(height: MediaQuery.of(context).size.height * 0.02),
+                    SizedBox(height: MediaQuery
+                        .of(context)
+                        .size
+                        .height * 0.02),
                     const Padding(
                       padding: EdgeInsets.symmetric(horizontal: 20.0),
                       child: Text(
@@ -382,8 +434,14 @@ class _SignUpPageState extends State<SignUpPage> with WidgetsBindingObserver {
                       child: Row(
                         children: [
                           Container(
-                            height: (55 / MediaQuery.of(context).size.height) *
-                                MediaQuery.of(context).size.height,
+                            height: (55 / MediaQuery
+                                .of(context)
+                                .size
+                                .height) *
+                                MediaQuery
+                                    .of(context)
+                                    .size
+                                    .height,
                             padding: const EdgeInsets.all(10.0),
                             decoration: BoxDecoration(
                               border: Border.all(width: 1, color: Colors.grey),
@@ -397,7 +455,10 @@ class _SignUpPageState extends State<SignUpPage> with WidgetsBindingObserver {
                                   height: 24.0,
                                 ),
                                 SizedBox(
-                                    width: MediaQuery.of(context).size.width *
+                                    width: MediaQuery
+                                        .of(context)
+                                        .size
+                                        .width *
                                         0.01),
                                 const Text(
                                   '+234',
@@ -407,7 +468,10 @@ class _SignUpPageState extends State<SignUpPage> with WidgetsBindingObserver {
                                   ),
                                 ),
                                 SizedBox(
-                                    width: MediaQuery.of(context).size.width *
+                                    width: MediaQuery
+                                        .of(context)
+                                        .size
+                                        .width *
                                         0.02),
                                 if (dropDownTapped == false)
                                   GestureDetector(
@@ -439,7 +503,10 @@ class _SignUpPageState extends State<SignUpPage> with WidgetsBindingObserver {
                             ),
                           ),
                           SizedBox(
-                              width: MediaQuery.of(context).size.width * 0.02),
+                              width: MediaQuery
+                                  .of(context)
+                                  .size
+                                  .width * 0.02),
                           Expanded(
                             child: TextFormField(
                               controller: phoneNumberController,
@@ -468,7 +535,10 @@ class _SignUpPageState extends State<SignUpPage> with WidgetsBindingObserver {
                         ],
                       ),
                     ),
-                    SizedBox(height: MediaQuery.of(context).size.height * 0.02),
+                    SizedBox(height: MediaQuery
+                        .of(context)
+                        .size
+                        .height * 0.02),
                     const Padding(
                       padding: EdgeInsets.symmetric(horizontal: 20.0),
                       child: Text(
@@ -523,7 +593,10 @@ class _SignUpPageState extends State<SignUpPage> with WidgetsBindingObserver {
                         obscuringCharacter: "*",
                       ),
                     ),
-                    SizedBox(height: MediaQuery.of(context).size.height * 0.02),
+                    SizedBox(height: MediaQuery
+                        .of(context)
+                        .size
+                        .height * 0.02),
                     const Padding(
                       padding: EdgeInsets.symmetric(horizontal: 20.0),
                       child: Text(
@@ -578,11 +651,20 @@ class _SignUpPageState extends State<SignUpPage> with WidgetsBindingObserver {
                         obscuringCharacter: "*",
                       ),
                     ),
-                    SizedBox(height: MediaQuery.of(context).size.height * 0.05),
+                    SizedBox(height: MediaQuery
+                        .of(context)
+                        .size
+                        .height * 0.05),
                     Container(
                       width: double.infinity,
-                      height: (60 / MediaQuery.of(context).size.height) *
-                          MediaQuery.of(context).size.height,
+                      height: (60 / MediaQuery
+                          .of(context)
+                          .size
+                          .height) *
+                          MediaQuery
+                              .of(context)
+                              .size
+                              .height,
                       padding: const EdgeInsets.symmetric(horizontal: 20.0),
                       child: ElevatedButton(
                         onPressed: () {
@@ -592,8 +674,8 @@ class _SignUpPageState extends State<SignUpPage> with WidgetsBindingObserver {
                         },
                         style: ButtonStyle(
                           backgroundColor:
-                              WidgetStateProperty.resolveWith<Color>(
-                            (Set<WidgetState> states) {
+                          WidgetStateProperty.resolveWith<Color>(
+                                (Set<WidgetState> states) {
                               if (states.contains(WidgetState.pressed)) {
                                 return Colors.white;
                               }
@@ -601,8 +683,8 @@ class _SignUpPageState extends State<SignUpPage> with WidgetsBindingObserver {
                             },
                           ),
                           foregroundColor:
-                              WidgetStateProperty.resolveWith<Color>(
-                            (Set<WidgetState> states) {
+                          WidgetStateProperty.resolveWith<Color>(
+                                (Set<WidgetState> states) {
                               if (states.contains(WidgetState.pressed)) {
                                 return Colors.black;
                               }
@@ -611,26 +693,26 @@ class _SignUpPageState extends State<SignUpPage> with WidgetsBindingObserver {
                           ),
                           elevation: WidgetStateProperty.all<double>(4.0),
                           shape:
-                              WidgetStateProperty.all<RoundedRectangleBorder>(
+                          WidgetStateProperty.all<RoundedRectangleBorder>(
                             const RoundedRectangleBorder(
                               borderRadius:
-                                  BorderRadius.all(Radius.circular(15)),
+                              BorderRadius.all(Radius.circular(15)),
                             ),
                           ),
                         ),
                         child: isLoading
                             ? const Center(
-                                child: CircularProgressIndicator(
-                                  color: Colors.white,
-                                ),
-                              )
+                          child: CircularProgressIndicator(
+                            color: Colors.white,
+                          ),
+                        )
                             : const Text(
-                                'Sign up',
-                                style: TextStyle(
-                                  fontFamily: 'Inter',
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
+                          'Sign up',
+                          style: TextStyle(
+                            fontFamily: 'Inter',
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
                       ),
                     ),
                     // SizedBox(height: MediaQuery.of(context).size.height * 0.02),

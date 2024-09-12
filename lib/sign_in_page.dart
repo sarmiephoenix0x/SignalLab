@@ -22,7 +22,7 @@ class _SignInPageState extends State<SignInPage> with WidgetsBindingObserver {
   final FocusNode _passwordFocusNode = FocusNode();
 
   final TextEditingController emailOrPhoneNumberController =
-      TextEditingController();
+  TextEditingController();
   final TextEditingController passwordController = TextEditingController();
   final storage = const FlutterSecureStorage();
   late SharedPreferences prefs;
@@ -47,12 +47,12 @@ class _SignInPageState extends State<SignInPage> with WidgetsBindingObserver {
 
     if (emailOrPhoneNumber.isEmpty || password.isEmpty) {
       // Show an error message if any field is empty
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('All fields are required.'),
-          backgroundColor: Colors.red,
-        ),
+      _showCustomSnackBar(
+        context,
+        'All fields are required.',
+        isError: true,
       );
+
       return;
     }
 
@@ -60,24 +60,24 @@ class _SignInPageState extends State<SignInPage> with WidgetsBindingObserver {
     final RegExp emailRegex = RegExp(r'^[^@]+@[^@]+\.[^@]+$');
     if (!emailRegex.hasMatch(emailOrPhoneNumber)) {
       // Show an error message if email is invalid
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Please enter a valid email address.'),
-          backgroundColor: Colors.red,
-        ),
+      _showCustomSnackBar(
+        context,
+        'Please enter a valid email address.',
+        isError: true,
       );
+
       return;
     }
 
     // Validate password length
     if (password.length < 6) {
       // Show an error message if password is too short
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Password must be at least 6 characters.'),
-          backgroundColor: Colors.red,
-        ),
+      _showCustomSnackBar(
+        context,
+        'Password must be at least 6 characters.',
+        isError: true,
       );
+
       return;
     }
 
@@ -109,12 +109,12 @@ class _SignInPageState extends State<SignInPage> with WidgetsBindingObserver {
           'user', jsonEncode(user)); // Store user as a JSON string
 
       // Handle the successful response here
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Sign in successful!'),
-          backgroundColor: Colors.green,
-        ),
+      _showCustomSnackBar(
+        context,
+        'Sign in successful!',
+        isError: false,
       );
+
 
       Navigator.pushReplacement(
         context,
@@ -130,11 +130,10 @@ class _SignInPageState extends State<SignInPage> with WidgetsBindingObserver {
       final String data = responseData['data'];
 
       // Handle validation error
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Error: $error - $data'),
-          backgroundColor: Colors.red,
-        ),
+      _showCustomSnackBar(
+        context,
+        'Error: $error - $data',
+        isError: true,
       );
     } else if (response.statusCode == 401) {
       setState(() {
@@ -143,24 +142,52 @@ class _SignInPageState extends State<SignInPage> with WidgetsBindingObserver {
       final String error = responseData['error'];
 
       // Handle invalid credentials
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Error: $error'),
-          backgroundColor: Colors.red,
-        ),
+      _showCustomSnackBar(
+        context,
+        'Error: $error',
+        isError: true,
       );
     } else {
       setState(() {
         isLoading = false;
       });
       // Handle other unexpected responses
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('An unexpected error occurred.'),
-          backgroundColor: Colors.red,
-        ),
+      _showCustomSnackBar(
+        context,
+        'An unexpected error occurred.',
+        isError: true,
       );
     }
+  }
+
+  void _showCustomSnackBar(BuildContext context, String message,
+      {bool isError = false}) {
+    final snackBar = SnackBar(
+      content: Row(
+        children: [
+          Icon(
+            isError ? Icons.error_outline : Icons.check_circle_outline,
+            color: isError ? Colors.red : Colors.green,
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text(
+              message,
+              style: const TextStyle(color: Colors.white),
+            ),
+          ),
+        ],
+      ),
+      backgroundColor: isError ? Colors.red : Colors.green,
+      behavior: SnackBarBehavior.floating,
+      margin: const EdgeInsets.all(10),
+      duration: const Duration(seconds: 3),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(10),
+      ),
+    );
+
+    ScaffoldMessenger.of(context).showSnackBar(snackBar);
   }
 
   @override
@@ -172,12 +199,21 @@ class _SignInPageState extends State<SignInPage> with WidgetsBindingObserver {
             child: Center(
               child: SizedBox(
                 height: orientation == Orientation.portrait
-                    ? MediaQuery.of(context).size.height
-                    : MediaQuery.of(context).size.height * 1.7,
+                    ? MediaQuery
+                    .of(context)
+                    .size
+                    .height
+                    : MediaQuery
+                    .of(context)
+                    .size
+                    .height * 1.7,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    SizedBox(height: MediaQuery.of(context).size.height * 0.1),
+                    SizedBox(height: MediaQuery
+                        .of(context)
+                        .size
+                        .height * 0.1),
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 20.0),
                       child: Row(
@@ -201,12 +237,18 @@ class _SignInPageState extends State<SignInPage> with WidgetsBindingObserver {
                             ),
                           ),
                           SizedBox(
-                              width: MediaQuery.of(context).size.width * 0.1),
+                              width: MediaQuery
+                                  .of(context)
+                                  .size
+                                  .width * 0.1),
                           const Spacer(),
                         ],
                       ),
                     ),
-                    SizedBox(height: MediaQuery.of(context).size.height * 0.03),
+                    SizedBox(height: MediaQuery
+                        .of(context)
+                        .size
+                        .height * 0.03),
                     const Center(
                       child: Text(
                         'Welcome',
@@ -218,7 +260,10 @@ class _SignInPageState extends State<SignInPage> with WidgetsBindingObserver {
                         ),
                       ),
                     ),
-                    SizedBox(height: MediaQuery.of(context).size.height * 0.05),
+                    SizedBox(height: MediaQuery
+                        .of(context)
+                        .size
+                        .height * 0.05),
                     const Padding(
                       padding: EdgeInsets.symmetric(horizontal: 20.0),
                       child: Text(
@@ -262,7 +307,10 @@ class _SignInPageState extends State<SignInPage> with WidgetsBindingObserver {
                         cursorColor: Colors.black,
                       ),
                     ),
-                    SizedBox(height: MediaQuery.of(context).size.height * 0.02),
+                    SizedBox(height: MediaQuery
+                        .of(context)
+                        .size
+                        .height * 0.02),
                     const Padding(
                       padding: EdgeInsets.symmetric(horizontal: 20.0),
                       child: Text(
@@ -339,11 +387,20 @@ class _SignInPageState extends State<SignInPage> with WidgetsBindingObserver {
                         ),
                       ],
                     ),
-                    SizedBox(height: MediaQuery.of(context).size.height * 0.05),
+                    SizedBox(height: MediaQuery
+                        .of(context)
+                        .size
+                        .height * 0.05),
                     Container(
                       width: double.infinity,
-                      height: (60 / MediaQuery.of(context).size.height) *
-                          MediaQuery.of(context).size.height,
+                      height: (60 / MediaQuery
+                          .of(context)
+                          .size
+                          .height) *
+                          MediaQuery
+                              .of(context)
+                              .size
+                              .height,
                       padding: const EdgeInsets.symmetric(horizontal: 20.0),
                       child: ElevatedButton(
                         onPressed: () {
@@ -353,8 +410,8 @@ class _SignInPageState extends State<SignInPage> with WidgetsBindingObserver {
                         },
                         style: ButtonStyle(
                           backgroundColor:
-                              WidgetStateProperty.resolveWith<Color>(
-                            (Set<WidgetState> states) {
+                          WidgetStateProperty.resolveWith<Color>(
+                                (Set<WidgetState> states) {
                               if (states.contains(WidgetState.pressed)) {
                                 return Colors.white;
                               }
@@ -362,8 +419,8 @@ class _SignInPageState extends State<SignInPage> with WidgetsBindingObserver {
                             },
                           ),
                           foregroundColor:
-                              WidgetStateProperty.resolveWith<Color>(
-                            (Set<WidgetState> states) {
+                          WidgetStateProperty.resolveWith<Color>(
+                                (Set<WidgetState> states) {
                               if (states.contains(WidgetState.pressed)) {
                                 return Colors.black;
                               }
@@ -372,29 +429,32 @@ class _SignInPageState extends State<SignInPage> with WidgetsBindingObserver {
                           ),
                           elevation: WidgetStateProperty.all<double>(4.0),
                           shape:
-                              WidgetStateProperty.all<RoundedRectangleBorder>(
+                          WidgetStateProperty.all<RoundedRectangleBorder>(
                             const RoundedRectangleBorder(
                               borderRadius:
-                                  BorderRadius.all(Radius.circular(15)),
+                              BorderRadius.all(Radius.circular(15)),
                             ),
                           ),
                         ),
                         child: isLoading
                             ? const Center(
-                                child: CircularProgressIndicator(
-                                  color: Colors.white,
-                                ),
-                              )
+                          child: CircularProgressIndicator(
+                            color: Colors.white,
+                          ),
+                        )
                             : const Text(
-                                'Sign in',
-                                style: TextStyle(
-                                  fontFamily: 'Inter',
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
+                          'Sign in',
+                          style: TextStyle(
+                            fontFamily: 'Inter',
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
                       ),
                     ),
-                    SizedBox(height: MediaQuery.of(context).size.height * 0.02),
+                    SizedBox(height: MediaQuery
+                        .of(context)
+                        .size
+                        .height * 0.02),
                     const Center(
                       child: Text(
                         '- Or -',
@@ -406,7 +466,10 @@ class _SignInPageState extends State<SignInPage> with WidgetsBindingObserver {
                         ),
                       ),
                     ),
-                    SizedBox(height: MediaQuery.of(context).size.height * 0.02),
+                    SizedBox(height: MediaQuery
+                        .of(context)
+                        .size
+                        .height * 0.02),
                     // Padding(
                     //   padding: const EdgeInsets.symmetric(horizontal: 20.0),
                     //   child: Row(
@@ -440,11 +503,20 @@ class _SignInPageState extends State<SignInPage> with WidgetsBindingObserver {
                         ),
                       ),
                     ),
-                    SizedBox(height: MediaQuery.of(context).size.height * 0.01),
+                    SizedBox(height: MediaQuery
+                        .of(context)
+                        .size
+                        .height * 0.01),
                     Container(
                       width: double.infinity,
-                      height: (60 / MediaQuery.of(context).size.height) *
-                          MediaQuery.of(context).size.height,
+                      height: (60 / MediaQuery
+                          .of(context)
+                          .size
+                          .height) *
+                          MediaQuery
+                              .of(context)
+                              .size
+                              .height,
                       padding: const EdgeInsets.symmetric(horizontal: 20.0),
                       child: ElevatedButton(
                         onPressed: () {
@@ -458,8 +530,8 @@ class _SignInPageState extends State<SignInPage> with WidgetsBindingObserver {
                         },
                         style: ButtonStyle(
                           backgroundColor:
-                              WidgetStateProperty.resolveWith<Color>(
-                            (Set<WidgetState> states) {
+                          WidgetStateProperty.resolveWith<Color>(
+                                (Set<WidgetState> states) {
                               if (states.contains(WidgetState.pressed)) {
                                 return Colors.black;
                               }
@@ -467,8 +539,8 @@ class _SignInPageState extends State<SignInPage> with WidgetsBindingObserver {
                             },
                           ),
                           foregroundColor:
-                              WidgetStateProperty.resolveWith<Color>(
-                            (Set<WidgetState> states) {
+                          WidgetStateProperty.resolveWith<Color>(
+                                (Set<WidgetState> states) {
                               if (states.contains(WidgetState.pressed)) {
                                 return Colors.white;
                               }
@@ -477,11 +549,11 @@ class _SignInPageState extends State<SignInPage> with WidgetsBindingObserver {
                           ),
                           elevation: WidgetStateProperty.all<double>(4.0),
                           shape:
-                              WidgetStateProperty.all<RoundedRectangleBorder>(
+                          WidgetStateProperty.all<RoundedRectangleBorder>(
                             const RoundedRectangleBorder(
                               side: BorderSide(width: 1),
                               borderRadius:
-                                  BorderRadius.all(Radius.circular(15)),
+                              BorderRadius.all(Radius.circular(15)),
                             ),
                           ),
                         ),

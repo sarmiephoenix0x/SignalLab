@@ -107,7 +107,7 @@ class _EventsPageState extends State<EventsPage> with TickerProviderStateMixin {
       setState(() {
         loading = false;
         errorMessage =
-            'Failed to load data. Please check your network connection.';
+        'Failed to load data. Please check your network connection.';
       });
       print('Exception caught: $e');
     }
@@ -241,115 +241,132 @@ class _EventsPageState extends State<EventsPage> with TickerProviderStateMixin {
     final overlay = Overlay.of(context);
 
     _overlayEntry = OverlayEntry(
-      builder: (context) => SafeArea(
-        child: GestureDetector(
-          onTap: _removeOverlay, // Close the overlay on tap outside
-          child: Material(
-            color: Colors.black.withOpacity(0.5),
-            // Semi-transparent background
-            child: Center(
-              child: GestureDetector(
-                onTap: () {
-                  // Do nothing on tap inside this widget
-                },
-                child: Container(
-                  margin: const EdgeInsets.symmetric(
-                      horizontal: 30), // Margin to limit width
-                  padding: const EdgeInsets.only(
-                      left: 12.0, right: 12.0, top: 20.0, bottom: 20.0),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(15),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.grey.withOpacity(0.5),
-                        spreadRadius: 3,
-                        blurRadius: 5,
-                      ),
-                    ],
-                  ),
-                  child: SingleChildScrollView(
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      // Makes container adjust height based on content
-                      children: [
-                        const Text(
-                          'Add Event',
-                          style: TextStyle(
-                            decoration: TextDecoration.none,
-                            fontFamily: 'Inconsolata',
-                            fontSize: 25,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.black,
+      builder: (context) =>
+          SafeArea(
+            child: GestureDetector(
+              onTap: _removeOverlay, // Close the overlay on tap outside
+              child: Material(
+                color: Colors.black.withOpacity(0.5),
+                // Semi-transparent background
+                child: Center(
+                  child: GestureDetector(
+                    onTap: () {
+                      // Do nothing on tap inside this widget
+                    },
+                    child: Container(
+                      margin: const EdgeInsets.symmetric(
+                          horizontal: 30), // Margin to limit width
+                      padding: const EdgeInsets.only(
+                          left: 12.0, right: 12.0, top: 20.0, bottom: 20.0),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(15),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.grey.withOpacity(0.5),
+                            spreadRadius: 3,
+                            blurRadius: 5,
                           ),
-                        ),
-                        SizedBox(
-                            height: MediaQuery.of(context).size.height * 0.05),
-                        textBoxEventInput('Event title'),
-                        textBoxEventInput(
-                            'Date i.e. time period when the event will occur'),
-                        dropDownEventInput(
-                            'Select coin', ValueNotifier<bool>(false)),
-                        dropDownEventInput(
-                            'Event category', ValueNotifier<bool>(false)),
-                        bigTextBoxEventInput('Description'),
-                        textBoxEventInput('Source url'),
-                        SizedBox(
-                            height: MediaQuery.of(context).size.height * 0.05),
-                        Container(
-                          width: double.infinity,
-                          height: (60 / MediaQuery.of(context).size.height) *
-                              MediaQuery.of(context).size.height,
-                          padding: const EdgeInsets.symmetric(horizontal: 30.0),
-                          child: ElevatedButton(
-                            onPressed: () {},
-                            style: ButtonStyle(
-                              backgroundColor:
-                                  WidgetStateProperty.resolveWith<Color>(
-                                (Set<WidgetState> states) {
-                                  if (states.contains(WidgetState.pressed)) {
-                                    return Colors.white;
-                                  }
-                                  return Colors.black;
-                                },
+                        ],
+                      ),
+                      child: SingleChildScrollView(
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          // Makes container adjust height based on content
+                          children: [
+                            const Text(
+                              'Add Event',
+                              style: TextStyle(
+                                decoration: TextDecoration.none,
+                                fontFamily: 'Inconsolata',
+                                fontSize: 25,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.black,
                               ),
-                              foregroundColor:
+                            ),
+                            SizedBox(
+                                height: MediaQuery
+                                    .of(context)
+                                    .size
+                                    .height * 0.05),
+                            textBoxEventInput('Event title'),
+                            textBoxEventInput(
+                                'Date i.e. time period when the event will occur'),
+                            dropDownEventInput(
+                                'Select coin', ValueNotifier<bool>(false)),
+                            dropDownEventInput(
+                                'Event category', ValueNotifier<bool>(false)),
+                            bigTextBoxEventInput('Description'),
+                            textBoxEventInput('Source url'),
+                            SizedBox(
+                                height: MediaQuery
+                                    .of(context)
+                                    .size
+                                    .height * 0.05),
+                            Container(
+                              width: double.infinity,
+                              height: (60 / MediaQuery
+                                  .of(context)
+                                  .size
+                                  .height) *
+                                  MediaQuery
+                                      .of(context)
+                                      .size
+                                      .height,
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 30.0),
+                              child: ElevatedButton(
+                                onPressed: () {},
+                                style: ButtonStyle(
+                                  backgroundColor:
                                   WidgetStateProperty.resolveWith<Color>(
-                                (Set<WidgetState> states) {
-                                  if (states.contains(WidgetState.pressed)) {
-                                    return Colors.black;
-                                  }
-                                  return Colors.white;
-                                },
-                              ),
-                              elevation: WidgetStateProperty.all<double>(4.0),
-                              shape: WidgetStateProperty.all<
-                                  RoundedRectangleBorder>(
-                                const RoundedRectangleBorder(
-                                  borderRadius:
+                                        (Set<WidgetState> states) {
+                                      if (states.contains(
+                                          WidgetState.pressed)) {
+                                        return Colors.white;
+                                      }
+                                      return Colors.black;
+                                    },
+                                  ),
+                                  foregroundColor:
+                                  WidgetStateProperty.resolveWith<Color>(
+                                        (Set<WidgetState> states) {
+                                      if (states.contains(
+                                          WidgetState.pressed)) {
+                                        return Colors.black;
+                                      }
+                                      return Colors.white;
+                                    },
+                                  ),
+                                  elevation: WidgetStateProperty.all<double>(
+                                      4.0),
+                                  shape: WidgetStateProperty.all<
+                                      RoundedRectangleBorder>(
+                                    const RoundedRectangleBorder(
+                                      borderRadius:
                                       BorderRadius.all(Radius.circular(15)),
+                                    ),
+                                  ),
+                                ),
+                                child: const Text(
+                                  'Submit',
+                                  style: TextStyle(
+                                    fontSize: 18,
+                                    fontFamily: 'Inconsolata',
+                                    fontWeight: FontWeight.bold,
+                                  ),
                                 ),
                               ),
                             ),
-                            child: const Text(
-                              'Submit',
-                              style: TextStyle(
-                                fontSize: 18,
-                                fontFamily: 'Inconsolata',
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ),
+                          ],
                         ),
-                      ],
+                      ),
                     ),
                   ),
                 ),
               ),
             ),
           ),
-        ),
-      ),
     );
 
     overlay.insert(_overlayEntry!);
@@ -360,6 +377,36 @@ class _EventsPageState extends State<EventsPage> with TickerProviderStateMixin {
     _overlayEntry = null;
   }
 
+  void _showCustomSnackBar(BuildContext context, String message,
+      {bool isError = false}) {
+    final snackBar = SnackBar(
+      content: Row(
+        children: [
+          Icon(
+            isError ? Icons.error_outline : Icons.check_circle_outline,
+            color: isError ? Colors.red : Colors.green,
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text(
+              message,
+              style: const TextStyle(color: Colors.white),
+            ),
+          ),
+        ],
+      ),
+      backgroundColor: isError ? Colors.red : Colors.green,
+      behavior: SnackBarBehavior.floating,
+      margin: const EdgeInsets.all(10),
+      duration: const Duration(seconds: 3),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(10),
+      ),
+    );
+
+    ScaffoldMessenger.of(context).showSnackBar(snackBar);
+  }
+
   @override
   Widget build(BuildContext context) {
     return OrientationBuilder(
@@ -368,14 +415,26 @@ class _EventsPageState extends State<EventsPage> with TickerProviderStateMixin {
           body: Center(
             child: SizedBox(
               height: orientation == Orientation.portrait
-                  ? MediaQuery.of(context).size.height
-                  : MediaQuery.of(context).size.height * 1.5,
+                  ? MediaQuery
+                  .of(context)
+                  .size
+                  .height
+                  : MediaQuery
+                  .of(context)
+                  .size
+                  .height * 1.5,
               child: SizedBox(
-                height: MediaQuery.of(context).size.height,
+                height: MediaQuery
+                    .of(context)
+                    .size
+                    .height,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    SizedBox(height: MediaQuery.of(context).size.height * 0.1),
+                    SizedBox(height: MediaQuery
+                        .of(context)
+                        .size
+                        .height * 0.1),
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 20.0),
                       child: Row(
@@ -387,7 +446,10 @@ class _EventsPageState extends State<EventsPage> with TickerProviderStateMixin {
                             child: Image.asset('images/tabler_arrow-back.png'),
                           ),
                           SizedBox(
-                              width: MediaQuery.of(context).size.width * 0.02),
+                              width: MediaQuery
+                                  .of(context)
+                                  .size
+                                  .width * 0.02),
                           const Text(
                             'Events',
                             style: TextStyle(
@@ -408,7 +470,10 @@ class _EventsPageState extends State<EventsPage> with TickerProviderStateMixin {
                       ),
                     ),
                     SizedBox(
-                      height: MediaQuery.of(context).size.height * 0.03,
+                      height: MediaQuery
+                          .of(context)
+                          .size
+                          .height * 0.03,
                     ),
                     _latestInfoTabBar(),
                     Expanded(
@@ -420,369 +485,377 @@ class _EventsPageState extends State<EventsPage> with TickerProviderStateMixin {
                               child: CircularProgressIndicator(
                                   color: Colors.black),
                             )
-                          else if (errorMessage != null)
-                            Center(
-                              child: Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Text(
-                                    errorMessage!,
-                                    textAlign: TextAlign.center,
-                                    style: const TextStyle(
-                                      fontFamily: 'Inconsolata',
-                                      color: Colors.red,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 16),
-                                  ElevatedButton(
-                                    onPressed: _refreshData,
-                                    child: const Text(
-                                      'Retry',
-                                      style: TextStyle(
+                          else
+                            if (errorMessage != null)
+                              Center(
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Text(
+                                      errorMessage!,
+                                      textAlign: TextAlign.center,
+                                      style: const TextStyle(
                                         fontFamily: 'Inconsolata',
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 18,
-                                        color: Colors.black,
+                                        color: Colors.red,
                                       ),
                                     ),
-                                  ),
-                                ],
+                                    const SizedBox(height: 16),
+                                    ElevatedButton(
+                                      onPressed: _refreshData,
+                                      child: const Text(
+                                        'Retry',
+                                        style: TextStyle(
+                                          fontFamily: 'Inconsolata',
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 18,
+                                          color: Colors.black,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              )
+                            else
+                              RefreshIndicator(
+                                onRefresh: _refreshData,
+                                color: Colors.black,
+                                child: ListView.builder(
+                                  controller: _scrollController,
+                                  itemCount: events.length,
+                                  itemBuilder: (context, index) {
+                                    return cryptoCard(events[index]);
+                                  },
+                                ),
                               ),
-                            )
-                          else
-                            RefreshIndicator(
-                              onRefresh: _refreshData,
-                              color: Colors.black,
-                              child: ListView.builder(
-                                controller: _scrollController,
-                                itemCount: events.length,
-                                itemBuilder: (context, index) {
-                                  return cryptoCard(events[index]);
-                                },
-                              ),
-                            ),
                           if (loading)
                             const Center(
                               child: CircularProgressIndicator(
                                   color: Colors.black),
                             )
-                          else if (errorMessage != null)
-                            Center(
-                              child: Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Text(
-                                    errorMessage!,
-                                    textAlign: TextAlign.center,
-                                    style: const TextStyle(
-                                      fontFamily: 'Inconsolata',
-                                      color: Colors.red,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 16),
-                                  ElevatedButton(
-                                    onPressed: _refreshData,
-                                    child: const Text(
-                                      'Retry',
-                                      style: TextStyle(
+                          else
+                            if (errorMessage != null)
+                              Center(
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Text(
+                                      errorMessage!,
+                                      textAlign: TextAlign.center,
+                                      style: const TextStyle(
                                         fontFamily: 'Inconsolata',
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 18,
-                                        color: Colors.black,
+                                        color: Colors.red,
                                       ),
                                     ),
-                                  ),
-                                ],
+                                    const SizedBox(height: 16),
+                                    ElevatedButton(
+                                      onPressed: _refreshData,
+                                      child: const Text(
+                                        'Retry',
+                                        style: TextStyle(
+                                          fontFamily: 'Inconsolata',
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 18,
+                                          color: Colors.black,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              )
+                            else
+                              RefreshIndicator(
+                                onRefresh: _refreshData,
+                                color: Colors.black,
+                                child: ListView.builder(
+                                  controller: _scrollController,
+                                  itemCount: events.length,
+                                  itemBuilder: (context, index) {
+                                    return cryptoCard(events[index]);
+                                  },
+                                ),
                               ),
-                            )
-                          else
-                            RefreshIndicator(
-                              onRefresh: _refreshData,
-                              color: Colors.black,
-                              child: ListView.builder(
-                                controller: _scrollController,
-                                itemCount: events.length,
-                                itemBuilder: (context, index) {
-                                  return cryptoCard(events[index]);
-                                },
-                              ),
-                            ),
                           if (loading)
                             const Center(
                               child: CircularProgressIndicator(
                                   color: Colors.black),
                             )
-                          else if (errorMessage != null)
-                            Center(
-                              child: Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Text(
-                                    errorMessage!,
-                                    textAlign: TextAlign.center,
-                                    style: const TextStyle(
-                                      fontFamily: 'Inconsolata',
-                                      color: Colors.red,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 16),
-                                  ElevatedButton(
-                                    onPressed: _refreshData,
-                                    child: const Text(
-                                      'Retry',
-                                      style: TextStyle(
+                          else
+                            if (errorMessage != null)
+                              Center(
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Text(
+                                      errorMessage!,
+                                      textAlign: TextAlign.center,
+                                      style: const TextStyle(
                                         fontFamily: 'Inconsolata',
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 18,
-                                        color: Colors.black,
+                                        color: Colors.red,
                                       ),
                                     ),
-                                  ),
-                                ],
+                                    const SizedBox(height: 16),
+                                    ElevatedButton(
+                                      onPressed: _refreshData,
+                                      child: const Text(
+                                        'Retry',
+                                        style: TextStyle(
+                                          fontFamily: 'Inconsolata',
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 18,
+                                          color: Colors.black,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              )
+                            else
+                              RefreshIndicator(
+                                onRefresh: _refreshData,
+                                color: Colors.black,
+                                child: ListView.builder(
+                                  controller: _scrollController,
+                                  itemCount: events.length,
+                                  itemBuilder: (context, index) {
+                                    return cryptoCard(events[index]);
+                                  },
+                                ),
                               ),
-                            )
-                          else
-                            RefreshIndicator(
-                              onRefresh: _refreshData,
-                              color: Colors.black,
-                              child: ListView.builder(
-                                controller: _scrollController,
-                                itemCount: events.length,
-                                itemBuilder: (context, index) {
-                                  return cryptoCard(events[index]);
-                                },
-                              ),
-                            ),
                           if (loading)
                             const Center(
                               child: CircularProgressIndicator(
                                   color: Colors.black),
                             )
-                          else if (errorMessage != null)
-                            Center(
-                              child: Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Text(
-                                    errorMessage!,
-                                    textAlign: TextAlign.center,
-                                    style: const TextStyle(
-                                      fontFamily: 'Inconsolata',
-                                      color: Colors.red,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 16),
-                                  ElevatedButton(
-                                    onPressed: _refreshData,
-                                    child: const Text(
-                                      'Retry',
-                                      style: TextStyle(
+                          else
+                            if (errorMessage != null)
+                              Center(
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Text(
+                                      errorMessage!,
+                                      textAlign: TextAlign.center,
+                                      style: const TextStyle(
                                         fontFamily: 'Inconsolata',
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 18,
-                                        color: Colors.black,
+                                        color: Colors.red,
                                       ),
                                     ),
-                                  ),
-                                ],
+                                    const SizedBox(height: 16),
+                                    ElevatedButton(
+                                      onPressed: _refreshData,
+                                      child: const Text(
+                                        'Retry',
+                                        style: TextStyle(
+                                          fontFamily: 'Inconsolata',
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 18,
+                                          color: Colors.black,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              )
+                            else
+                              RefreshIndicator(
+                                onRefresh: _refreshData,
+                                color: Colors.black,
+                                child: ListView.builder(
+                                  controller: _scrollController,
+                                  itemCount: events.length,
+                                  itemBuilder: (context, index) {
+                                    return cryptoCard(events[index]);
+                                  },
+                                ),
                               ),
-                            )
-                          else
-                            RefreshIndicator(
-                              onRefresh: _refreshData,
-                              color: Colors.black,
-                              child: ListView.builder(
-                                controller: _scrollController,
-                                itemCount: events.length,
-                                itemBuilder: (context, index) {
-                                  return cryptoCard(events[index]);
-                                },
-                              ),
-                            ),
                           if (loading)
                             const Center(
                               child: CircularProgressIndicator(
                                   color: Colors.black),
                             )
-                          else if (errorMessage != null)
-                            Center(
-                              child: Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Text(
-                                    errorMessage!,
-                                    textAlign: TextAlign.center,
-                                    style: const TextStyle(
-                                      fontFamily: 'Inconsolata',
-                                      color: Colors.red,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 16),
-                                  ElevatedButton(
-                                    onPressed: _refreshData,
-                                    child: const Text(
-                                      'Retry',
-                                      style: TextStyle(
+                          else
+                            if (errorMessage != null)
+                              Center(
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Text(
+                                      errorMessage!,
+                                      textAlign: TextAlign.center,
+                                      style: const TextStyle(
                                         fontFamily: 'Inconsolata',
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 18,
-                                        color: Colors.black,
+                                        color: Colors.red,
                                       ),
                                     ),
-                                  ),
-                                ],
+                                    const SizedBox(height: 16),
+                                    ElevatedButton(
+                                      onPressed: _refreshData,
+                                      child: const Text(
+                                        'Retry',
+                                        style: TextStyle(
+                                          fontFamily: 'Inconsolata',
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 18,
+                                          color: Colors.black,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              )
+                            else
+                              RefreshIndicator(
+                                onRefresh: _refreshData,
+                                color: Colors.black,
+                                child: ListView.builder(
+                                  controller: _scrollController,
+                                  itemCount: events.length,
+                                  itemBuilder: (context, index) {
+                                    return cryptoCard(events[index]);
+                                  },
+                                ),
                               ),
-                            )
-                          else
-                            RefreshIndicator(
-                              onRefresh: _refreshData,
-                              color: Colors.black,
-                              child: ListView.builder(
-                                controller: _scrollController,
-                                itemCount: events.length,
-                                itemBuilder: (context, index) {
-                                  return cryptoCard(events[index]);
-                                },
-                              ),
-                            ),
                           if (loading)
                             const Center(
                               child: CircularProgressIndicator(
                                   color: Colors.black),
                             )
-                          else if (errorMessage != null)
-                            Center(
-                              child: Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Text(
-                                    errorMessage!,
-                                    textAlign: TextAlign.center,
-                                    style: const TextStyle(
-                                      fontFamily: 'Inconsolata',
-                                      color: Colors.red,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 16),
-                                  ElevatedButton(
-                                    onPressed: _refreshData,
-                                    child: const Text(
-                                      'Retry',
-                                      style: TextStyle(
+                          else
+                            if (errorMessage != null)
+                              Center(
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Text(
+                                      errorMessage!,
+                                      textAlign: TextAlign.center,
+                                      style: const TextStyle(
                                         fontFamily: 'Inconsolata',
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 18,
-                                        color: Colors.black,
+                                        color: Colors.red,
                                       ),
                                     ),
-                                  ),
-                                ],
+                                    const SizedBox(height: 16),
+                                    ElevatedButton(
+                                      onPressed: _refreshData,
+                                      child: const Text(
+                                        'Retry',
+                                        style: TextStyle(
+                                          fontFamily: 'Inconsolata',
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 18,
+                                          color: Colors.black,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              )
+                            else
+                              RefreshIndicator(
+                                onRefresh: _refreshData,
+                                color: Colors.black,
+                                child: ListView.builder(
+                                  controller: _scrollController,
+                                  itemCount: events.length,
+                                  itemBuilder: (context, index) {
+                                    return cryptoCard(events[index]);
+                                  },
+                                ),
                               ),
-                            )
-                          else
-                            RefreshIndicator(
-                              onRefresh: _refreshData,
-                              color: Colors.black,
-                              child: ListView.builder(
-                                controller: _scrollController,
-                                itemCount: events.length,
-                                itemBuilder: (context, index) {
-                                  return cryptoCard(events[index]);
-                                },
-                              ),
-                            ),
                           if (loading)
                             const Center(
                               child: CircularProgressIndicator(
                                   color: Colors.black),
                             )
-                          else if (errorMessage != null)
-                            Center(
-                              child: Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Text(
-                                    errorMessage!,
-                                    textAlign: TextAlign.center,
-                                    style: const TextStyle(
-                                      fontFamily: 'Inconsolata',
-                                      color: Colors.red,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 16),
-                                  ElevatedButton(
-                                    onPressed: _refreshData,
-                                    child: const Text(
-                                      'Retry',
-                                      style: TextStyle(
+                          else
+                            if (errorMessage != null)
+                              Center(
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Text(
+                                      errorMessage!,
+                                      textAlign: TextAlign.center,
+                                      style: const TextStyle(
                                         fontFamily: 'Inconsolata',
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 18,
-                                        color: Colors.black,
+                                        color: Colors.red,
                                       ),
                                     ),
-                                  ),
-                                ],
+                                    const SizedBox(height: 16),
+                                    ElevatedButton(
+                                      onPressed: _refreshData,
+                                      child: const Text(
+                                        'Retry',
+                                        style: TextStyle(
+                                          fontFamily: 'Inconsolata',
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 18,
+                                          color: Colors.black,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              )
+                            else
+                              RefreshIndicator(
+                                onRefresh: _refreshData,
+                                color: Colors.black,
+                                child: ListView.builder(
+                                  controller: _scrollController,
+                                  itemCount: events.length,
+                                  itemBuilder: (context, index) {
+                                    return cryptoCard(events[index]);
+                                  },
+                                ),
                               ),
-                            )
-                          else
-                            RefreshIndicator(
-                              onRefresh: _refreshData,
-                              color: Colors.black,
-                              child: ListView.builder(
-                                controller: _scrollController,
-                                itemCount: events.length,
-                                itemBuilder: (context, index) {
-                                  return cryptoCard(events[index]);
-                                },
-                              ),
-                            ),
                           if (loading)
                             const Center(
                               child: CircularProgressIndicator(
                                   color: Colors.black),
                             )
-                          else if (errorMessage != null)
-                            Center(
-                              child: Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Text(
-                                    errorMessage!,
-                                    textAlign: TextAlign.center,
-                                    style: const TextStyle(
-                                      fontFamily: 'Inconsolata',
-                                      color: Colors.red,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 16),
-                                  ElevatedButton(
-                                    onPressed: _refreshData,
-                                    child: const Text(
-                                      'Retry',
-                                      style: TextStyle(
+                          else
+                            if (errorMessage != null)
+                              Center(
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Text(
+                                      errorMessage!,
+                                      textAlign: TextAlign.center,
+                                      style: const TextStyle(
                                         fontFamily: 'Inconsolata',
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 18,
-                                        color: Colors.black,
+                                        color: Colors.red,
                                       ),
                                     ),
-                                  ),
-                                ],
+                                    const SizedBox(height: 16),
+                                    ElevatedButton(
+                                      onPressed: _refreshData,
+                                      child: const Text(
+                                        'Retry',
+                                        style: TextStyle(
+                                          fontFamily: 'Inconsolata',
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 18,
+                                          color: Colors.black,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              )
+                            else
+                              RefreshIndicator(
+                                onRefresh: _refreshData,
+                                color: Colors.black,
+                                child: ListView.builder(
+                                  controller: _scrollController,
+                                  itemCount: events.length,
+                                  itemBuilder: (context, index) {
+                                    return cryptoCard(events[index]);
+                                  },
+                                ),
                               ),
-                            )
-                          else
-                            RefreshIndicator(
-                              onRefresh: _refreshData,
-                              color: Colors.black,
-                              child: ListView.builder(
-                                controller: _scrollController,
-                                itemCount: events.length,
-                                itemBuilder: (context, index) {
-                                  return cryptoCard(events[index]);
-                                },
-                              ),
-                            ),
                         ],
                       ),
                     ),
@@ -807,7 +880,7 @@ class _EventsPageState extends State<EventsPage> with TickerProviderStateMixin {
           ),
           indicatorSize: TabBarIndicatorSize.label,
           indicatorPadding:
-              const EdgeInsets.only(left: 2.1, right: 2.1, bottom: 6.6, top: 5),
+          const EdgeInsets.only(left: 2.1, right: 2.1, bottom: 6.6, top: 5),
           dividerHeight: 0,
           tabAlignment: TabAlignment.start,
           controller: tabController!,
@@ -855,7 +928,10 @@ class _EventsPageState extends State<EventsPage> with TickerProviderStateMixin {
               Image.asset(
                 img,
               ),
-            SizedBox(width: MediaQuery.of(context).size.width * 0.01),
+            SizedBox(width: MediaQuery
+                .of(context)
+                .size
+                .width * 0.01),
             Text(
               label,
               style: const TextStyle(
@@ -871,7 +947,10 @@ class _EventsPageState extends State<EventsPage> with TickerProviderStateMixin {
   }
 
   Widget cryptoCard(Map<String, dynamic> event) {
-    final screenHeight = MediaQuery.of(context).size.height;
+    final screenHeight = MediaQuery
+        .of(context)
+        .size
+        .height;
 
     int upvotes = event['upvotes'] is int
         ? event['upvotes']
@@ -914,23 +993,21 @@ class _EventsPageState extends State<EventsPage> with TickerProviderStateMixin {
         int updatedDownvotes = int.parse(event['downvotes']);
         int updatedTotalVotes = updatedUpvotes + updatedDownvotes;
         upvotePercentage =
-            updatedTotalVotes > 0 ? updatedUpvotes / updatedTotalVotes : 0.0;
+        updatedTotalVotes > 0 ? updatedUpvotes / updatedTotalVotes : 0.0;
 
         // Show success message
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-                'Successfully ${type == 'upvote' ? 'Upvoted' : 'Downvoted'}'),
-            backgroundColor: Colors.green,
-          ),
+        _showCustomSnackBar(
+          context,
+          'Successfully ${type == 'upvote' ? 'Upvoted' : 'Downvoted'}',
+          isError: false,
         );
+
         setState(() {}); // Update the UI
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(responseBody['message'] ?? 'An error occurred'),
-            backgroundColor: Colors.red,
-          ),
+        _showCustomSnackBar(
+          context,
+          responseBody['message'] ?? 'An error occurred',
+          isError: true,
         );
       }
     }
@@ -968,10 +1045,22 @@ class _EventsPageState extends State<EventsPage> with TickerProviderStateMixin {
                   ClipRRect(
                     borderRadius: BorderRadius.circular(35),
                     child: Container(
-                      width: (48 / MediaQuery.of(context).size.width) *
-                          MediaQuery.of(context).size.width,
-                      height: (48 / MediaQuery.of(context).size.height) *
-                          MediaQuery.of(context).size.height,
+                      width: (48 / MediaQuery
+                          .of(context)
+                          .size
+                          .width) *
+                          MediaQuery
+                              .of(context)
+                              .size
+                              .width,
+                      height: (48 / MediaQuery
+                          .of(context)
+                          .size
+                          .height) *
+                          MediaQuery
+                              .of(context)
+                              .size
+                              .height,
                       color: Colors.grey,
                       child: Image.network(
                         event['image'],
@@ -979,7 +1068,10 @@ class _EventsPageState extends State<EventsPage> with TickerProviderStateMixin {
                       ),
                     ),
                   ),
-                  SizedBox(width: MediaQuery.of(context).size.width * 0.03),
+                  SizedBox(width: MediaQuery
+                      .of(context)
+                      .size
+                      .width * 0.03),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -1005,7 +1097,10 @@ class _EventsPageState extends State<EventsPage> with TickerProviderStateMixin {
                           ),
                         ),
                         SizedBox(
-                          height: MediaQuery.of(context).size.height * 0.02,
+                          height: MediaQuery
+                              .of(context)
+                              .size
+                              .height * 0.02,
                         ),
                         Text(
                           event['sub_text'],
@@ -1034,7 +1129,10 @@ class _EventsPageState extends State<EventsPage> with TickerProviderStateMixin {
                         Stack(
                           children: [
                             Container(
-                              width: MediaQuery.of(context).size.width *
+                              width: MediaQuery
+                                  .of(context)
+                                  .size
+                                  .width *
                                   0.2 *
                                   upvotePercentage,
                               height: 5,
@@ -1044,11 +1142,14 @@ class _EventsPageState extends State<EventsPage> with TickerProviderStateMixin {
                               ),
                             ),
                             Container(
-                              width: MediaQuery.of(context).size.width * 0.2,
+                              width: MediaQuery
+                                  .of(context)
+                                  .size
+                                  .width * 0.2,
                               height: 5,
                               decoration: BoxDecoration(
                                 border:
-                                    Border.all(width: 0.5, color: Colors.black),
+                                Border.all(width: 0.5, color: Colors.black),
                                 borderRadius: BorderRadius.circular(0),
                               ),
                             ),
@@ -1058,7 +1159,10 @@ class _EventsPageState extends State<EventsPage> with TickerProviderStateMixin {
                     ),
                   ),
                   SizedBox(
-                    height: MediaQuery.of(context).size.height * 0.15,
+                    height: MediaQuery
+                        .of(context)
+                        .size
+                        .height * 0.15,
                     child: Column(
                       children: [
                         GestureDetector(
@@ -1263,56 +1367,63 @@ class _EventsPageState extends State<EventsPage> with TickerProviderStateMixin {
 
   Widget textBoxEventInput(String text) {
     return Padding(
-        padding: const EdgeInsets.symmetric(vertical: 10.0),
-    child:Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(10),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.grey.withOpacity(0.5),
-            spreadRadius: 3,
-            blurRadius: 5,
-          ),
-        ],
-      ),
-      child: Column(
-        children: [
-          TextFormField(
-            style: const TextStyle(
-              fontSize: 16.0,
+      padding: const EdgeInsets.symmetric(vertical: 10.0),
+      child: Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(10),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.grey.withOpacity(0.5),
+              spreadRadius: 3,
+              blurRadius: 5,
             ),
-            decoration: InputDecoration(
-              labelText: text,
-              labelStyle: const TextStyle(
-                decoration: TextDecoration.none,
-                fontSize: 15,
-                fontWeight: FontWeight.bold,
-                fontFamily: 'Inconsolata',
-                color: Colors.grey,
+          ],
+        ),
+        child: Column(
+          children: [
+            TextFormField(
+              style: const TextStyle(
+                fontSize: 16.0,
               ),
-              contentPadding:
-              const EdgeInsets.only(
-                  left: 20,
-                  right: 20,
-                  bottom: 20,
-                  top: 0),
-              floatingLabelBehavior: FloatingLabelBehavior.never,
-              border: InputBorder.none,
+              decoration: InputDecoration(
+                labelText: text,
+                labelStyle: const TextStyle(
+                  decoration: TextDecoration.none,
+                  fontSize: 15,
+                  fontWeight: FontWeight.bold,
+                  fontFamily: 'Inconsolata',
+                  color: Colors.grey,
+                ),
+                contentPadding:
+                const EdgeInsets.only(
+                    left: 20,
+                    right: 20,
+                    bottom: 20,
+                    top: 0),
+                floatingLabelBehavior: FloatingLabelBehavior.never,
+                border: InputBorder.none,
+              ),
+              cursorColor: Colors.black,
             ),
-            cursorColor: Colors.black,
-          ),
-        ],
+          ],
+        ),
       ),
-    ),
     );
   }
+
   Widget bigTextBoxEventInput(String text) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 10.0),
-      child:Container(
-        height: (160 / MediaQuery.of(context).size.height) *
-            MediaQuery.of(context).size.height,
+      child: Container(
+        height: (160 / MediaQuery
+            .of(context)
+            .size
+            .height) *
+            MediaQuery
+                .of(context)
+                .size
+                .height,
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(10),

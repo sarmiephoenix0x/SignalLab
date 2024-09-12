@@ -27,6 +27,7 @@ class MyApp extends StatelessWidget {
   final bool isLoggedIn;
 
   MyApp({required this.isLoggedIn});
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -36,13 +37,13 @@ class MyApp extends StatelessWidget {
         fontFamily: 'Inconsolata', // Apply custom font
         appBarTheme: const AppBarTheme(
           titleTextStyle: TextStyle(
-              fontFamily: 'Inconsolata',
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-              color: Colors.black,
-            ),
+            fontFamily: 'Inconsolata',
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+            color: Colors.black,
           ),
         ),
+      ),
       home: isLoggedIn ? MainApp(key: UniqueKey()) : const IntroPage(),
     );
   }

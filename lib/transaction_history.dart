@@ -262,7 +262,7 @@ class TransactionHistoryState extends State<TransactionHistory> {
 
                 List<Map<String, dynamic>> transactions = snapshot.data!;
                 Map<String, List<Map<String, dynamic>>> groupedTransactions =
-                    {};
+                {};
 
                 for (var transaction in transactions) {
                   String formattedDate = formatDate(transaction['created_at']);
@@ -281,7 +281,10 @@ class TransactionHistoryState extends State<TransactionHistory> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         SizedBox(
-                          height: MediaQuery.of(context).size.height * 0.1,
+                          height: MediaQuery
+                              .of(context)
+                              .size
+                              .height * 0.1,
                         ),
                         Row(
                           children: [
@@ -290,7 +293,7 @@ class TransactionHistoryState extends State<TransactionHistory> {
                                 Navigator.pop(context);
                               },
                               child:
-                                  Image.asset('images/tabler_arrow-back.png'),
+                              Image.asset('images/tabler_arrow-back.png'),
                             ),
                             const Spacer(),
                             const Text(
@@ -303,12 +306,18 @@ class TransactionHistoryState extends State<TransactionHistory> {
                               ),
                             ),
                             SizedBox(
-                                width: MediaQuery.of(context).size.width * 0.1),
+                                width: MediaQuery
+                                    .of(context)
+                                    .size
+                                    .width * 0.1),
                             const Spacer(),
                           ],
                         ),
                         SizedBox(
-                          height: MediaQuery.of(context).size.height * 0.05,
+                          height: MediaQuery
+                              .of(context)
+                              .size
+                              .height * 0.05,
                         ),
                         ...groupedTransactions.entries.map((entry) {
                           return Column(
@@ -325,13 +334,16 @@ class TransactionHistoryState extends State<TransactionHistory> {
                               ),
                               SizedBox(
                                 height:
-                                    MediaQuery.of(context).size.height * 0.02,
+                                MediaQuery
+                                    .of(context)
+                                    .size
+                                    .height * 0.02,
                               ),
                               Column(
                                 children: entry.value.map((transaction) {
                                   return Padding(
                                     padding:
-                                        const EdgeInsets.only(bottom: 15.0),
+                                    const EdgeInsets.only(bottom: 15.0),
                                     child: transactionWidget(
                                       'images/iconamoon_transaction.png',
                                       transaction['description'],
@@ -358,9 +370,15 @@ class TransactionHistoryState extends State<TransactionHistory> {
   Widget transactionWidget(String img, String description, String time) {
     return Row(
       children: [
-        SizedBox(width: MediaQuery.of(context).size.width * 0.02),
+        SizedBox(width: MediaQuery
+            .of(context)
+            .size
+            .width * 0.02),
         Image.asset(img),
-        SizedBox(width: MediaQuery.of(context).size.width * 0.02),
+        SizedBox(width: MediaQuery
+            .of(context)
+            .size
+            .width * 0.02),
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -375,7 +393,10 @@ class TransactionHistoryState extends State<TransactionHistory> {
                   color: Colors.black,
                 ),
               ),
-              SizedBox(height: MediaQuery.of(context).size.height * 0.02),
+              SizedBox(height: MediaQuery
+                  .of(context)
+                  .size
+                  .height * 0.02),
               Text(
                 time,
                 style: const TextStyle(

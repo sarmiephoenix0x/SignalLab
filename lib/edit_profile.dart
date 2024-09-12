@@ -144,9 +144,10 @@ class _EditProfileState extends State<EditProfile> with WidgetsBindingObserver {
       // Handle any exceptions and display a professional error message
       _showCustomSnackBar(
         context,
-        'Something went wrong. Please try again. Error: $e',
+        'Something went wrong. Please try again.',
         isError: true,
       );
+      print('Something went wrong. Please try again. Error: $e');
     } finally {
       // Stop the loading indicator
       setState(() {

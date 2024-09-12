@@ -164,16 +164,28 @@ class _PackagesPageState extends State<PackagesPage> {
           body: Center(
             child: SizedBox(
               height: orientation == Orientation.portrait
-                  ? MediaQuery.of(context).size.height
-                  : MediaQuery.of(context).size.height * 1.5,
+                  ? MediaQuery
+                  .of(context)
+                  .size
+                  .height
+                  : MediaQuery
+                  .of(context)
+                  .size
+                  .height * 1.5,
               child: SingleChildScrollView(
                 child: SizedBox(
-                  height: MediaQuery.of(context).size.height,
+                  height: MediaQuery
+                      .of(context)
+                      .size
+                      .height,
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       SizedBox(
-                          height: MediaQuery.of(context).size.height * 0.1),
+                          height: MediaQuery
+                              .of(context)
+                              .size
+                              .height * 0.1),
                       Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 20.0),
                         child: Row(
@@ -183,11 +195,14 @@ class _PackagesPageState extends State<PackagesPage> {
                                 Navigator.pop(context);
                               },
                               child:
-                                  Image.asset('images/tabler_arrow-back.png'),
+                              Image.asset('images/tabler_arrow-back.png'),
                             ),
                             SizedBox(
                                 width:
-                                    MediaQuery.of(context).size.width * 0.02),
+                                MediaQuery
+                                    .of(context)
+                                    .size
+                                    .width * 0.02),
                             const Text(
                               'Packages',
                               style: TextStyle(
@@ -202,7 +217,10 @@ class _PackagesPageState extends State<PackagesPage> {
                         ),
                       ),
                       SizedBox(
-                          height: MediaQuery.of(context).size.height * 0.05),
+                          height: MediaQuery
+                              .of(context)
+                              .size
+                              .height * 0.05),
                       Expanded(
                         child: ListView(
                           children: [
@@ -288,7 +306,10 @@ class _PackagesPageState extends State<PackagesPage> {
           ),
           child: Column(
             children: [
-              SizedBox(width: MediaQuery.of(context).size.width * 0.02),
+              SizedBox(width: MediaQuery
+                  .of(context)
+                  .size
+                  .width * 0.02),
               Text(
                 name,
                 style: const TextStyle(
@@ -307,14 +328,23 @@ class _PackagesPageState extends State<PackagesPage> {
                   color: Colors.black,
                 ),
               ),
-              SizedBox(height: MediaQuery.of(context).size.height * 0.01),
+              SizedBox(height: MediaQuery
+                  .of(context)
+                  .size
+                  .height * 0.01),
               Row(
                 children: [
-                  SizedBox(width: MediaQuery.of(context).size.width * 0.02),
+                  SizedBox(width: MediaQuery
+                      .of(context)
+                      .size
+                      .width * 0.02),
                   Image.asset(
                     'images/mdi_tick-decagram.png',
                   ),
-                  SizedBox(width: MediaQuery.of(context).size.width * 0.04),
+                  SizedBox(width: MediaQuery
+                      .of(context)
+                      .size
+                      .width * 0.04),
                   Text(
                     text1,
                     style: const TextStyle(
@@ -325,14 +355,23 @@ class _PackagesPageState extends State<PackagesPage> {
                   ),
                 ],
               ),
-              SizedBox(height: MediaQuery.of(context).size.height * 0.03),
+              SizedBox(height: MediaQuery
+                  .of(context)
+                  .size
+                  .height * 0.03),
               Row(
                 children: [
-                  SizedBox(width: MediaQuery.of(context).size.width * 0.02),
+                  SizedBox(width: MediaQuery
+                      .of(context)
+                      .size
+                      .width * 0.02),
                   Image.asset(
                     'images/mdi_tick-decagram.png',
                   ),
-                  SizedBox(width: MediaQuery.of(context).size.width * 0.04),
+                  SizedBox(width: MediaQuery
+                      .of(context)
+                      .size
+                      .width * 0.04),
                   Text(
                     text2,
                     style: const TextStyle(
@@ -343,14 +382,23 @@ class _PackagesPageState extends State<PackagesPage> {
                   ),
                 ],
               ),
-              SizedBox(height: MediaQuery.of(context).size.height * 0.03),
+              SizedBox(height: MediaQuery
+                  .of(context)
+                  .size
+                  .height * 0.03),
               Row(
                 children: [
-                  SizedBox(width: MediaQuery.of(context).size.width * 0.02),
+                  SizedBox(width: MediaQuery
+                      .of(context)
+                      .size
+                      .width * 0.02),
                   Image.asset(
                     'images/mdi_tick-decagram.png',
                   ),
-                  SizedBox(width: MediaQuery.of(context).size.width * 0.04),
+                  SizedBox(width: MediaQuery
+                      .of(context)
+                      .size
+                      .width * 0.04),
                   Text(
                     text3,
                     style: const TextStyle(
@@ -361,14 +409,23 @@ class _PackagesPageState extends State<PackagesPage> {
                   ),
                 ],
               ),
-              SizedBox(height: MediaQuery.of(context).size.height * 0.03),
+              SizedBox(height: MediaQuery
+                  .of(context)
+                  .size
+                  .height * 0.03),
               Row(
                 children: [
-                  SizedBox(width: MediaQuery.of(context).size.width * 0.02),
+                  SizedBox(width: MediaQuery
+                      .of(context)
+                      .size
+                      .width * 0.02),
                   Image.asset(
                     'images/mdi_tick-decagram.png',
                   ),
-                  SizedBox(width: MediaQuery.of(context).size.width * 0.04),
+                  SizedBox(width: MediaQuery
+                      .of(context)
+                      .size
+                      .width * 0.04),
                   Text(
                     text4,
                     style: const TextStyle(
@@ -379,14 +436,23 @@ class _PackagesPageState extends State<PackagesPage> {
                   ),
                 ],
               ),
-              SizedBox(height: MediaQuery.of(context).size.height * 0.03),
+              SizedBox(height: MediaQuery
+                  .of(context)
+                  .size
+                  .height * 0.03),
               Row(
                 children: [
-                  SizedBox(width: MediaQuery.of(context).size.width * 0.02),
+                  SizedBox(width: MediaQuery
+                      .of(context)
+                      .size
+                      .width * 0.02),
                   Image.asset(
                     'images/mdi_tick-decagram.png',
                   ),
-                  SizedBox(width: MediaQuery.of(context).size.width * 0.04),
+                  SizedBox(width: MediaQuery
+                      .of(context)
+                      .size
+                      .width * 0.04),
                   Text(
                     text5,
                     style: const TextStyle(
@@ -397,17 +463,26 @@ class _PackagesPageState extends State<PackagesPage> {
                   ),
                 ],
               ),
-              SizedBox(height: MediaQuery.of(context).size.height * 0.05),
+              SizedBox(height: MediaQuery
+                  .of(context)
+                  .size
+                  .height * 0.05),
               Container(
                 width: double.infinity,
-                height: (60 / MediaQuery.of(context).size.height) *
-                    MediaQuery.of(context).size.height,
+                height: (60 / MediaQuery
+                    .of(context)
+                    .size
+                    .height) *
+                    MediaQuery
+                        .of(context)
+                        .size
+                        .height,
                 padding: const EdgeInsets.symmetric(horizontal: 20.0),
                 child: ElevatedButton(
                   onPressed: () {},
                   style: ButtonStyle(
                     backgroundColor: WidgetStateProperty.resolveWith<Color>(
-                      (Set<WidgetState> states) {
+                          (Set<WidgetState> states) {
                         if (states.contains(WidgetState.pressed)) {
                           return Colors.white;
                         }
@@ -415,7 +490,7 @@ class _PackagesPageState extends State<PackagesPage> {
                       },
                     ),
                     foregroundColor: WidgetStateProperty.resolveWith<Color>(
-                      (Set<WidgetState> states) {
+                          (Set<WidgetState> states) {
                         if (states.contains(WidgetState.pressed)) {
                           return Colors.black;
                         }

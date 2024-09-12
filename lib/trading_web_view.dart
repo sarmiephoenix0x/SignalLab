@@ -80,7 +80,8 @@ class TradingViewPageState extends State<TradingViewPage> {
 
     _controller2 = WebViewController()
       ..setJavaScriptMode(JavaScriptMode.unrestricted)
-      ..loadRequest(Uri.parse('https://s.tradingview.com/widgetembed/?symbol=$coinSymbol&interval=D&hidesidetoolbar=1&symboledit=1&saveimage=1&toolbarbg=f1f3f6&studies=[]&theme=Dark&style=1&timezone=Etc/UTC&studies_overrides={}&overrides={}&enabled_features=[]&disabled_features=[]&locale=en'));
+      ..loadRequest(Uri.parse(
+          'https://s.tradingview.com/widgetembed/?symbol=$coinSymbol&interval=D&hidesidetoolbar=1&symboledit=1&saveimage=1&toolbarbg=f1f3f6&studies=[]&theme=Dark&style=1&timezone=Etc/UTC&studies_overrides={}&overrides={}&enabled_features=[]&disabled_features=[]&locale=en'));
   }
 
   Future<void> _refreshData() async {
@@ -170,7 +171,8 @@ class TradingViewPageState extends State<TradingViewPage> {
     //     </html>
     //   ''');
 
-    _controller2.loadRequest(Uri.parse('https://s.tradingview.com/widgetembed/?symbol=$coinSymbol&interval=D&hidesidetoolbar=1&symboledit=1&saveimage=1&toolbarbg=f1f3f6&studies=[]&theme=Dark&style=1&timezone=Etc/UTC&studies_overrides={}&overrides={}&enabled_features=[]&disabled_features=[]&locale=en'));
+    _controller2.loadRequest(Uri.parse(
+        'https://s.tradingview.com/widgetembed/?symbol=$coinSymbol&interval=D&hidesidetoolbar=1&symboledit=1&saveimage=1&toolbarbg=f1f3f6&studies=[]&theme=Dark&style=1&timezone=Etc/UTC&studies_overrides={}&overrides={}&enabled_features=[]&disabled_features=[]&locale=en'));
   }
 
   void _showNoInternetDialog(BuildContext context) {
@@ -257,6 +259,36 @@ class TradingViewPageState extends State<TradingViewPage> {
     );
   }
 
+  void _showCustomSnackBar(BuildContext context, String message,
+      {bool isError = false}) {
+    final snackBar = SnackBar(
+      content: Row(
+        children: [
+          Icon(
+            isError ? Icons.error_outline : Icons.check_circle_outline,
+            color: isError ? Colors.red : Colors.green,
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text(
+              message,
+              style: const TextStyle(color: Colors.white),
+            ),
+          ),
+        ],
+      ),
+      backgroundColor: isError ? Colors.red : Colors.green,
+      behavior: SnackBarBehavior.floating,
+      margin: const EdgeInsets.all(10),
+      duration: const Duration(seconds: 2),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(10),
+      ),
+    );
+
+    ScaffoldMessenger.of(context).showSnackBar(snackBar);
+  }
+
   @override
   Widget build(BuildContext context) {
     return PopScope(
@@ -275,11 +307,10 @@ class TradingViewPageState extends State<TradingViewPage> {
                 now.difference(currentBackPressTime!) >
                     const Duration(seconds: 2)) {
               currentBackPressTime = now;
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Press back again to exit the chart view'),
-                  duration: Duration(seconds: 2),
-                ),
+              _showCustomSnackBar(
+                context,
+                'Press back again to exit the chart view',
+                isError: true,
               );
             } else {
               Navigator.pop(context);
@@ -291,7 +322,10 @@ class TradingViewPageState extends State<TradingViewPage> {
         body: Column(
           children: <Widget>[
             SizedBox(
-              height: MediaQuery.of(context).size.height * 0.1,
+              height: MediaQuery
+                  .of(context)
+                  .size
+                  .height * 0.1,
             ),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20.0),
@@ -310,12 +344,10 @@ class TradingViewPageState extends State<TradingViewPage> {
                             now.difference(currentBackPressTime!) >
                                 const Duration(seconds: 2)) {
                           currentBackPressTime = now;
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text(
-                                  'Press back again to exit the chart view'),
-                              duration: Duration(seconds: 2),
-                            ),
+                          _showCustomSnackBar(
+                            context,
+                            'Press back again to exit the chart view',
+                            isError: true,
                           );
                         } else {
                           Navigator.pop(context);
@@ -352,7 +384,10 @@ class TradingViewPageState extends State<TradingViewPage> {
               ),
             ),
             SizedBox(
-              height: MediaQuery.of(context).size.height * 0.03,
+              height: MediaQuery
+                  .of(context)
+                  .size
+                  .height * 0.03,
             ),
             // Expanded(
             //   flex: 1,

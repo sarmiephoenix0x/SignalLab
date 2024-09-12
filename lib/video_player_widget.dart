@@ -5,7 +5,7 @@ class VideoPlayerWidget extends StatefulWidget {
   final String videoUrl;
   final bool shouldPlay;
 
-  const VideoPlayerWidget({required this.videoUrl,required this.shouldPlay});
+  const VideoPlayerWidget({required this.videoUrl, required this.shouldPlay});
 
   @override
   VideoPlayerWidgetState createState() => VideoPlayerWidgetState();
@@ -57,7 +57,6 @@ class VideoPlayerWidgetState extends State<VideoPlayerWidget> {
       _youtubeController.pause();
     }
   }
-
 
   @override
   void dispose() {

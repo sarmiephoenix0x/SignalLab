@@ -48,12 +48,12 @@ class ForgotPasswordState extends State<ForgotPassword>
     final String email = emailController.text.trim();
 
     if (email.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Email is required.'),
-          backgroundColor: Colors.red,
-        ),
+      _showCustomSnackBar(
+        context,
+        'Email is required.',
+        isError: true,
       );
+
       return;
     }
 
@@ -68,19 +68,17 @@ class ForgotPasswordState extends State<ForgotPassword>
     );
 
     if (response.statusCode == 200) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Reset link sent successfully.'),
-          backgroundColor: Colors.green,
-        ),
+      _showCustomSnackBar(
+        context,
+        'Reset link sent successfully.',
+        isError: false,
       );
     } else {
       final responseBody = response.body;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Error: $responseBody'),
-          backgroundColor: Colors.red,
-        ),
+      _showCustomSnackBar(
+        context,
+        'Error: $responseBody',
+        isError: true,
       );
     }
 
@@ -99,43 +97,43 @@ class ForgotPasswordState extends State<ForgotPassword>
         token.isEmpty ||
         password.isEmpty ||
         passwordConfirmation.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('All fields are required.'),
-          backgroundColor: Colors.red,
-        ),
+      _showCustomSnackBar(
+        context,
+        'All fields are required.',
+        isError: true,
       );
+
       return;
     }
 
     final RegExp emailRegex = RegExp(r'^[^@]+@[^@]+\.[^@]+$');
     if (!emailRegex.hasMatch(email)) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Please enter a valid email address.'),
-          backgroundColor: Colors.red,
-        ),
+      _showCustomSnackBar(
+        context,
+        'Please enter a valid email address.',
+        isError: true,
       );
+
       return;
     }
 
     if (password.length < 6) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Password must be at least 6 characters.'),
-          backgroundColor: Colors.red,
-        ),
+      _showCustomSnackBar(
+        context,
+        'Password must be at least 6 characters.',
+        isError: true,
       );
+
       return;
     }
 
     if (password != passwordConfirmation) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Passwords do not match.'),
-          backgroundColor: Colors.red,
-        ),
+      _showCustomSnackBar(
+        context,
+        'Passwords do not match.',
+        isError: true,
       );
+
       return;
     }
 
@@ -155,12 +153,12 @@ class ForgotPasswordState extends State<ForgotPassword>
     );
 
     if (response.statusCode == 200) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Password reset successful.'),
-          backgroundColor: Colors.green,
-        ),
+      _showCustomSnackBar(
+        context,
+        'Password reset successful.',
+        isError: false,
       );
+
       Navigator.push(
         context,
         MaterialPageRoute(
@@ -169,11 +167,10 @@ class ForgotPasswordState extends State<ForgotPassword>
       );
     } else {
       final Map<String, dynamic> responseData = jsonDecode(response.body);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Error: ${responseData['error']}'),
-          backgroundColor: Colors.red,
-        ),
+      _showCustomSnackBar(
+        context,
+        'Error: ${responseData['error']}',
+        isError: true,
       );
     }
 
@@ -182,15 +179,48 @@ class ForgotPasswordState extends State<ForgotPassword>
     });
   }
 
+  void _showCustomSnackBar(BuildContext context, String message,
+      {bool isError = false}) {
+    final snackBar = SnackBar(
+      content: Row(
+        children: [
+          Icon(
+            isError ? Icons.error_outline : Icons.check_circle_outline,
+            color: isError ? Colors.red : Colors.green,
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text(
+              message,
+              style: const TextStyle(color: Colors.white),
+            ),
+          ),
+        ],
+      ),
+      backgroundColor: isError ? Colors.red : Colors.green,
+      behavior: SnackBarBehavior.floating,
+      margin: const EdgeInsets.all(10),
+      duration: const Duration(seconds: 3),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(10),
+      ),
+    );
+
+    ScaffoldMessenger.of(context).showSnackBar(snackBar);
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: // Reset Password Tab
-          SingleChildScrollView(
+      SingleChildScrollView(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            SizedBox(height: MediaQuery.of(context).size.height * 0.1),
+            SizedBox(height: MediaQuery
+                .of(context)
+                .size
+                .height * 0.1),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20.0),
               child: Row(
@@ -221,7 +251,10 @@ class ForgotPasswordState extends State<ForgotPassword>
                 ],
               ),
             ),
-            SizedBox(height: MediaQuery.of(context).size.height * 0.05),
+            SizedBox(height: MediaQuery
+                .of(context)
+                .size
+                .height * 0.05),
             const Padding(
               padding: EdgeInsets.symmetric(horizontal: 20.0),
               child: Text(
@@ -264,7 +297,10 @@ class ForgotPasswordState extends State<ForgotPassword>
                 cursorColor: Colors.black,
               ),
             ),
-            SizedBox(height: MediaQuery.of(context).size.height * 0.02),
+            SizedBox(height: MediaQuery
+                .of(context)
+                .size
+                .height * 0.02),
             const Padding(
               padding: EdgeInsets.symmetric(horizontal: 20.0),
               child: Text(
@@ -307,16 +343,25 @@ class ForgotPasswordState extends State<ForgotPassword>
                 cursorColor: Colors.black,
               ),
             ),
-            SizedBox(height: MediaQuery.of(context).size.height * 0.02),
+            SizedBox(height: MediaQuery
+                .of(context)
+                .size
+                .height * 0.02),
             Container(
-              height: (60 / MediaQuery.of(context).size.height) *
-                  MediaQuery.of(context).size.height,
+              height: (60 / MediaQuery
+                  .of(context)
+                  .size
+                  .height) *
+                  MediaQuery
+                      .of(context)
+                      .size
+                      .height,
               padding: const EdgeInsets.symmetric(horizontal: 20.0),
               child: ElevatedButton(
                 onPressed: isLoading ? null : _resetPasswordRequest,
                 style: ButtonStyle(
                   backgroundColor: WidgetStateProperty.resolveWith<Color>(
-                    (Set<WidgetState> states) {
+                        (Set<WidgetState> states) {
                       if (states.contains(WidgetState.pressed)) {
                         return Colors.white;
                       }
@@ -324,7 +369,7 @@ class ForgotPasswordState extends State<ForgotPassword>
                     },
                   ),
                   foregroundColor: WidgetStateProperty.resolveWith<Color>(
-                    (Set<WidgetState> states) {
+                        (Set<WidgetState> states) {
                       if (states.contains(WidgetState.pressed)) {
                         return Colors.black;
                       }
@@ -340,12 +385,15 @@ class ForgotPasswordState extends State<ForgotPassword>
                 ),
                 child: isLoading
                     ? const CircularProgressIndicator(
-                        color: Colors.white,
-                      )
+                  color: Colors.white,
+                )
                     : const Text('Request Token'),
               ),
             ),
-            SizedBox(height: MediaQuery.of(context).size.height * 0.02),
+            SizedBox(height: MediaQuery
+                .of(context)
+                .size
+                .height * 0.02),
             const Padding(
               padding: EdgeInsets.symmetric(horizontal: 20.0),
               child: Text(
@@ -399,7 +447,10 @@ class ForgotPasswordState extends State<ForgotPassword>
                 obscuringCharacter: "*",
               ),
             ),
-            SizedBox(height: MediaQuery.of(context).size.height * 0.02),
+            SizedBox(height: MediaQuery
+                .of(context)
+                .size
+                .height * 0.02),
             const Padding(
               padding: EdgeInsets.symmetric(horizontal: 20.0),
               child: Text(
@@ -453,17 +504,26 @@ class ForgotPasswordState extends State<ForgotPassword>
                 obscuringCharacter: "*",
               ),
             ),
-            SizedBox(height: MediaQuery.of(context).size.height * 0.05),
+            SizedBox(height: MediaQuery
+                .of(context)
+                .size
+                .height * 0.05),
             Container(
               width: double.infinity,
-              height: (60 / MediaQuery.of(context).size.height) *
-                  MediaQuery.of(context).size.height,
+              height: (60 / MediaQuery
+                  .of(context)
+                  .size
+                  .height) *
+                  MediaQuery
+                      .of(context)
+                      .size
+                      .height,
               padding: const EdgeInsets.symmetric(horizontal: 20.0),
               child: ElevatedButton(
                 onPressed: isLoading2 ? null : () => _resetPassword(),
                 style: ButtonStyle(
                   backgroundColor: WidgetStateProperty.resolveWith<Color>(
-                    (Set<WidgetState> states) {
+                        (Set<WidgetState> states) {
                       if (states.contains(WidgetState.pressed)) {
                         return Colors.white;
                       }
@@ -471,7 +531,7 @@ class ForgotPasswordState extends State<ForgotPassword>
                     },
                   ),
                   foregroundColor: WidgetStateProperty.resolveWith<Color>(
-                    (Set<WidgetState> states) {
+                        (Set<WidgetState> states) {
                       if (states.contains(WidgetState.pressed)) {
                         return Colors.black;
                       }
@@ -487,8 +547,8 @@ class ForgotPasswordState extends State<ForgotPassword>
                 ),
                 child: isLoading2
                     ? const CircularProgressIndicator(
-                        color: Colors.white,
-                      )
+                  color: Colors.white,
+                )
                     : const Text('Reset Password'),
               ),
             ),

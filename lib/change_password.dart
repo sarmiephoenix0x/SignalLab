@@ -15,7 +15,7 @@ class ChangePassword extends StatefulWidget {
 class ChangePasswordState extends State<ChangePassword>
     with SingleTickerProviderStateMixin {
   final TextEditingController currentPasswordController =
-      TextEditingController();
+  TextEditingController();
   final TextEditingController passwordController = TextEditingController();
   final TextEditingController password2Controller = TextEditingController();
 
@@ -47,42 +47,42 @@ class ChangePasswordState extends State<ChangePassword>
     if (currentPassword.isEmpty ||
         password.isEmpty ||
         passwordConfirmation.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('All fields are required.'),
-          backgroundColor: Colors.red,
-        ),
+      _showCustomSnackBar(
+        context,
+        'All fields are required.',
+        isError: true,
       );
+
       return;
     }
 
     if (currentPassword.length < 6) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Current Password must be at least 6 characters.'),
-          backgroundColor: Colors.red,
-        ),
+      _showCustomSnackBar(
+        context,
+        'Current Password must be at least 6 characters.',
+        isError: true,
       );
+
       return;
     }
 
     if (password.length < 6) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('New Password must be at least 6 characters.'),
-          backgroundColor: Colors.red,
-        ),
+      _showCustomSnackBar(
+        context,
+        'New Password must be at least 6 characters.',
+        isError: true,
       );
+
       return;
     }
 
     if (password != passwordConfirmation) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Passwords do not match.'),
-          backgroundColor: Colors.red,
-        ),
+      _showCustomSnackBar(
+        context,
+        'Passwords do not match.',
+        isError: true,
       );
+
       return;
     }
 
@@ -101,20 +101,19 @@ class ChangePasswordState extends State<ChangePassword>
     );
 
     if (response.statusCode == 200) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Password reset successful.'),
-          backgroundColor: Colors.green,
-        ),
+      _showCustomSnackBar(
+        context,
+        'Password reset successful.',
+        isError: false,
       );
+
       Navigator.pop(context);
     } else {
       final Map<String, dynamic> responseData = jsonDecode(response.body);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Error: ${responseData['error']}'),
-          backgroundColor: Colors.red,
-        ),
+      _showCustomSnackBar(
+        context,
+        'Error: ${responseData['error']}',
+        isError: true,
       );
     }
 
@@ -123,15 +122,48 @@ class ChangePasswordState extends State<ChangePassword>
     });
   }
 
+  void _showCustomSnackBar(BuildContext context, String message,
+      {bool isError = false}) {
+    final snackBar = SnackBar(
+      content: Row(
+        children: [
+          Icon(
+            isError ? Icons.error_outline : Icons.check_circle_outline,
+            color: isError ? Colors.red : Colors.green,
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text(
+              message,
+              style: const TextStyle(color: Colors.white),
+            ),
+          ),
+        ],
+      ),
+      backgroundColor: isError ? Colors.red : Colors.green,
+      behavior: SnackBarBehavior.floating,
+      margin: const EdgeInsets.all(10),
+      duration: const Duration(seconds: 3),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(10),
+      ),
+    );
+
+    ScaffoldMessenger.of(context).showSnackBar(snackBar);
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: // Reset Password Tab
-          SingleChildScrollView(
+      SingleChildScrollView(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            SizedBox(height: MediaQuery.of(context).size.height * 0.1),
+            SizedBox(height: MediaQuery
+                .of(context)
+                .size
+                .height * 0.1),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20.0),
               child: Row(
@@ -162,7 +194,10 @@ class ChangePasswordState extends State<ChangePassword>
                 ],
               ),
             ),
-            SizedBox(height: MediaQuery.of(context).size.height * 0.05),
+            SizedBox(height: MediaQuery
+                .of(context)
+                .size
+                .height * 0.05),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20.0),
               child: TextFormField(
@@ -203,7 +238,10 @@ class ChangePasswordState extends State<ChangePassword>
                 obscuringCharacter: "*",
               ),
             ),
-            SizedBox(height: MediaQuery.of(context).size.height * 0.02),
+            SizedBox(height: MediaQuery
+                .of(context)
+                .size
+                .height * 0.02),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20.0),
               child: TextFormField(
@@ -244,7 +282,10 @@ class ChangePasswordState extends State<ChangePassword>
                 obscuringCharacter: "*",
               ),
             ),
-            SizedBox(height: MediaQuery.of(context).size.height * 0.02),
+            SizedBox(height: MediaQuery
+                .of(context)
+                .size
+                .height * 0.02),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20.0),
               child: TextFormField(
@@ -285,17 +326,26 @@ class ChangePasswordState extends State<ChangePassword>
                 obscuringCharacter: "*",
               ),
             ),
-            SizedBox(height: MediaQuery.of(context).size.height * 0.05),
+            SizedBox(height: MediaQuery
+                .of(context)
+                .size
+                .height * 0.05),
             Container(
               width: double.infinity,
-              height: (60 / MediaQuery.of(context).size.height) *
-                  MediaQuery.of(context).size.height,
+              height: (60 / MediaQuery
+                  .of(context)
+                  .size
+                  .height) *
+                  MediaQuery
+                      .of(context)
+                      .size
+                      .height,
               padding: const EdgeInsets.symmetric(horizontal: 20.0),
               child: ElevatedButton(
                 onPressed: isLoading ? null : () => _resetPassword(),
                 style: ButtonStyle(
                   backgroundColor: WidgetStateProperty.resolveWith<Color>(
-                    (Set<WidgetState> states) {
+                        (Set<WidgetState> states) {
                       if (states.contains(WidgetState.pressed)) {
                         return Colors.white;
                       }
@@ -303,7 +353,7 @@ class ChangePasswordState extends State<ChangePassword>
                     },
                   ),
                   foregroundColor: WidgetStateProperty.resolveWith<Color>(
-                    (Set<WidgetState> states) {
+                        (Set<WidgetState> states) {
                       if (states.contains(WidgetState.pressed)) {
                         return Colors.black;
                       }
@@ -319,8 +369,8 @@ class ChangePasswordState extends State<ChangePassword>
                 ),
                 child: isLoading
                     ? const CircularProgressIndicator(
-                        color: Colors.white,
-                      )
+                  color: Colors.white,
+                )
                     : const Text('Save'),
               ),
             ),

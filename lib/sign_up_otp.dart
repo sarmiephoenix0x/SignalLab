@@ -89,12 +89,21 @@ class _SignUpOTPPageState extends State<SignUpOTPPage> {
             child: Center(
               child: SizedBox(
                 height: orientation == Orientation.portrait
-                    ? MediaQuery.of(context).size.height
-                    : MediaQuery.of(context).size.height * 1.5,
+                    ? MediaQuery
+                    .of(context)
+                    .size
+                    .height
+                    : MediaQuery
+                    .of(context)
+                    .size
+                    .height * 1.5,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    SizedBox(height: MediaQuery.of(context).size.height * 0.1),
+                    SizedBox(height: MediaQuery
+                        .of(context)
+                        .size
+                        .height * 0.1),
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 20.0),
                       child: Row(
@@ -116,12 +125,18 @@ class _SignUpOTPPageState extends State<SignUpOTPPage> {
                             ),
                           ),
                           SizedBox(
-                              width: MediaQuery.of(context).size.width * 0.1),
+                              width: MediaQuery
+                                  .of(context)
+                                  .size
+                                  .width * 0.1),
                           const Spacer(),
                         ],
                       ),
                     ),
-                    SizedBox(height: MediaQuery.of(context).size.height * 0.1),
+                    SizedBox(height: MediaQuery
+                        .of(context)
+                        .size
+                        .height * 0.1),
                     const Center(
                       child: Text(
                         'OTP Verification',
@@ -133,7 +148,10 @@ class _SignUpOTPPageState extends State<SignUpOTPPage> {
                         ),
                       ),
                     ),
-                    SizedBox(height: MediaQuery.of(context).size.height * 0.03),
+                    SizedBox(height: MediaQuery
+                        .of(context)
+                        .size
+                        .height * 0.03),
                     const Center(
                       child: Text(
                         "We just sent a 4 digit OTP Code",
@@ -145,7 +163,10 @@ class _SignUpOTPPageState extends State<SignUpOTPPage> {
                         ),
                       ),
                     ),
-                    SizedBox(height: MediaQuery.of(context).size.height * 0.01),
+                    SizedBox(height: MediaQuery
+                        .of(context)
+                        .size
+                        .height * 0.01),
                     const Center(
                       child: Text(
                         "Enter the OTP sent to your email",
@@ -157,7 +178,10 @@ class _SignUpOTPPageState extends State<SignUpOTPPage> {
                         ),
                       ),
                     ),
-                    SizedBox(height: MediaQuery.of(context).size.height * 0.1),
+                    SizedBox(height: MediaQuery
+                        .of(context)
+                        .size
+                        .height * 0.1),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                       children: List.generate(_numberOfFields, (index) {
@@ -200,7 +224,10 @@ class _SignUpOTPPageState extends State<SignUpOTPPage> {
                         );
                       }),
                     ),
-                    SizedBox(height: MediaQuery.of(context).size.height * 0.1),
+                    SizedBox(height: MediaQuery
+                        .of(context)
+                        .size
+                        .height * 0.1),
                     const Center(
                       child: Text(
                         "Didn't receive code?",
@@ -212,7 +239,10 @@ class _SignUpOTPPageState extends State<SignUpOTPPage> {
                         ),
                       ),
                     ),
-                    SizedBox(height: MediaQuery.of(context).size.height * 0.02),
+                    SizedBox(height: MediaQuery
+                        .of(context)
+                        .size
+                        .height * 0.02),
                     const Center(
                       child: Text(
                         "Resend it",
@@ -224,11 +254,20 @@ class _SignUpOTPPageState extends State<SignUpOTPPage> {
                         ),
                       ),
                     ),
-                    SizedBox(height: MediaQuery.of(context).size.height * 0.1),
+                    SizedBox(height: MediaQuery
+                        .of(context)
+                        .size
+                        .height * 0.1),
                     Container(
                       width: double.infinity,
-                      height: (60 / MediaQuery.of(context).size.height) *
-                          MediaQuery.of(context).size.height,
+                      height: (60 / MediaQuery
+                          .of(context)
+                          .size
+                          .height) *
+                          MediaQuery
+                              .of(context)
+                              .size
+                              .height,
                       padding: const EdgeInsets.symmetric(horizontal: 20.0),
                       child: ElevatedButton(
                         onPressed: () {
@@ -241,8 +280,8 @@ class _SignUpOTPPageState extends State<SignUpOTPPage> {
                         },
                         style: ButtonStyle(
                           backgroundColor:
-                              WidgetStateProperty.resolveWith<Color>(
-                            (Set<WidgetState> states) {
+                          WidgetStateProperty.resolveWith<Color>(
+                                (Set<WidgetState> states) {
                               if (states.contains(WidgetState.pressed)) {
                                 return Colors.white;
                               }
@@ -250,8 +289,8 @@ class _SignUpOTPPageState extends State<SignUpOTPPage> {
                             },
                           ),
                           foregroundColor:
-                              WidgetStateProperty.resolveWith<Color>(
-                            (Set<WidgetState> states) {
+                          WidgetStateProperty.resolveWith<Color>(
+                                (Set<WidgetState> states) {
                               if (states.contains(WidgetState.pressed)) {
                                 return Colors.black;
                               }
@@ -260,10 +299,10 @@ class _SignUpOTPPageState extends State<SignUpOTPPage> {
                           ),
                           elevation: WidgetStateProperty.all<double>(4.0),
                           shape:
-                              WidgetStateProperty.all<RoundedRectangleBorder>(
+                          WidgetStateProperty.all<RoundedRectangleBorder>(
                             const RoundedRectangleBorder(
                               borderRadius:
-                                  BorderRadius.all(Radius.circular(15)),
+                              BorderRadius.all(Radius.circular(15)),
                             ),
                           ),
                         ),
