@@ -1,21 +1,24 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+
+import 'package:async/async.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
 import 'package:image_cropper/image_cropper.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:signal_app/main_app.dart';
 import 'package:path/path.dart' as path;
-import 'package:async/async.dart';
+import 'package:signal_app/main_app.dart';
 
 class EditProfile extends StatefulWidget {
   final String profileImgUrl;
+  final String name;
 
   const EditProfile({
     super.key,
     required this.profileImgUrl,
+    required this.name,
   });
 
   @override
@@ -37,6 +40,7 @@ class _EditProfileState extends State<EditProfile> with WidgetsBindingObserver {
   @override
   void initState() {
     _profileImage = widget.profileImgUrl;
+    displayNameController.text = widget.name;
     super.initState();
   }
 
@@ -45,7 +49,7 @@ class _EditProfileState extends State<EditProfile> with WidgetsBindingObserver {
     if (pickedFile != null) {
       File imageFile = File(pickedFile.path);
       final decodedImage =
-      await decodeImageFromList(imageFile.readAsBytesSync());
+          await decodeImageFromList(imageFile.readAsBytesSync());
 
       if (decodedImage.width > maxWidth || decodedImage.height > maxHeight) {
         var cropper = ImageCropper();
@@ -83,11 +87,10 @@ class _EditProfileState extends State<EditProfile> with WidgetsBindingObserver {
   Future<void> _updateProfile() async {
     final String name = displayNameController.text.trim();
 
-    // Check if name is empty or profile image is not selected
-    if (name.isEmpty || _profileImage == null) {
+    if (name.isEmpty && _profileImage.isEmpty) {
       _showCustomSnackBar(
         context,
-        'Make sure you\'ve selected an image and filled in a name.',
+        'Please provide a name or select a profile image.',
         isError: true,
       );
       return;
@@ -103,51 +106,100 @@ class _EditProfileState extends State<EditProfile> with WidgetsBindingObserver {
         throw Exception("No access token found.");
       }
 
-      File imageFile = File(_profileImage);
-      var stream = http.ByteStream(
-          DelegatingStream.typed(imageFile.openRead()));
-      var length = await imageFile.length();
-
       final request = http.MultipartRequest(
         'POST',
         Uri.parse('https://script.teendev.dev/signal/api/update-profile'),
       );
 
       request.headers['Authorization'] = 'Bearer $accessToken';
-      request.fields['name'] = name;
 
-      // Add profile image to the request
-      request.files.add(http.MultipartFile('profile_photo', stream, length,
-          filename: path.basename(imageFile.path)));
+      // Add name to the request if it's provided
+      if (name.isNotEmpty) {
+        request.fields['name'] = name;
+      }
+
+      // Check if a profile image is provided
+      if (_profileImage.isNotEmpty) {
+        File imageFile = File(_profileImage);
+
+        // Ensure the image file exists before adding it to the request
+        if (await imageFile.exists()) {
+          var stream = http.ByteStream(
+            DelegatingStream.typed(imageFile.openRead()),
+          );
+          var length = await imageFile.length();
+          request.files.add(http.MultipartFile(
+            'profile_photo',
+            stream,
+            length,
+            filename: path.basename(imageFile.path),
+          ));
+        } else {
+          print('Image file not found. Skipping image upload.');
+        }
+      }
 
       final response = await request.send();
       final responseData = await http.Response.fromStream(response);
-
       if (response.statusCode == 200) {
-        _showCustomSnackBar(
-          context,
-          'Profile updated successfully.',
-          isError: false,
-        );
+        // Attempt to parse the response only if it's not empty
+        if (responseData.body.isNotEmpty) {
+          try {
+            final Map<String, dynamic> responseBody =
+                jsonDecode(responseData.body);
 
-        // Navigate back to the main app
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => MainApp(key: UniqueKey())),
-        );
+            _showCustomSnackBar(
+              context,
+              'Profile updated successfully.',
+              isError: false,
+            );
+
+            // Navigate back to the main app
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(
+                  builder: (context) => MainApp(key: UniqueKey())),
+            );
+          } catch (e) {
+            print('Error parsing JSON: $e');
+            print('Raw response: ${responseData.body}');
+            throw FormatException("Invalid response format");
+          }
+        } else {
+          throw FormatException("Empty response received");
+        }
       } else {
-        final Map<String, dynamic> errorResponse = jsonDecode(
-            responseData.body);
-        throw Exception(errorResponse['message'] ?? 'Unknown error occurred');
+        // Handle non-200 responses
+        final String responseBody = responseData.body;
+        if (responseBody.isNotEmpty) {
+          final Map<String, dynamic> errorResponse = jsonDecode(responseBody);
+          throw Exception(errorResponse['message'] ?? 'Unknown error occurred');
+        } else {
+          throw Exception('Unknown error occurred');
+        }
       }
     } catch (e) {
-      // Handle any exceptions and display a professional error message
+      String errorMessage = 'Something went wrong. Please try again.';
+
+      // Handle specific errors
+      if (e is FormatException) {
+        errorMessage = 'Invalid response from server.';
+      } else if (e is http.ClientException) {
+        errorMessage = 'Network error. Please check your connection.';
+      } else if (e is SocketException) {
+        errorMessage =
+            'Unable to connect to the server. Please try again later.';
+      }
+
+      // Log the exact error for debugging
+      print('Something went wrong. Error details: $e');
+
+      // Show a professional error message to the user
       _showCustomSnackBar(
         context,
-        'Something went wrong. Please try again.',
+        errorMessage,
         isError: true,
       );
-      print('Something went wrong. Please try again. Error: $e');
     } finally {
       // Stop the loading indicator
       setState(() {
@@ -187,7 +239,6 @@ class _EditProfileState extends State<EditProfile> with WidgetsBindingObserver {
     ScaffoldMessenger.of(context).showSnackBar(snackBar);
   }
 
-
   @override
   Widget build(BuildContext context) {
     return OrientationBuilder(
@@ -197,21 +248,12 @@ class _EditProfileState extends State<EditProfile> with WidgetsBindingObserver {
             child: Center(
               child: SizedBox(
                 height: orientation == Orientation.portrait
-                    ? MediaQuery
-                    .of(context)
-                    .size
-                    .height * 1
-                    : MediaQuery
-                    .of(context)
-                    .size
-                    .height * 1.8,
+                    ? MediaQuery.of(context).size.height * 1
+                    : MediaQuery.of(context).size.height * 1.8,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    SizedBox(height: MediaQuery
-                        .of(context)
-                        .size
-                        .height * 0.1),
+                    SizedBox(height: MediaQuery.of(context).size.height * 0.1),
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 20.0),
                       child: Row(
@@ -235,79 +277,45 @@ class _EditProfileState extends State<EditProfile> with WidgetsBindingObserver {
                             ),
                           ),
                           SizedBox(
-                              width: MediaQuery
-                                  .of(context)
-                                  .size
-                                  .width * 0.1),
+                              width: MediaQuery.of(context).size.width * 0.1),
                           const Spacer(),
                         ],
                       ),
                     ),
-                    SizedBox(height: MediaQuery
-                        .of(context)
-                        .size
-                        .height * 0.05),
+                    SizedBox(height: MediaQuery.of(context).size.height * 0.05),
                     Center(
                       child: Stack(
                         children: [
-                          if (_profileImage.isEmpty)
-                            ClipRRect(
-                              borderRadius: BorderRadius.circular(55),
-                              child: Container(
-                                width:
-                                (111 / MediaQuery
-                                    .of(context)
-                                    .size
-                                    .width) *
-                                    MediaQuery
-                                        .of(context)
-                                        .size
-                                        .width,
-                                height:
-                                (111 / MediaQuery
-                                    .of(context)
-                                    .size
-                                    .height) *
-                                    MediaQuery
-                                        .of(context)
-                                        .size
-                                        .height,
-                                color: Colors.grey,
-                                child: Image.asset(
-                                  'images/Pexels Photo by 3Motional Studio.png',
-                                  fit: BoxFit.cover,
-                                ),
-                              ),
-                            )
-                          else
-                            ClipRRect(
-                              borderRadius: BorderRadius.circular(55),
-                              child: Container(
-                                width:
-                                (111 / MediaQuery
-                                    .of(context)
-                                    .size
-                                    .width) *
-                                    MediaQuery
-                                        .of(context)
-                                        .size
-                                        .width,
-                                height:
-                                (111 / MediaQuery
-                                    .of(context)
-                                    .size
-                                    .height) *
-                                    MediaQuery
-                                        .of(context)
-                                        .size
-                                        .height,
-                                color: Colors.grey,
-                                child: Image.file(
-                                  File(_profileImage),
-                                  fit: BoxFit.cover,
-                                ),
-                              ),
+                          ClipRRect(
+                            borderRadius: BorderRadius.circular(55),
+                            child: Container(
+                              width: (111 / MediaQuery.of(context).size.width) *
+                                  MediaQuery.of(context).size.width,
+                              height:
+                                  (111 / MediaQuery.of(context).size.height) *
+                                      MediaQuery.of(context).size.height,
+                              color: Colors.grey,
+                              child: _profileImage.isEmpty
+                                  ? Image.asset(
+                                      'images/Pexels Photo by 3Motional Studio.png',
+                                      fit: BoxFit.cover,
+                                    )
+                                  : (_profileImage.startsWith('http')
+                                      ? Image.network(
+                                          _profileImage,
+                                          fit: BoxFit.cover,
+                                          errorBuilder:
+                                              (context, error, stackTrace) {
+                                            return const Icon(Icons
+                                                .error); // Show an error icon if image fails to load
+                                          },
+                                        )
+                                      : Image.file(
+                                          File(_profileImage),
+                                          fit: BoxFit.cover,
+                                        )),
                             ),
+                          ),
                           Positioned(
                             bottom: 0,
                             right: 0,
@@ -324,10 +332,7 @@ class _EditProfileState extends State<EditProfile> with WidgetsBindingObserver {
                         ],
                       ),
                     ),
-                    SizedBox(height: MediaQuery
-                        .of(context)
-                        .size
-                        .height * 0.05),
+                    SizedBox(height: MediaQuery.of(context).size.height * 0.05),
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 20.0),
                       child: TextFormField(
@@ -358,20 +363,11 @@ class _EditProfileState extends State<EditProfile> with WidgetsBindingObserver {
                         cursorColor: Colors.black,
                       ),
                     ),
-                    SizedBox(height: MediaQuery
-                        .of(context)
-                        .size
-                        .height * 0.05),
+                    SizedBox(height: MediaQuery.of(context).size.height * 0.05),
                     Container(
                       width: double.infinity,
-                      height: (60 / MediaQuery
-                          .of(context)
-                          .size
-                          .height) *
-                          MediaQuery
-                              .of(context)
-                              .size
-                              .height,
+                      height: (60 / MediaQuery.of(context).size.height) *
+                          MediaQuery.of(context).size.height,
                       padding: const EdgeInsets.symmetric(horizontal: 20.0),
                       child: ElevatedButton(
                         onPressed: () {
@@ -381,8 +377,8 @@ class _EditProfileState extends State<EditProfile> with WidgetsBindingObserver {
                         },
                         style: ButtonStyle(
                           backgroundColor:
-                          WidgetStateProperty.resolveWith<Color>(
-                                (Set<WidgetState> states) {
+                              WidgetStateProperty.resolveWith<Color>(
+                            (Set<WidgetState> states) {
                               if (states.contains(WidgetState.pressed)) {
                                 return Colors.white;
                               }
@@ -390,8 +386,8 @@ class _EditProfileState extends State<EditProfile> with WidgetsBindingObserver {
                             },
                           ),
                           foregroundColor:
-                          WidgetStateProperty.resolveWith<Color>(
-                                (Set<WidgetState> states) {
+                              WidgetStateProperty.resolveWith<Color>(
+                            (Set<WidgetState> states) {
                               if (states.contains(WidgetState.pressed)) {
                                 return Colors.black;
                               }
@@ -400,26 +396,26 @@ class _EditProfileState extends State<EditProfile> with WidgetsBindingObserver {
                           ),
                           elevation: WidgetStateProperty.all<double>(4.0),
                           shape:
-                          WidgetStateProperty.all<RoundedRectangleBorder>(
+                              WidgetStateProperty.all<RoundedRectangleBorder>(
                             const RoundedRectangleBorder(
                               borderRadius:
-                              BorderRadius.all(Radius.circular(15)),
+                                  BorderRadius.all(Radius.circular(15)),
                             ),
                           ),
                         ),
                         child: isLoading
                             ? const Center(
-                          child: CircularProgressIndicator(
-                            color: Colors.white,
-                          ),
-                        )
+                                child: CircularProgressIndicator(
+                                  color: Colors.white,
+                                ),
+                              )
                             : const Text(
-                          'Save',
-                          style: TextStyle(
-                            fontFamily: 'Inter',
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
+                                'Save',
+                                style: TextStyle(
+                                  fontFamily: 'Inter',
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
                       ),
                     ),
                   ],

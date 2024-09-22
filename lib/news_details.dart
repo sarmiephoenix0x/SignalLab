@@ -29,7 +29,7 @@ class NewsDetailsState extends State<NewsDetails> {
 
   void _showPopupMenu(BuildContext context) async {
     final RenderBox renderBox =
-    _key.currentContext!.findRenderObject() as RenderBox;
+        _key.currentContext!.findRenderObject() as RenderBox;
     final Offset position = renderBox.localToGlobal(Offset.zero);
 
     await showMenu(
@@ -48,10 +48,7 @@ class NewsDetailsState extends State<NewsDetails> {
                 'images/share-box-line.png',
               ),
               SizedBox(
-                width: MediaQuery
-                    .of(context)
-                    .size
-                    .width * 0.05,
+                width: MediaQuery.of(context).size.width * 0.05,
               ),
               const Text(
                 'Share',
@@ -72,10 +69,7 @@ class NewsDetailsState extends State<NewsDetails> {
                 'images/feedback-line.png',
               ),
               SizedBox(
-                width: MediaQuery
-                    .of(context)
-                    .size
-                    .width * 0.05,
+                width: MediaQuery.of(context).size.width * 0.05,
               ),
               const Text(
                 'Report',
@@ -96,10 +90,7 @@ class NewsDetailsState extends State<NewsDetails> {
                 'images/save-line.png',
               ),
               SizedBox(
-                width: MediaQuery
-                    .of(context)
-                    .size
-                    .width * 0.05,
+                width: MediaQuery.of(context).size.width * 0.05,
               ),
               const Text(
                 'Save',
@@ -120,10 +111,7 @@ class NewsDetailsState extends State<NewsDetails> {
                 'images/basketball-line.png',
               ),
               SizedBox(
-                width: MediaQuery
-                    .of(context)
-                    .size
-                    .width * 0.05,
+                width: MediaQuery.of(context).size.width * 0.05,
               ),
               const Text(
                 'Open in browser',
@@ -188,7 +176,15 @@ class NewsDetailsState extends State<NewsDetails> {
       );
 
       if (response.statusCode == 200) {
-        return jsonDecode(response.body);
+        final news = jsonDecode(response.body);
+
+        // Set booleans based on response
+        setState(() {
+          isBookmarked = news['bookmarked'] != null; // True if bookmarked is not null
+          isLiked = news['upvotes'] > 0; // True if upvotes > 0
+        });
+
+        return news;
       } else {
         // Handle different status codes
         if (response.statusCode == 401) {
@@ -374,6 +370,80 @@ class NewsDetailsState extends State<NewsDetails> {
     }
   }
 
+  Future<void> addBookmark(String type) async {
+    final String? accessToken = await storage.read(key: 'accessToken');
+    final response = await http.post(
+      Uri.parse('https://script.teendev.dev/signal/api/bookmark/add'),
+      headers: {
+        'Authorization': 'Bearer $accessToken',
+        'Content-Type': 'application/json',
+      },
+      body: jsonEncode({
+        'type': type,
+        'news_id': widget.newsId,
+      }),
+    );
+
+    final responseBody = jsonDecode(response.body);
+
+    if (response.statusCode == 200) {
+      // Show success message
+      _showCustomSnackBar(
+        context,
+        responseBody['message'],
+        isError: false,
+      );
+
+      setState(() {
+        isBookmarked = true;
+        _newsFuture = fetchNewsDetails(widget.newsId);
+      });
+      setState(() {}); // Update the UI
+    } else {
+      _showCustomSnackBar(
+        context,
+        responseBody['message'] ?? 'An error occurred',
+        isError: true,
+      );
+    }
+  }
+
+  Future<void> removeBookmark() async {
+    final String? accessToken = await storage.read(key: 'accessToken');
+    final response = await http.post(
+      Uri.parse('https://script.teendev.dev/signal/api/bookmark/delete'),
+      headers: {
+        'Authorization': 'Bearer $accessToken',
+        'Content-Type': 'application/json',
+      },
+      body: jsonEncode({
+        'id': widget.newsId.toString(),
+      }),
+    );
+
+    final responseBody = jsonDecode(response.body);
+
+    if (response.statusCode == 200) {
+      // Show success message
+      _showCustomSnackBar(
+        context,
+        responseBody['message'],
+        isError: false,
+      );
+
+      setState(() {
+        isBookmarked = false;
+        _newsFuture = fetchNewsDetails(widget.newsId);
+      });
+      setState(() {}); // Update the UI
+    } else {
+      _showCustomSnackBar(
+        context,
+        responseBody['message'] ?? 'An error occurred',
+        isError: true,
+      );
+    }
+  }
 
   String _formatUpvotes(int count) {
     if (count >= 1000) {
@@ -415,23 +485,15 @@ class NewsDetailsState extends State<NewsDetails> {
 
   @override
   Widget build(BuildContext context) {
-    Color originalIconColor = IconTheme
-        .of(context)
-        .color ?? Colors.black;
+    Color originalIconColor = IconTheme.of(context).color ?? Colors.black;
     return Scaffold(
       body: OrientationBuilder(
         builder: (context, orientation) {
           return Center(
             child: SizedBox(
               height: orientation == Orientation.portrait
-                  ? MediaQuery
-                  .of(context)
-                  .size
-                  .height
-                  : MediaQuery
-                  .of(context)
-                  .size
-                  .height * 1.5,
+                  ? MediaQuery.of(context).size.height
+                  : MediaQuery.of(context).size.height * 1.5,
               child: RefreshIndicator(
                 onRefresh: _refreshData,
                 color: Colors.black,
@@ -441,7 +503,7 @@ class NewsDetailsState extends State<NewsDetails> {
                     if (snapshot.connectionState == ConnectionState.waiting) {
                       return const Center(
                           child:
-                          CircularProgressIndicator(color: Colors.black));
+                              CircularProgressIndicator(color: Colors.black));
                     } else if (snapshot.hasError) {
                       return Center(
                         child: Column(
@@ -508,16 +570,13 @@ class NewsDetailsState extends State<NewsDetails> {
                         children: [
                           Padding(
                             padding:
-                            const EdgeInsets.symmetric(horizontal: 20.0),
+                                const EdgeInsets.symmetric(horizontal: 20.0),
                             child: SingleChildScrollView(
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   SizedBox(
-                                    height: MediaQuery
-                                        .of(context)
-                                        .size
-                                        .height *
+                                    height: MediaQuery.of(context).size.height *
                                         0.1,
                                   ),
                                   Row(
@@ -533,10 +592,7 @@ class NewsDetailsState extends State<NewsDetails> {
                                     ],
                                   ),
                                   SizedBox(
-                                    height: MediaQuery
-                                        .of(context)
-                                        .size
-                                        .height *
+                                    height: MediaQuery.of(context).size.height *
                                         0.05,
                                   ),
                                   Row(
@@ -544,16 +600,13 @@ class NewsDetailsState extends State<NewsDetails> {
                                       Image.asset('images/NewsProfileImg.png'),
                                       SizedBox(
                                         width:
-                                        MediaQuery
-                                            .of(context)
-                                            .size
-                                            .width *
-                                            0.01,
+                                            MediaQuery.of(context).size.width *
+                                                0.01,
                                       ),
                                       Expanded(
                                         child: Column(
                                           crossAxisAlignment:
-                                          CrossAxisAlignment.start,
+                                              CrossAxisAlignment.start,
                                           children: [
                                             Text(
                                               news['user'] ?? '',
@@ -565,10 +618,9 @@ class NewsDetailsState extends State<NewsDetails> {
                                               ),
                                             ),
                                             SizedBox(
-                                              height: MediaQuery
-                                                  .of(context)
-                                                  .size
-                                                  .height *
+                                              height: MediaQuery.of(context)
+                                                      .size
+                                                      .height *
                                                   0.01,
                                             ),
                                             Text(
@@ -597,10 +649,7 @@ class NewsDetailsState extends State<NewsDetails> {
                                     ],
                                   ),
                                   SizedBox(
-                                    height: MediaQuery
-                                        .of(context)
-                                        .size
-                                        .height *
+                                    height: MediaQuery.of(context).size.height *
                                         0.03,
                                   ),
                                   Text(
@@ -620,7 +669,7 @@ class NewsDetailsState extends State<NewsDetails> {
                                   ),
                                   Padding(
                                     padding:
-                                    const EdgeInsets.only(bottom: 76.0),
+                                        const EdgeInsets.only(bottom: 76.0),
                                     child: Text(
                                       news['article'] ?? '',
                                       style: const TextStyle(
@@ -628,10 +677,7 @@ class NewsDetailsState extends State<NewsDetails> {
                                     ),
                                   ),
                                   SizedBox(
-                                    height: MediaQuery
-                                        .of(context)
-                                        .size
-                                        .height *
+                                    height: MediaQuery.of(context).size.height *
                                         0.1,
                                   ),
                                 ],
@@ -642,19 +688,13 @@ class NewsDetailsState extends State<NewsDetails> {
                             bottom: 0,
                             child: Container(
                               height:
-                              (70 / MediaQuery
-                                  .of(context)
-                                  .size
-                                  .height) *
-                                  MediaQuery
-                                      .of(context)
-                                      .size
-                                      .height,
+                                  (70 / MediaQuery.of(context).size.height) *
+                                      MediaQuery.of(context).size.height,
                               padding: const EdgeInsets.all(12.0),
                               decoration: BoxDecoration(
                                 color: Colors.white,
                                 border:
-                                Border.all(width: 0, color: Colors.black),
+                                    Border.all(width: 0, color: Colors.black),
                                 borderRadius: BorderRadius.circular(15),
                                 boxShadow: [
                                   BoxShadow(
@@ -665,10 +705,7 @@ class NewsDetailsState extends State<NewsDetails> {
                                 ],
                               ),
                               child: SizedBox(
-                                width: MediaQuery
-                                    .of(context)
-                                    .size
-                                    .width,
+                                width: MediaQuery.of(context).size.width,
                                 child: Padding(
                                   padding: const EdgeInsets.symmetric(
                                       horizontal: 20.0),
@@ -702,11 +739,8 @@ class NewsDetailsState extends State<NewsDetails> {
                                     ),
                                     SizedBox(
                                         width:
-                                        MediaQuery
-                                            .of(context)
-                                            .size
-                                            .width *
-                                            0.06),
+                                            MediaQuery.of(context).size.width *
+                                                0.06),
                                     Row(
                                       children: [
                                         IconButton(
@@ -734,9 +768,11 @@ class NewsDetailsState extends State<NewsDetails> {
                                               ? Colors.blue
                                               : originalIconColor),
                                       onPressed: () {
-                                        setState(() {
-                                          isBookmarked = !isBookmarked;
-                                        });
+                                        if (isBookmarked == false) {
+                                          addBookmark("news");
+                                        } else if (isBookmarked == true) {
+                                          removeBookmark();
+                                        }
                                       },
                                     ),
                                     // Expanded(

@@ -6,16 +6,18 @@ import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
 import 'package:webview_flutter/webview_flutter.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class SentimentViewCoin extends StatefulWidget {
   final int sentimentId;
   final String sentimentTitle;
   final String sentimentImg;
 
-  const SentimentViewCoin({super.key,
-    required this.sentimentId,
-    required this.sentimentTitle,
-    required this.sentimentImg});
+  const SentimentViewCoin(
+      {super.key,
+      required this.sentimentId,
+      required this.sentimentTitle,
+      required this.sentimentImg});
 
   @override
   // ignore: library_private_types_in_public_api
@@ -41,12 +43,16 @@ class _SentimentViewCoinState extends State<SentimentViewCoin>
   String currentVote = "upvote";
   bool _notifyActive = false;
   bool shared = false;
+  Offset _fabPosition = Offset.zero;
+  final GlobalKey<TooltipState> _tooltipKey = GlobalKey<TooltipState>();
+  bool tooltipShown = false;
 
   @override
   void initState() {
     super.initState();
+    _checkTooltipStatus();
     tabController = TabController(length: 2, vsync: this);
-    tabController2 = TabController(length: 3, vsync: this);
+    tabController2 = TabController(length: 4, vsync: this);
     tabController!.addListener(_handleTabSelection);
     _fetchSentimentDetails(widget.sentimentId);
     _scrollController.addListener(() {
@@ -70,6 +76,22 @@ class _SentimentViewCoinState extends State<SentimentViewCoin>
     tabController?.dispose();
     tabController2?.dispose();
     super.dispose();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+
+    // Set the initial position of the FAB to the bottom-right corner of the screen
+    final screenWidth = MediaQuery.of(context).size.width;
+    final screenHeight = MediaQuery.of(context).size.height;
+
+    setState(() {
+      _fabPosition = Offset(
+          screenWidth - 76,
+          screenHeight -
+              136); // 76 and 136 are offsets for padding and FAB size
+    });
   }
 
   void _handleTabSelection() {
@@ -106,9 +128,39 @@ class _SentimentViewCoinState extends State<SentimentViewCoin>
         setState(() {
           final responseData = json.decode(response.body);
           sentiments =
-          responseData is List<dynamic> ? responseData : [responseData];
+              responseData is List<dynamic> ? responseData : [responseData];
           loading = false;
+
+          if (sentiments.isNotEmpty) {
+            String time = sentiments[0]
+                ['time']; // Assuming you want the first sentiment's time
+            switch (time) {
+              case 'daily':
+                tabController2!.index = 0;
+                break;
+              case 'weekly':
+                tabController2!.index = 1;
+                break;
+              case 'monthly':
+                tabController2!.index = 2;
+                break;
+              case 'yearly':
+                tabController2!.index = 3;
+                break;
+              default:
+                // Handle unexpected values if necessary
+                tabController2!.index =
+                    0; // Default to daily or any other logic
+                break;
+            }
+          }
         });
+        if (!tooltipShown) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            _tooltipKey.currentState?.ensureTooltipVisible();
+            _markTooltipAsShown();
+          });
+        }
       } else if (response.statusCode == 401) {
         setState(() {
           loading = false;
@@ -133,7 +185,7 @@ class _SentimentViewCoinState extends State<SentimentViewCoin>
       setState(() {
         loading = false;
         errorMessage =
-        'Failed to load data. Please check your network connection.';
+            'Failed to load data. Please check your network connection.';
       });
       print('Exception: $e');
     }
@@ -345,378 +397,398 @@ class _SentimentViewCoinState extends State<SentimentViewCoin>
     ScaffoldMessenger.of(context).showSnackBar(snackBar);
   }
 
+  Future<void> _checkTooltipStatus() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    setState(() {
+      tooltipShown = prefs.getBool('tooltipShown') ?? false;
+    });
+  }
+
+  Future<void> _markTooltipAsShown() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('tooltipShown', true);
+  }
+
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final screenHeight = MediaQuery.of(context).size.height;
     return OrientationBuilder(
       builder: (context, orientation) {
         return Scaffold(
           body: loading
               ? const Center(
-              child: CircularProgressIndicator(color: Colors.black))
+                  child: CircularProgressIndicator(color: Colors.black))
               : Center(
-            child: RefreshIndicator(
-              onRefresh: _refreshData,
-              color: Colors.black,
-              child: Stack(
-                children: [
-                  SingleChildScrollView(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+                  child: RefreshIndicator(
+                    onRefresh: _refreshData,
+                    color: Colors.black,
+                    child: Stack(
                       children: [
-                        SizedBox(
-                            height:
-                            MediaQuery
-                                .of(context)
-                                .size
-                                .height * 0.1),
-                        Padding(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 20.0),
-                          child: Row(
+                        SingleChildScrollView(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              InkWell(
-                                onTap: () {
-                                  Navigator.pop(context);
-                                },
-                                child: Image.asset(
-                                    'images/tabler_arrow-back.png'),
-                              ),
-                              const Spacer(),
-                              Expanded(
-                                flex: 10,
-                                child: Text(
-                                  widget.sentimentTitle,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: const TextStyle(
-                                    fontFamily: 'Inconsolata',
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 22,
-                                    color: Colors.black,
-                                  ),
-                                ),
-                              ),
-                              const Spacer(),
-                            ],
-                          ),
-                        ),
-                        SizedBox(
-                            height: MediaQuery
-                                .of(context)
-                                .size
-                                .height *
-                                0.05),
-                        if (loading)
-                          const Center(
-                            child: CircularProgressIndicator(
-                                color: Colors.black),
-                          )
-                        else
-                          if (errorMessage != null)
-                            Center(
-                              child: Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Text(
-                                    errorMessage!,
-                                    textAlign: TextAlign.center,
-                                    style: const TextStyle(
-                                      fontFamily: 'Inconsolata',
-                                      color: Colors.red,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 16),
-                                  ElevatedButton(
-                                    onPressed: _refreshData,
-                                    child: const Text(
-                                      'Retry',
-                                      style: TextStyle(
-                                        fontFamily: 'Inconsolata',
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 18,
-                                        color: Colors.black,
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            )
-                          else
-                            Column(
-                              crossAxisAlignment:
-                              CrossAxisAlignment.start,
-                              children: [
-                                // WebView content
-                                SizedBox(
+                              SizedBox(
                                   height:
-                                  MediaQuery
-                                      .of(context)
-                                      .size
-                                      .height *
-                                      0.7, // Specify the height
-                                  child: WebViewWidget(
-                                      controller: _controller),
-                                ),
-                                SizedBox(
-                                    height: MediaQuery
-                                        .of(context)
-                                        .size
-                                        .height *
-                                        0.02),
-                                const Center(
-                                  child: Text(
-                                    'Share your opinion',
-                                    textAlign: TextAlign.center,
-                                    style: TextStyle(
-                                      fontFamily: 'Inconsolata',
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 20,
-                                      color: Colors.black,
-                                    ),
-                                  ),
-                                ),
-                                SizedBox(
-                                    height: MediaQuery
-                                        .of(context)
-                                        .size
-                                        .height *
-                                        0.02),
-                                Center(
-                                  child: Text(
-                                    "${widget.sentimentTitle} will go",
-                                    textAlign: TextAlign.center,
-                                    style: const TextStyle(
-                                      fontFamily: 'Inconsolata',
-                                      fontSize: 18,
-                                      color: Colors.black,
-                                    ),
-                                  ),
-                                ),
-                                SizedBox(
-                                    height: MediaQuery
-                                        .of(context)
-                                        .size
-                                        .height *
-                                        0.02),
-                                // Voting buttons
-                                _voteButtons(),
-                                SizedBox(
-                                    height: MediaQuery
-                                        .of(context)
-                                        .size
-                                        .height *
-                                        0.02),
-                                Center(
-                                  child: Text(
-                                    "${widget
-                                        .sentimentTitle} will go $voteText over the",
-                                    textAlign: TextAlign.center,
-                                    style: const TextStyle(
-                                      fontFamily: 'Inconsolata',
-                                      fontSize: 18,
-                                      color: Colors.black,
-                                    ),
-                                  ),
-                                ),
-                                SizedBox(
-                                    height: MediaQuery
-                                        .of(context)
-                                        .size
-                                        .height *
-                                        0.02),
-                                _voteButtons2(),
-                                SizedBox(
-                                    height: MediaQuery
-                                        .of(context)
-                                        .size
-                                        .height *
-                                        0.05),
-                                Row(
+                                      MediaQuery.of(context).size.height * 0.1),
+                              Padding(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 20.0),
+                                child: Row(
                                   children: [
-                                    const Expanded(
+                                    InkWell(
+                                      onTap: () {
+                                        Navigator.pop(context);
+                                      },
+                                      child: Image.asset(
+                                          'images/tabler_arrow-back.png'),
+                                    ),
+                                    const Spacer(),
+                                    Expanded(
                                       flex: 10,
                                       child: Text(
-                                        'Notify me when the prediction has finished',
-                                        softWrap: true,
-                                        textAlign: TextAlign.center,
-                                        style: TextStyle(
+                                        widget.sentimentTitle,
+                                        overflow: TextOverflow.ellipsis,
+                                        style: const TextStyle(
                                           fontFamily: 'Inconsolata',
-                                          fontSize: 18,
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 22,
                                           color: Colors.black,
                                         ),
                                       ),
                                     ),
                                     const Spacer(),
-                                    Padding(
-                                      padding: const EdgeInsets.symmetric(
-                                          horizontal: 20.0),
-                                      child: InkWell(
-                                        onTap: () {
-                                          setState(() {
-                                            _notifyActive =
-                                            !_notifyActive;
-                                          });
-                                        },
-                                        child: Stack(
-                                          children: [
-                                            Image.asset(
-                                              'images/RadioButBody.png',
-                                              fit: BoxFit.cover,
-                                              color: _notifyActive
-                                                  ? Colors.black
-                                                  : null,
-                                            ),
-                                            AnimatedPositioned(
-                                              bottom:
-                                              MediaQuery
-                                                  .of(context)
-                                                  .padding
-                                                  .bottom +
-                                                  -3,
-                                              left: _notifyActive
-                                                  ? MediaQuery
-                                                  .of(context)
-                                                  .padding
-                                                  .left +
-                                                  16
-                                                  : MediaQuery
-                                                  .of(context)
-                                                  .padding
-                                                  .left +
-                                                  -2,
-                                              duration: const Duration(
-                                                  milliseconds: 160),
-                                              child: Image.asset(
-                                                'images/RadioButHandle.png',
-                                                fit: BoxFit.cover,
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                    ),
                                   ],
                                 ),
-                                SizedBox(
-                                    height: MediaQuery
-                                        .of(context)
-                                        .size
-                                        .height *
-                                        0.05),
-
-                                // Share button
-                                Container(
-                                  width: double.infinity,
-                                  height: (60 /
-                                      MediaQuery
-                                          .of(context)
-                                          .size
-                                          .height) *
-                                      MediaQuery
-                                          .of(context)
-                                          .size
-                                          .height,
-                                  padding: const EdgeInsets.symmetric(
-                                      horizontal: 20.0),
-                                  child: ElevatedButton(
-                                    onPressed:
-                                    isLoading ? null : () => _share(),
-                                    style: ButtonStyle(
-                                      backgroundColor:
-                                      MaterialStateProperty
-                                          .resolveWith<Color>(
-                                            (Set<MaterialState> states) {
-                                          if (states.contains(
-                                              MaterialState.pressed)) {
-                                            return Colors.white;
-                                          }
-                                          return Colors.black;
-                                        },
+                              ),
+                              SizedBox(
+                                  height: MediaQuery.of(context).size.height *
+                                      0.05),
+                              if (loading)
+                                const Center(
+                                  child: CircularProgressIndicator(
+                                      color: Colors.black),
+                                )
+                              else if (errorMessage != null)
+                                Center(
+                                  child: Column(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Text(
+                                        errorMessage!,
+                                        textAlign: TextAlign.center,
+                                        style: const TextStyle(
+                                          fontFamily: 'Inconsolata',
+                                          color: Colors.red,
+                                        ),
                                       ),
-                                      foregroundColor:
-                                      MaterialStateProperty
-                                          .resolveWith<Color>(
-                                            (Set<MaterialState> states) {
-                                          if (states.contains(
-                                              MaterialState.pressed)) {
-                                            return Colors.black;
-                                          }
-                                          return Colors.white;
-                                        },
+                                      const SizedBox(height: 16),
+                                      ElevatedButton(
+                                        onPressed: _refreshData,
+                                        child: const Text(
+                                          'Retry',
+                                          style: TextStyle(
+                                            fontFamily: 'Inconsolata',
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 18,
+                                            color: Colors.black,
+                                          ),
+                                        ),
                                       ),
-                                      elevation: MaterialStateProperty
-                                          .all<double>(4.0),
-                                      shape: MaterialStateProperty.all<
-                                          RoundedRectangleBorder>(
-                                        const RoundedRectangleBorder(
-                                          borderRadius: BorderRadius.all(
-                                              Radius.circular(15)),
+                                    ],
+                                  ),
+                                )
+                              else
+                                Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    // WebView content
+                                    SizedBox(
+                                      height:
+                                          MediaQuery.of(context).size.height *
+                                              0.5, // Specify the height
+                                      child: WebViewWidget(
+                                          controller: _controller),
+                                    ),
+                                    SizedBox(
+                                        height:
+                                            MediaQuery.of(context).size.height *
+                                                0.01),
+                                    const Center(
+                                      child: Text(
+                                        'Share your opinion',
+                                        textAlign: TextAlign.center,
+                                        style: TextStyle(
+                                          fontFamily: 'Inconsolata',
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 16,
+                                          color: Colors.black,
                                         ),
                                       ),
                                     ),
-                                    child: isLoading2
-                                        ? const CircularProgressIndicator(
-                                      color: Colors.white,
-                                    )
-                                        : const Text(
-                                      'Share',
-                                      style: TextStyle(
-                                        fontFamily: 'Inter',
-                                        fontWeight: FontWeight.bold,
+                                    SizedBox(
+                                        height:
+                                            MediaQuery.of(context).size.height *
+                                                0.01),
+                                    Center(
+                                      child: Text(
+                                        "${widget.sentimentTitle} will go",
+                                        textAlign: TextAlign.center,
+                                        style: const TextStyle(
+                                          fontFamily: 'Inconsolata',
+                                          fontSize: 14,
+                                          color: Colors.black,
+                                        ),
                                       ),
                                     ),
-                                  ),
+                                    SizedBox(
+                                        height:
+                                            MediaQuery.of(context).size.height *
+                                                0.02),
+                                    // Voting buttons
+                                    _voteButtons(),
+                                    SizedBox(
+                                        height:
+                                            MediaQuery.of(context).size.height *
+                                                0.02),
+                                    Center(
+                                      child: Text(
+                                        "${widget.sentimentTitle} will go $voteText over the",
+                                        textAlign: TextAlign.center,
+                                        style: const TextStyle(
+                                          fontFamily: 'Inconsolata',
+                                          fontSize: 14,
+                                          color: Colors.black,
+                                        ),
+                                      ),
+                                    ),
+                                    SizedBox(
+                                        height:
+                                            MediaQuery.of(context).size.height *
+                                                0.01),
+                                    _voteButtons2(),
+                                    SizedBox(
+                                        height:
+                                            MediaQuery.of(context).size.height *
+                                                0.02),
+                                    Padding(
+                                      padding:
+                                          const EdgeInsets.only(left: 20.0),
+                                      child: Row(
+                                        children: [
+                                          const Expanded(
+                                            flex: 10,
+                                            child: Text(
+                                              'Notify me when the prediction has finished',
+                                              softWrap: true,
+                                              style: TextStyle(
+                                                fontFamily: 'Inconsolata',
+                                                fontSize: 14,
+                                                color: Colors.black,
+                                              ),
+                                            ),
+                                          ),
+                                          const Spacer(),
+                                          Padding(
+                                            padding: const EdgeInsets.symmetric(
+                                                horizontal: 20.0),
+                                            child: InkWell(
+                                              onTap: () {
+                                                setState(() {
+                                                  _notifyActive =
+                                                      !_notifyActive;
+                                                });
+                                              },
+                                              child: Stack(
+                                                children: [
+                                                  Image.asset(
+                                                    'images/RadioButBody.png',
+                                                    fit: BoxFit.cover,
+                                                    color: _notifyActive
+                                                        ? Colors.black
+                                                        : null,
+                                                  ),
+                                                  AnimatedPositioned(
+                                                    bottom:
+                                                        MediaQuery.of(context)
+                                                                .padding
+                                                                .bottom +
+                                                            -3,
+                                                    left: _notifyActive
+                                                        ? MediaQuery.of(context)
+                                                                .padding
+                                                                .left +
+                                                            16
+                                                        : MediaQuery.of(context)
+                                                                .padding
+                                                                .left +
+                                                            -2,
+                                                    duration: const Duration(
+                                                        milliseconds: 160),
+                                                    child: Image.asset(
+                                                      'images/RadioButHandle.png',
+                                                      fit: BoxFit.cover,
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                    // SizedBox(
+                                    //     height:
+                                    //         MediaQuery.of(context).size.height *
+                                    //             0.05),
+                                    //
+                                    // // Share button
+                                    // Container(
+                                    //   width: double.infinity,
+                                    //   height: (60 /
+                                    //           MediaQuery.of(context)
+                                    //               .size
+                                    //               .height) *
+                                    //       MediaQuery.of(context).size.height,
+                                    //   padding: const EdgeInsets.symmetric(
+                                    //       horizontal: 20.0),
+                                    //   child: ElevatedButton(
+                                    //     onPressed:
+                                    //         isLoading ? null : () => _share(),
+                                    //     style: ButtonStyle(
+                                    //       backgroundColor: MaterialStateProperty
+                                    //           .resolveWith<Color>(
+                                    //         (Set<MaterialState> states) {
+                                    //           if (states.contains(
+                                    //               MaterialState.pressed)) {
+                                    //             return Colors.white;
+                                    //           }
+                                    //           return Colors.black;
+                                    //         },
+                                    //       ),
+                                    //       foregroundColor: MaterialStateProperty
+                                    //           .resolveWith<Color>(
+                                    //         (Set<MaterialState> states) {
+                                    //           if (states.contains(
+                                    //               MaterialState.pressed)) {
+                                    //             return Colors.black;
+                                    //           }
+                                    //           return Colors.white;
+                                    //         },
+                                    //       ),
+                                    //       elevation:
+                                    //           MaterialStateProperty.all<double>(
+                                    //               4.0),
+                                    //       shape: MaterialStateProperty.all<
+                                    //           RoundedRectangleBorder>(
+                                    //         const RoundedRectangleBorder(
+                                    //           borderRadius: BorderRadius.all(
+                                    //               Radius.circular(15)),
+                                    //         ),
+                                    //       ),
+                                    //     ),
+                                    //     child: isLoading2
+                                    //         ? const CircularProgressIndicator(
+                                    //             color: Colors.white,
+                                    //           )
+                                    //         : const Text(
+                                    //             'Share',
+                                    //             style: TextStyle(
+                                    //               fontFamily: 'Inter',
+                                    //               fontWeight: FontWeight.bold,
+                                    //             ),
+                                    //           ),
+                                    //   ),
+                                    // ),
+                                    SizedBox(
+                                        height:
+                                            MediaQuery.of(context).size.height *
+                                                0.02),
+                                  ],
                                 ),
-                              ],
+                            ],
+                          ),
+                        ),
+                        if (shared)
+                          Positioned.fill(
+                            child: InkWell(
+                              onTap: () {
+                                setState(() {
+                                  shared = false;
+                                });
+                              },
+                              child: Container(
+                                color: Colors.black.withOpacity(0.5),
+                                child: Column(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Image.asset(
+                                        'images/Submitted-Tick.png',
+                                        height: 60,
+                                      ),
+                                      SizedBox(
+                                          height: MediaQuery.of(context)
+                                                  .size
+                                                  .height *
+                                              0.02),
+                                      const Padding(
+                                        padding: const EdgeInsets.symmetric(
+                                            horizontal: 20.0),
+                                        child: Center(
+                                          child: Text(
+                                            "Your opinion has been shared with the community",
+                                            textAlign: TextAlign.center,
+                                            style: TextStyle(
+                                              fontFamily: 'Inconsolata',
+                                              fontSize: 18,
+                                              color: Colors.white,
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                    ]),
+                              ),
                             ),
+                          ),
+                        Positioned(
+                          left: _fabPosition.dx.clamp(0.0, screenWidth - 56),
+                          // Keep within left-right screen bounds
+                          top: _fabPosition.dy.clamp(0.0, screenHeight - 56),
+                          // Keep within top-bottom screen bounds
+                          child: GestureDetector(
+                            onPanUpdate: (details) {
+                              setState(() {
+                                // Calculate the new position but constrain it within screen bounds
+                                _fabPosition = Offset(
+                                  (_fabPosition.dx + details.delta.dx).clamp(
+                                      0.0,
+                                      screenWidth - 56), // 56 is the FAB size
+                                  (_fabPosition.dy + details.delta.dy)
+                                      .clamp(0.0, screenHeight - 56),
+                                );
+                              });
+                            },
+                            child: Tooltip(
+                              key: _tooltipKey,
+                              message: 'Tap here to share the content',
+                              child: FloatingActionButton(
+                                onPressed: isLoading2 ? null : () => _share(),
+                                backgroundColor: Colors.black,
+                                child: isLoading2
+                                    ? const CircularProgressIndicator(
+                                        color: Colors.white,
+                                      )
+                                    : const Icon(Icons.share,
+                                        color: Colors.white),
+                              ),
+                            ),
+                          ),
+                        ),
                       ],
                     ),
                   ),
-                  if (shared)
-                    Positioned.fill(
-                      child: InkWell(
-                        onTap: () {
-                          setState(() {
-                            shared = false;
-                          });
-                        },
-                        child: Container(
-                          color: Colors.black.withOpacity(0.5),
-                          child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Image.asset(
-                                  'images/Submitted-Tick.png',
-                                  height: 60,
-                                ),
-                                SizedBox(
-                                    height: MediaQuery
-                                        .of(context)
-                                        .size
-                                        .height *
-                                        0.02),
-                                const Padding(
-                                  padding: const EdgeInsets.symmetric(
-                                      horizontal: 20.0),
-                                  child: Center(
-                                    child: Text(
-                                      "Your opinion has been shared with the community",
-                                      textAlign: TextAlign.center,
-                                      style: TextStyle(
-                                        fontFamily: 'Inconsolata',
-                                        fontSize: 18,
-                                        color: Colors.white,
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ]),
-                        ),
-                      ),
-                    ),
-                ],
-              ),
-            ),
-          ),
+                ),
         );
       },
     );
@@ -758,11 +830,11 @@ class _SentimentViewCoinState extends State<SentimentViewCoin>
             unselectedLabelColor: Colors.white,
             indicatorColor: Colors.transparent,
             labelStyle: const TextStyle(
-              fontSize: 16,
+              fontSize: 13,
               fontFamily: 'Inter',
             ),
             unselectedLabelStyle: const TextStyle(
-              fontSize: 16,
+              fontSize: 13,
               fontFamily: 'Inter',
             ),
           ),
@@ -797,17 +869,18 @@ class _SentimentViewCoinState extends State<SentimentViewCoin>
               _buildCurvedTab('DAY'),
               _buildCurvedTab('WEEK'),
               _buildCurvedTab('MONTH'),
+              _buildCurvedTab('YEAR'),
             ],
             labelPadding: const EdgeInsets.symmetric(horizontal: 6),
             labelColor: Colors.black,
             unselectedLabelColor: Colors.white,
             indicatorColor: Colors.transparent,
             labelStyle: const TextStyle(
-              fontSize: 16,
+              fontSize: 13,
               fontFamily: 'Inter',
             ),
             unselectedLabelStyle: const TextStyle(
-              fontSize: 16,
+              fontSize: 13,
               fontFamily: 'Inter',
             ),
           ),
@@ -823,7 +896,7 @@ class _SentimentViewCoinState extends State<SentimentViewCoin>
       child: Text(
         label,
         style: const TextStyle(
-          fontSize: 16,
+          fontSize: 13,
           fontWeight: FontWeight.bold,
           fontFamily: 'Inter',
         ),

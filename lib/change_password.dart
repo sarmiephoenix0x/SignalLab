@@ -26,6 +26,7 @@ class ChangePasswordState extends State<ChangePassword>
   bool isLoading = false;
   final storage = const FlutterSecureStorage();
   late SharedPreferences prefs;
+  bool _iscurrentPasswordVisible = false;
   bool _isPasswordVisible = false;
   bool _isPasswordVisible2 = false;
 
@@ -224,17 +225,17 @@ class ChangePasswordState extends State<ChangePassword>
                       ),
                     ),
                     suffixIcon: IconButton(
-                      icon: Icon(_isPasswordVisible
+                      icon: Icon(_iscurrentPasswordVisible
                           ? Icons.visibility
                           : Icons.visibility_off),
                       onPressed: () {
                         setState(() {
-                          _isPasswordVisible = !_isPasswordVisible;
+                          _iscurrentPasswordVisible = !_iscurrentPasswordVisible;
                         });
                       },
                     )),
                 cursorColor: Colors.black,
-                obscureText: !_isPasswordVisible,
+                obscureText: !_iscurrentPasswordVisible,
                 obscuringCharacter: "*",
               ),
             ),

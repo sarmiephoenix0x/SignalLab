@@ -12,16 +12,6 @@ void main() async {
   runApp(MyApp(isLoggedIn: accessToken != null));
 }
 
-//Use this to test the web view
-
-// class MyApp extends StatelessWidget {
-//   @override
-//   Widget build(BuildContext context) {
-//     return MaterialApp(
-//       home: WebViewAuth(),
-//     );
-//   }
-// }
 
 class MyApp extends StatelessWidget {
   final bool isLoggedIn;

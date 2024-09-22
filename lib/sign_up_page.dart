@@ -141,7 +141,9 @@ class _SignUpPageState extends State<SignUpPage> with WidgetsBindingObserver {
       // The responseData['user'] is a Map, not a String, so handle it accordingly
       final Map<String, dynamic> user = responseData['user'];
       final String accessToken = responseData['access_token'];
+      final String profilePhoto = responseData['profile_photo'];
 
+      user['profile_photo'] = profilePhoto;
       await storage.write(key: 'accessToken', value: accessToken);
       await prefs.setString(
           'user', jsonEncode(user)); // Store user as a JSON string
