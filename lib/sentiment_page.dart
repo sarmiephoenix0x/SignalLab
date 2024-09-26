@@ -471,7 +471,7 @@ class _SentimentPageState extends State<SentimentPage>
                                 Navigator.pop(context);
                               },
                               child:
-                              Image.asset('images/tabler_arrow-back.png'),
+                              Image.asset('images/tabler_arrow-back.png',height:50,),
                             ),
                             SizedBox(
                                 width:
@@ -493,12 +493,12 @@ class _SentimentPageState extends State<SentimentPage>
                               ),
                             ),
                             const Spacer(),
-                            Image.asset('images/SearchButton.png'),
+                            Image.asset('images/SearchButton.png',height:50,),
                             InkWell(
                               onTap: () {
                                 _showFilterOverlay();
                               },
-                              child: Image.asset('images/FilterButton.png'),
+                              child: Image.asset('images/FilterButton.png',height:50,),
                             ),
                           ],
                         ),

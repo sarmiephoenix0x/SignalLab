@@ -3,11 +3,13 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:async/async.dart';
+import 'package:country_picker/country_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
 import 'package:image_cropper/image_cropper.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:intl_phone_field/intl_phone_field.dart';
 import 'package:path/path.dart' as path;
 import 'package:signal_app/main_app.dart';
 
@@ -36,6 +38,10 @@ class _EditProfileState extends State<EditProfile> with WidgetsBindingObserver {
   final double maxWidth = 360;
   final double maxHeight = 360;
   final ImagePicker _picker = ImagePicker();
+  Country? _selectedCountry;
+  String phoneNumber = '';
+  bool dropDownTapped = false;
+  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
 
   @override
   void initState() {
@@ -86,16 +92,43 @@ class _EditProfileState extends State<EditProfile> with WidgetsBindingObserver {
 
   Future<void> _updateProfile() async {
     final String name = displayNameController.text.trim();
+    if (name.isEmpty ||
+        _selectedCountry == null ||
+        phoneNumber.isEmpty ||
+        _profileImage.isEmpty) {
+      String errorMessage = '';
 
-    if (name.isEmpty && _profileImage.isEmpty) {
+      if (name.isEmpty) {
+        errorMessage += 'Please provide your name.\n';
+      }
+      if (_selectedCountry == null) {
+        errorMessage += 'Please select your country.\n';
+      }
+      if (phoneNumber.isEmpty) {
+        errorMessage += 'Please provide your phone number.\n';
+      }
+      if (_profileImage.isEmpty  || _profileImage.startsWith('http')) {
+        errorMessage += 'Please select a profile image.\n';
+      }
+
+      // Show combined error message
       _showCustomSnackBar(
         context,
-        'Please provide a name or select a profile image.',
+        errorMessage.trim(),
         isError: true,
       );
       return;
     }
 
+    if (!_formKey.currentState!.validate()) {
+      // Show a message if validation fails
+      _showCustomSnackBar(
+        context,
+        'Please provide a valid phone number.',
+        isError: true,
+      );
+      return;
+    }
     setState(() {
       isLoading = true;
     });
@@ -118,15 +151,25 @@ class _EditProfileState extends State<EditProfile> with WidgetsBindingObserver {
         request.fields['name'] = name;
       }
 
-      // Check if a profile image is provided
-      if (_profileImage.isNotEmpty) {
+      // Check if _selectedCountry is not null and has a valid displayName
+      if (_selectedCountry != null &&
+          _selectedCountry!.displayName.isNotEmpty) {
+        request.fields['country'] = _selectedCountry!.displayName;
+      }
+
+      // Check if phoneNumber is not empty
+      if (phoneNumber.isNotEmpty) {
+        request.fields['phone_number'] = phoneNumber;
+      }
+
+      // Check if _profileImage is an HTTP URL, and only upload the image if it's from a local file
+      if (_profileImage.isNotEmpty && !_profileImage.startsWith('http')) {
         File imageFile = File(_profileImage);
 
         // Ensure the image file exists before adding it to the request
         if (await imageFile.exists()) {
-          var stream = http.ByteStream(
-            DelegatingStream.typed(imageFile.openRead()),
-          );
+          var stream =
+              http.ByteStream(DelegatingStream.typed(imageFile.openRead()));
           var length = await imageFile.length();
           request.files.add(http.MultipartFile(
             'profile_photo',
@@ -137,6 +180,9 @@ class _EditProfileState extends State<EditProfile> with WidgetsBindingObserver {
         } else {
           print('Image file not found. Skipping image upload.');
         }
+      } else {
+        print(
+            'Skipping image upload as the profile image is from an HTTP source.');
       }
 
       final response = await request.send();
@@ -239,6 +285,31 @@ class _EditProfileState extends State<EditProfile> with WidgetsBindingObserver {
     ScaffoldMessenger.of(context).showSnackBar(snackBar);
   }
 
+  void _showCountryPicker(BuildContext context) {
+    showCountryPicker(
+      context: context,
+      showPhoneCode: false,
+      onSelect: (Country country) {
+        print('Selected country: ${country.displayName}');
+        // Store the selected country
+        setState(() {
+          _selectedCountry = country;
+        });
+      },
+      countryListTheme: CountryListThemeData(
+        borderRadius: BorderRadius.circular(40),
+        inputDecoration: InputDecoration(
+          labelText: 'Search',
+          hintText: 'Start typing to search',
+          prefixIcon: const Icon(Icons.search),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(15),
+          ),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return OrientationBuilder(
@@ -263,7 +334,7 @@ class _EditProfileState extends State<EditProfile> with WidgetsBindingObserver {
                               Navigator.pop(context);
                             },
                             child: Image.asset(
-                              'images/tabler_arrow-back.png',
+                              'images/tabler_arrow-back.png',height:50,
                             ),
                           ),
                           const Spacer(),
@@ -361,6 +432,81 @@ class _EditProfileState extends State<EditProfile> with WidgetsBindingObserver {
                           ),
                         ),
                         cursorColor: Colors.black,
+                      ),
+                    ),
+                    ListTile(
+                      leading: Icon(
+                        Icons.flag_outlined,
+                        color: Theme.of(context).primaryColor,
+                      ),
+                      title: const Text(
+                        'Select a country',
+                        style: TextStyle(
+                          fontWeight: FontWeight.w500,
+                          fontSize: 16,
+                        ),
+                      ),
+                      trailing: const Icon(
+                        Icons.arrow_forward_ios,
+                        size: 16,
+                        color: Colors.grey,
+                      ),
+                      onTap: () => _showCountryPicker(context),
+                    ),
+                    if (_selectedCountry != null)
+                      ListTile(
+                        leading: const Icon(
+                          Icons.location_on,
+                          color: Colors.green,
+                        ),
+                        title: Text(
+                          _selectedCountry!.displayName,
+                          style: const TextStyle(
+                            fontWeight: FontWeight.w500,
+                            fontSize: 16,
+                          ),
+                        ),
+                        trailing: const Icon(
+                          Icons.check_circle,
+                          color: Colors.green,
+                        ),
+                      ),
+                    Form(
+                      key: _formKey,
+                      child: Column(
+                        children: [
+                          Padding(
+                            padding:
+                                const EdgeInsets.symmetric(horizontal: 20.0),
+                            child: IntlPhoneField(
+                              decoration: InputDecoration(
+                                labelText: 'Phone Number',
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(15),
+                                  borderSide: BorderSide(),
+                                ),
+                                focusedBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(15),
+                                  borderSide: const BorderSide(
+                                    color: Colors.black,
+                                  ),
+                                ),
+                                counterText: '',
+                              ),
+                              initialCountryCode: 'NG',
+                              // Set initial country code
+                              onChanged: (phone) {
+                                setState(() {
+                                  phoneNumber = phone
+                                      .completeNumber; // Store the phone number
+                                });
+                              },
+                              onCountryChanged: (country) {
+                                print('Country changed to: ${country.name}');
+                              },
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                     SizedBox(height: MediaQuery.of(context).size.height * 0.05),

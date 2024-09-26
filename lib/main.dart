@@ -21,7 +21,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Signal App',
+      // title: 'Signal App',
       theme: ThemeData(
         primarySwatch: Colors.grey,
         fontFamily: 'Inconsolata', // Apply custom font

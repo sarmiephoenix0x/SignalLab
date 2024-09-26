@@ -46,6 +46,7 @@ class NewsDetailsState extends State<NewsDetails> {
             children: [
               Image.asset(
                 'images/share-box-line.png',
+                height: 25,
               ),
               SizedBox(
                 width: MediaQuery.of(context).size.width * 0.05,
@@ -67,6 +68,7 @@ class NewsDetailsState extends State<NewsDetails> {
             children: [
               Image.asset(
                 'images/feedback-line.png',
+                height: 25,
               ),
               SizedBox(
                 width: MediaQuery.of(context).size.width * 0.05,
@@ -88,6 +90,7 @@ class NewsDetailsState extends State<NewsDetails> {
             children: [
               Image.asset(
                 'images/save-line.png',
+                height: 25,
               ),
               SizedBox(
                 width: MediaQuery.of(context).size.width * 0.05,
@@ -109,6 +112,7 @@ class NewsDetailsState extends State<NewsDetails> {
             children: [
               Image.asset(
                 'images/basketball-line.png',
+                height: 25,
               ),
               SizedBox(
                 width: MediaQuery.of(context).size.width * 0.05,
@@ -180,7 +184,8 @@ class NewsDetailsState extends State<NewsDetails> {
 
         // Set booleans based on response
         setState(() {
-          isBookmarked = news['bookmarked'] != null; // True if bookmarked is not null
+          isBookmarked =
+              news['bookmarked'] != null; // True if bookmarked is not null
           isLiked = news['upvotes'] > 0; // True if upvotes > 0
         });
 
@@ -380,7 +385,7 @@ class NewsDetailsState extends State<NewsDetails> {
       },
       body: jsonEncode({
         'type': type,
-        'news_id': widget.newsId,
+        'news_id': widget.newsId.toString(),
       }),
     );
 
@@ -586,7 +591,9 @@ class NewsDetailsState extends State<NewsDetails> {
                                           Navigator.pop(context);
                                         },
                                         child: Image.asset(
-                                            'images/tabler_arrow-back.png'),
+                                          'images/tabler_arrow-back.png',
+                                          height: 50,
+                                        ),
                                       ),
                                       const Spacer(),
                                     ],
@@ -667,14 +674,10 @@ class NewsDetailsState extends State<NewsDetails> {
                                       ),
                                     ),
                                   ),
-                                  Padding(
-                                    padding:
-                                        const EdgeInsets.only(bottom: 76.0),
-                                    child: Text(
-                                      news['article'] ?? '',
-                                      style: const TextStyle(
-                                          fontSize: 16, fontFamily: 'Inter'),
-                                    ),
+                                  Text(
+                                    news['article'] ?? '',
+                                    style: const TextStyle(
+                                        fontSize: 16, fontFamily: 'Inter'),
                                   ),
                                   SizedBox(
                                     height: MediaQuery.of(context).size.height *

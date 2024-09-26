@@ -52,6 +52,8 @@ dependencies:
   image_picker: ^0.8.5+3
   image_cropper: ^3.0.1
   visibility_detector: ^0.3.3
+  country_picker: ^2.0.26
+  intl_phone_field: ^3.2.0
 
 
 dev_dependencies:
@@ -235,6 +237,7 @@ flutter:
   - images/news_tab_img_faded.png
   - images/overview_tab_img.png
   - images/overview_tab_img_faded.png
+  - images/bookmark.png
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware
 

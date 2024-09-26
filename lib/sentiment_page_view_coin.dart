@@ -442,7 +442,7 @@ class _SentimentViewCoinState extends State<SentimentViewCoin>
                                         Navigator.pop(context);
                                       },
                                       child: Image.asset(
-                                          'images/tabler_arrow-back.png'),
+                                          'images/tabler_arrow-back.png',height:50,),
                                     ),
                                     const Spacer(),
                                     Expanded(

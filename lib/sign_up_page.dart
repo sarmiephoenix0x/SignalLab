@@ -5,6 +5,7 @@ import 'package:signal_app/sign_up_otp.dart';
 import 'package:signal_app/main_app.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:intl_phone_field/intl_phone_field.dart';
 
 class SignUpPage extends StatefulWidget {
   const SignUpPage({
@@ -39,6 +40,8 @@ class _SignUpPageState extends State<SignUpPage> with WidgetsBindingObserver {
   final storage = const FlutterSecureStorage();
   late SharedPreferences prefs;
   bool isLoading = false;
+  String phoneNumber = '';
+  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
 
   @override
   void initState() {
@@ -59,7 +62,6 @@ class _SignUpPageState extends State<SignUpPage> with WidgetsBindingObserver {
     final String passwordConfirmation = password2Controller.text.trim();
     final String name = displayNameController.text.trim();
     final String username = userNameController.text.trim();
-    final String phoneNumber = phoneNumberController.text.trim();
 
     if (name.isEmpty ||
         username.isEmpty ||
@@ -107,15 +109,24 @@ class _SignUpPageState extends State<SignUpPage> with WidgetsBindingObserver {
       return;
     }
 
-    if (phoneNumber.length < 11) {
+    if (!_formKey.currentState!.validate()) {
+      // Show a message if validation fails
       _showCustomSnackBar(
         context,
-        'Phone number must be at least 11 characters.',
+        'Please provide a valid phone number.',
         isError: true,
       );
-
       return;
     }
+    // if (phoneNumber.length < 11) {
+    //   _showCustomSnackBar(
+    //     context,
+    //     'Phone number must be at least 11 characters.',
+    //     isError: true,
+    //   );
+    //
+    //   return;
+    // }
 
     setState(() {
       isLoading = true;
@@ -154,7 +165,6 @@ class _SignUpPageState extends State<SignUpPage> with WidgetsBindingObserver {
         'Sign up successful! Welcome, ${user['name']}',
         isError: false,
       );
-
 
       // Navigate to the main app or another page
       Navigator.pushReplacement(
@@ -241,21 +251,12 @@ class _SignUpPageState extends State<SignUpPage> with WidgetsBindingObserver {
             child: Center(
               child: SizedBox(
                 height: orientation == Orientation.portrait
-                    ? MediaQuery
-                    .of(context)
-                    .size
-                    .height * 1.2
-                    : MediaQuery
-                    .of(context)
-                    .size
-                    .height * 2,
+                    ? MediaQuery.of(context).size.height * 1.2
+                    : MediaQuery.of(context).size.height * 2,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    SizedBox(height: MediaQuery
-                        .of(context)
-                        .size
-                        .height * 0.1),
+                    SizedBox(height: MediaQuery.of(context).size.height * 0.1),
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 20.0),
                       child: Row(
@@ -265,7 +266,7 @@ class _SignUpPageState extends State<SignUpPage> with WidgetsBindingObserver {
                               Navigator.pop(context);
                             },
                             child: Image.asset(
-                              'images/tabler_arrow-back.png',
+                              'images/tabler_arrow-back.png',height:50,
                             ),
                           ),
                           const Spacer(),
@@ -279,18 +280,12 @@ class _SignUpPageState extends State<SignUpPage> with WidgetsBindingObserver {
                             ),
                           ),
                           SizedBox(
-                              width: MediaQuery
-                                  .of(context)
-                                  .size
-                                  .width * 0.1),
+                              width: MediaQuery.of(context).size.width * 0.1),
                           const Spacer(),
                         ],
                       ),
                     ),
-                    SizedBox(height: MediaQuery
-                        .of(context)
-                        .size
-                        .height * 0.05),
+                    SizedBox(height: MediaQuery.of(context).size.height * 0.05),
                     const Padding(
                       padding: EdgeInsets.symmetric(horizontal: 20.0),
                       child: Text(
@@ -327,10 +322,7 @@ class _SignUpPageState extends State<SignUpPage> with WidgetsBindingObserver {
                         cursorColor: Colors.black,
                       ),
                     ),
-                    SizedBox(height: MediaQuery
-                        .of(context)
-                        .size
-                        .height * 0.02),
+                    SizedBox(height: MediaQuery.of(context).size.height * 0.02),
                     const Padding(
                       padding: EdgeInsets.symmetric(horizontal: 20.0),
                       child: Text(
@@ -367,10 +359,7 @@ class _SignUpPageState extends State<SignUpPage> with WidgetsBindingObserver {
                         cursorColor: Colors.black,
                       ),
                     ),
-                    SizedBox(height: MediaQuery
-                        .of(context)
-                        .size
-                        .height * 0.02),
+                    SizedBox(height: MediaQuery.of(context).size.height * 0.02),
                     const Padding(
                       padding: EdgeInsets.symmetric(horizontal: 20.0),
                       child: Text(
@@ -414,10 +403,7 @@ class _SignUpPageState extends State<SignUpPage> with WidgetsBindingObserver {
                         cursorColor: Colors.black,
                       ),
                     ),
-                    SizedBox(height: MediaQuery
-                        .of(context)
-                        .size
-                        .height * 0.02),
+                    SizedBox(height: MediaQuery.of(context).size.height * 0.02),
                     const Padding(
                       padding: EdgeInsets.symmetric(horizontal: 20.0),
                       child: Text(
@@ -431,95 +417,19 @@ class _SignUpPageState extends State<SignUpPage> with WidgetsBindingObserver {
                         ),
                       ),
                     ),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                      child: Row(
+                    Form(
+                      key: _formKey,
+                      child: Column(
                         children: [
-                          Container(
-                            height: (55 / MediaQuery
-                                .of(context)
-                                .size
-                                .height) *
-                                MediaQuery
-                                    .of(context)
-                                    .size
-                                    .height,
-                            padding: const EdgeInsets.all(10.0),
-                            decoration: BoxDecoration(
-                              border: Border.all(width: 1, color: Colors.grey),
-                              borderRadius: BorderRadius.circular(15),
-                            ),
-                            child: Row(
-                              children: [
-                                Image.asset(
-                                  'images/twemoji_flag-nigeria.png',
-                                  width: 24.0,
-                                  height: 24.0,
-                                ),
-                                SizedBox(
-                                    width: MediaQuery
-                                        .of(context)
-                                        .size
-                                        .width *
-                                        0.01),
-                                const Text(
-                                  '+234',
-                                  style: TextStyle(
-                                    fontSize: 16.0,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                                SizedBox(
-                                    width: MediaQuery
-                                        .of(context)
-                                        .size
-                                        .width *
-                                        0.02),
-                                if (dropDownTapped == false)
-                                  GestureDetector(
-                                    onTap: () {
-                                      setState(() {
-                                        dropDownTapped = true;
-                                      });
-                                    },
-                                    child: Image.asset(
-                                      'images/material-symbols_arrow-drop-down.png',
-                                      width: 24.0,
-                                      height: 24.0,
-                                    ),
-                                  )
-                                else
-                                  GestureDetector(
-                                    onTap: () {
-                                      setState(() {
-                                        dropDownTapped = false;
-                                      });
-                                    },
-                                    child: Image.asset(
-                                      'images/material-symbols_arrow-drop-down-upwards.png',
-                                      width: 24.0,
-                                      height: 24.0,
-                                    ),
-                                  ),
-                              ],
-                            ),
-                          ),
-                          SizedBox(
-                              width: MediaQuery
-                                  .of(context)
-                                  .size
-                                  .width * 0.02),
-                          Expanded(
-                            child: TextFormField(
-                              controller: phoneNumberController,
-                              focusNode: _phoneNumberFocusNode,
-                              style: const TextStyle(
-                                fontSize: 16.0,
-                                decoration: TextDecoration.none,
-                              ),
+                          Padding(
+                            padding:
+                                const EdgeInsets.symmetric(horizontal: 20.0),
+                            child: IntlPhoneField(
                               decoration: InputDecoration(
+                                labelText: 'Phone Number',
                                 border: OutlineInputBorder(
                                   borderRadius: BorderRadius.circular(15),
+                                  borderSide: BorderSide(),
                                 ),
                                 focusedBorder: OutlineInputBorder(
                                   borderRadius: BorderRadius.circular(15),
@@ -529,18 +439,22 @@ class _SignUpPageState extends State<SignUpPage> with WidgetsBindingObserver {
                                 ),
                                 counterText: '',
                               ),
-                              keyboardType: TextInputType.phone,
-                              maxLength: 11,
-                              cursorColor: Colors.black,
+                              initialCountryCode: 'NG',
+                              // Set initial country code
+                              onChanged: (phone) {
+                                setState(() {
+                                  phoneNumber = phone.completeNumber;
+                                });
+                              },
+                              onCountryChanged: (country) {
+                                print('Country changed to: ${country.name}');
+                              },
                             ),
                           ),
                         ],
                       ),
                     ),
-                    SizedBox(height: MediaQuery
-                        .of(context)
-                        .size
-                        .height * 0.02),
+                    SizedBox(height: MediaQuery.of(context).size.height * 0.02),
                     const Padding(
                       padding: EdgeInsets.symmetric(horizontal: 20.0),
                       child: Text(
@@ -595,10 +509,7 @@ class _SignUpPageState extends State<SignUpPage> with WidgetsBindingObserver {
                         obscuringCharacter: "*",
                       ),
                     ),
-                    SizedBox(height: MediaQuery
-                        .of(context)
-                        .size
-                        .height * 0.02),
+                    SizedBox(height: MediaQuery.of(context).size.height * 0.02),
                     const Padding(
                       padding: EdgeInsets.symmetric(horizontal: 20.0),
                       child: Text(
@@ -653,20 +564,11 @@ class _SignUpPageState extends State<SignUpPage> with WidgetsBindingObserver {
                         obscuringCharacter: "*",
                       ),
                     ),
-                    SizedBox(height: MediaQuery
-                        .of(context)
-                        .size
-                        .height * 0.05),
+                    SizedBox(height: MediaQuery.of(context).size.height * 0.05),
                     Container(
                       width: double.infinity,
-                      height: (60 / MediaQuery
-                          .of(context)
-                          .size
-                          .height) *
-                          MediaQuery
-                              .of(context)
-                              .size
-                              .height,
+                      height: (60 / MediaQuery.of(context).size.height) *
+                          MediaQuery.of(context).size.height,
                       padding: const EdgeInsets.symmetric(horizontal: 20.0),
                       child: ElevatedButton(
                         onPressed: () {
@@ -676,8 +578,8 @@ class _SignUpPageState extends State<SignUpPage> with WidgetsBindingObserver {
                         },
                         style: ButtonStyle(
                           backgroundColor:
-                          WidgetStateProperty.resolveWith<Color>(
-                                (Set<WidgetState> states) {
+                              WidgetStateProperty.resolveWith<Color>(
+                            (Set<WidgetState> states) {
                               if (states.contains(WidgetState.pressed)) {
                                 return Colors.white;
                               }
@@ -685,8 +587,8 @@ class _SignUpPageState extends State<SignUpPage> with WidgetsBindingObserver {
                             },
                           ),
                           foregroundColor:
-                          WidgetStateProperty.resolveWith<Color>(
-                                (Set<WidgetState> states) {
+                              WidgetStateProperty.resolveWith<Color>(
+                            (Set<WidgetState> states) {
                               if (states.contains(WidgetState.pressed)) {
                                 return Colors.black;
                               }
@@ -695,26 +597,26 @@ class _SignUpPageState extends State<SignUpPage> with WidgetsBindingObserver {
                           ),
                           elevation: WidgetStateProperty.all<double>(4.0),
                           shape:
-                          WidgetStateProperty.all<RoundedRectangleBorder>(
+                              WidgetStateProperty.all<RoundedRectangleBorder>(
                             const RoundedRectangleBorder(
                               borderRadius:
-                              BorderRadius.all(Radius.circular(15)),
+                                  BorderRadius.all(Radius.circular(15)),
                             ),
                           ),
                         ),
                         child: isLoading
                             ? const Center(
-                          child: CircularProgressIndicator(
-                            color: Colors.white,
-                          ),
-                        )
+                                child: CircularProgressIndicator(
+                                  color: Colors.white,
+                                ),
+                              )
                             : const Text(
-                          'Sign up',
-                          style: TextStyle(
-                            fontFamily: 'Inter',
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
+                                'Sign up',
+                                style: TextStyle(
+                                  fontFamily: 'Inter',
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
                       ),
                     ),
                     // SizedBox(height: MediaQuery.of(context).size.height * 0.02),

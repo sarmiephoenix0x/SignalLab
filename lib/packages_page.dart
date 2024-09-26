@@ -195,7 +195,7 @@ class _PackagesPageState extends State<PackagesPage> {
                                 Navigator.pop(context);
                               },
                               child:
-                              Image.asset('images/tabler_arrow-back.png'),
+                              Image.asset('images/tabler_arrow-back.png',height:50,),
                             ),
                             SizedBox(
                                 width:

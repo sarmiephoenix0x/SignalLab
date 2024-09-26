@@ -293,7 +293,7 @@ class TransactionHistoryState extends State<TransactionHistory> {
                                 Navigator.pop(context);
                               },
                               child:
-                              Image.asset('images/tabler_arrow-back.png'),
+                              Image.asset('images/tabler_arrow-back.png',height:50,),
                             ),
                             const Spacer(),
                             const Text(

@@ -443,7 +443,8 @@ class _EventsPageState extends State<EventsPage> with TickerProviderStateMixin {
                             onTap: () {
                               Navigator.pop(context);
                             },
-                            child: Image.asset('images/tabler_arrow-back.png'),
+                            child: Image.asset(
+                              'images/tabler_arrow-back.png', height: 50,),
                           ),
                           SizedBox(
                               width: MediaQuery
@@ -464,8 +465,8 @@ class _EventsPageState extends State<EventsPage> with TickerProviderStateMixin {
                               onTap: () {
                                 _showFilterOverlay();
                               },
-                              child: Image.asset('images/PlusButton.png')),
-                          Image.asset('images/SearchButton.png'),
+                              child: Image.asset('images/PlusButton.png',height:50,)),
+                          Image.asset('images/SearchButton.png',height:50,),
                         ],
                       ),
                     ),
@@ -927,6 +928,7 @@ class _EventsPageState extends State<EventsPage> with TickerProviderStateMixin {
             if (img != '')
               Image.asset(
                 img,
+                height:16,
               ),
             SizedBox(width: MediaQuery
                 .of(context)

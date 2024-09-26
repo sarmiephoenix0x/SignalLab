@@ -411,7 +411,7 @@ class _SentimentViewCoinCryptoState extends State<SentimentViewCoinCrypto>
                                   Navigator.pop(context);
                                 },
                                 child: Image.asset(
-                                    'images/tabler_arrow-back.png'),
+                                    'images/tabler_arrow-back.png',height:50,),
                               ),
                               const Spacer(),
                               Expanded(

@@ -324,7 +324,7 @@ class NotificationPageState extends State<NotificationPage> {
                             onTap: () {
                               Navigator.pop(context);
                             },
-                            child: Image.asset('images/tabler_arrow-back.png'),
+                            child: Image.asset('images/tabler_arrow-back.png',height:50,),
                           ),
                           const Spacer(),
                           const Text(
