@@ -3,7 +3,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 class ChangePassword extends StatefulWidget {
   const ChangePassword({super.key});
@@ -25,7 +25,6 @@ class ChangePasswordState extends State<ChangePassword>
 
   bool isLoading = false;
   final storage = const FlutterSecureStorage();
-  late SharedPreferences prefs;
   bool _iscurrentPasswordVisible = false;
   bool _isPasswordVisible = false;
   bool _isPasswordVisible2 = false;
@@ -33,14 +32,9 @@ class ChangePasswordState extends State<ChangePassword>
   @override
   void initState() {
     super.initState();
-    _initializePrefs();
   }
 
-  Future<void> _initializePrefs() async {
-    prefs = await SharedPreferences.getInstance();
-  }
-
-  Future<void> _resetPassword() async {
+  Future<void> _changePassword() async {
     final String currentPassword = currentPasswordController.text.trim();
     final String password = passwordController.text.trim();
     final String passwordConfirmation = password2Controller.text.trim();
@@ -90,14 +84,17 @@ class ChangePasswordState extends State<ChangePassword>
     setState(() {
       isLoading = true;
     });
-
+    final String? accessToken = await storage.read(key: 'accessToken');
     final response = await http.post(
-      Uri.parse('https://script.teendev.dev/signal/api/passowrd/reset'),
-      headers: {'Content-Type': 'application/json'},
+      Uri.parse('https://script.teendev.dev/signal/api/change-password'),
+      headers: {
+        'Authorization': 'Bearer $accessToken',
+        'Content-Type': 'application/json',
+      },
       body: jsonEncode({
-        'currentPassword': currentPassword,
-        'password': password,
-        'password_confirmation': passwordConfirmation,
+        'current_password': currentPassword,
+        'new_password': password,
+        'new_password_confirmation': passwordConfirmation,
       }),
     );
 
@@ -343,7 +340,7 @@ class ChangePasswordState extends State<ChangePassword>
                       .height,
               padding: const EdgeInsets.symmetric(horizontal: 20.0),
               child: ElevatedButton(
-                onPressed: isLoading ? null : () => _resetPassword(),
+                onPressed: isLoading ? null : () => _changePassword(),
                 style: ButtonStyle(
                   backgroundColor: WidgetStateProperty.resolveWith<Color>(
                         (Set<WidgetState> states) {

@@ -7,6 +7,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:signal_app/bookmark_page.dart';
 import 'package:signal_app/card_details.dart';
 import 'package:signal_app/events_page.dart';
 import 'package:signal_app/intro_page.dart';
@@ -18,7 +19,6 @@ import 'package:signal_app/settings.dart';
 import 'package:signal_app/trading_web_view.dart';
 import 'package:signal_app/transaction_history.dart';
 import 'package:signal_app/video_player_widget.dart';
-import 'package:signal_app/bookmark_page.dart';
 import 'package:visibility_detector/visibility_detector.dart';
 
 import 'edit_profile.dart';
@@ -1111,10 +1111,12 @@ class _MainAppState extends State<MainApp> with TickerProviderStateMixin {
                 LayoutBuilder(
                   builder: (context, constraints) {
                     // Scale the image based on the screen size
-                    double imageSize = constraints.maxWidth * 0.4; // 40% of the screen width
+                    double imageSize = constraints.maxWidth *
+                        0.4; // 40% of the screen width
                     return Image.asset(
                       'images/AppLogo.png',
-                      width: imageSize.clamp(256.0, 1024.0), // Minimum 256 and maximum 1024
+                      width: imageSize.clamp(256.0, 1024.0),
+                      // Minimum 256 and maximum 1024
                       height: imageSize.clamp(256.0, 1024.0),
                       fit: BoxFit.contain,
                     );
@@ -1243,7 +1245,10 @@ class _MainAppState extends State<MainApp> with TickerProviderStateMixin {
                       child: Center(
                         child: Column(
                           children: [
-                            SizedBox(height: MediaQuery.of(context).size.height * 0.05),
+                            SizedBox(height: MediaQuery
+                                .of(context)
+                                .size
+                                .height * 0.05),
                             Padding(
                               padding:
                               const EdgeInsets.symmetric(horizontal: 20.0),
@@ -1256,17 +1261,17 @@ class _MainAppState extends State<MainApp> with TickerProviderStateMixin {
                                     },
                                     child: Image.asset(
                                       'images/tabler_menu_button.png',
-                                      height:50,
+                                      height: 50,
                                     ),
                                   ),
                                   const Spacer(),
                                   Image.asset(
                                     'images/tabler_help.png',
-                                    height:50,
+                                    height: 50,
                                   ),
                                   Image.asset(
                                     'images/tabler_search.png',
-                                      height:50,
+                                    height: 50,
                                   ),
                                   InkWell(
                                     onTap: () {
@@ -1281,7 +1286,7 @@ class _MainAppState extends State<MainApp> with TickerProviderStateMixin {
                                     },
                                     child: Image.asset(
                                       'images/tabler_no_notification.png',
-                                      height:50,
+                                      height: 50,
                                     ),
                                   ),
                                 ],
@@ -1889,7 +1894,10 @@ class _MainAppState extends State<MainApp> with TickerProviderStateMixin {
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      SizedBox(height: MediaQuery.of(context).size.height * 0.05),
+                      SizedBox(height: MediaQuery
+                          .of(context)
+                          .size
+                          .height * 0.05),
                       Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 20.0),
                         child: Row(
@@ -2427,7 +2435,10 @@ class _MainAppState extends State<MainApp> with TickerProviderStateMixin {
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      SizedBox(height: MediaQuery.of(context).size.height * 0.05),
+                      SizedBox(height: MediaQuery
+                          .of(context)
+                          .size
+                          .height * 0.05),
                       const Padding(
                         padding: EdgeInsets.symmetric(horizontal: 20.0),
                         child: Text(
@@ -2509,7 +2520,10 @@ class _MainAppState extends State<MainApp> with TickerProviderStateMixin {
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      SizedBox(height: MediaQuery.of(context).size.height * 0.05),
+                      SizedBox(height: MediaQuery
+                          .of(context)
+                          .size
+                          .height * 0.05),
                       const Padding(
                         padding: EdgeInsets.symmetric(horizontal: 20.0),
                         child: Text(
@@ -2604,7 +2618,10 @@ class _MainAppState extends State<MainApp> with TickerProviderStateMixin {
                         mainAxisAlignment: MainAxisAlignment.start,
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          SizedBox(height: MediaQuery.of(context).size.height * 0.05),
+                          SizedBox(height: MediaQuery
+                              .of(context)
+                              .size
+                              .height * 0.05),
                           const Row(
                             children: [
                               Spacer(),
@@ -3101,7 +3118,8 @@ class _MainAppState extends State<MainApp> with TickerProviderStateMixin {
 
   Widget newsCard(Map<String, dynamic> newsItem) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 0.0), // Increased bottom padding for more spacing
+      padding: const EdgeInsets.only(bottom: 0.0),
+      // Increased bottom padding for more spacing
       child: InkWell(
         onTap: () {
           Navigator.push(
@@ -3118,7 +3136,8 @@ class _MainAppState extends State<MainApp> with TickerProviderStateMixin {
             borderRadius: BorderRadius.circular(12), // Smoother corners
             boxShadow: [
               BoxShadow(
-                color: Colors.grey.withOpacity(0.2), // Softer shadow for a clean look
+                color: Colors.grey.withOpacity(0.2),
+                // Softer shadow for a clean look
                 spreadRadius: 2,
                 blurRadius: 8,
                 offset: const Offset(0, 2), // Position shadow for depth
@@ -3126,14 +3145,16 @@ class _MainAppState extends State<MainApp> with TickerProviderStateMixin {
             ],
           ),
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start, // Align content to start
+            crossAxisAlignment: CrossAxisAlignment.start,
+            // Align content to start
             children: [
               Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   // Image thumbnail
                   ClipRRect(
-                    borderRadius: BorderRadius.circular(8), // Slightly rounded image corners
+                    borderRadius: BorderRadius.circular(8),
+                    // Slightly rounded image corners
                     child: Container(
                       width: 120, // Fixed width for consistent look
                       height: 100, // Fixed height for aspect ratio
@@ -3141,11 +3162,12 @@ class _MainAppState extends State<MainApp> with TickerProviderStateMixin {
                       child: Image.network(
                         newsItem['images'],
                         fit: BoxFit.cover, // Cover image inside the box
-                        errorBuilder: (context, error, stackTrace) => Icon(
-                          Icons.broken_image,
-                          color: Colors.grey[400],
-                          size: 60,
-                        ), // Error handling for broken images
+                        errorBuilder: (context, error, stackTrace) =>
+                            Icon(
+                              Icons.broken_image,
+                              color: Colors.grey[400],
+                              size: 60,
+                            ), // Error handling for broken images
                       ),
                     ),
                   ),
@@ -3159,7 +3181,8 @@ class _MainAppState extends State<MainApp> with TickerProviderStateMixin {
                           newsItem['created_at'],
                           style: TextStyle(
                             fontFamily: 'Inter',
-                            fontWeight: FontWeight.w500, // Semi-bold for emphasis
+                            fontWeight: FontWeight.w500,
+                            // Semi-bold for emphasis
                             fontSize: 12,
                             color: Colors.grey[600], // Lighter color for date
                           ),
@@ -3174,7 +3197,8 @@ class _MainAppState extends State<MainApp> with TickerProviderStateMixin {
                             fontSize: 16,
                             fontFamily: 'Inter',
                             fontWeight: FontWeight.bold,
-                            color: Colors.black87, // Softer black for better contrast
+                            color: Colors
+                                .black87, // Softer black for better contrast
                           ),
                         ),
                         const SizedBox(height: 8),
@@ -3198,10 +3222,13 @@ class _MainAppState extends State<MainApp> with TickerProviderStateMixin {
       spacing: 8.0, // Space between tags
       children: tagList.map((tag) {
         return Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 6.0), // Padding around the tag
+          padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 6.0),
+          // Padding around the tag
           decoration: BoxDecoration(
-            color: Colors.blueAccent, // Modern blue color
-            borderRadius: BorderRadius.circular(30), // More rounded corners for a pill-like shape
+            color: Colors.blueAccent,
+            // Modern blue color
+            borderRadius: BorderRadius.circular(30),
+            // More rounded corners for a pill-like shape
             boxShadow: [
               BoxShadow(
                 color: Colors.blueAccent.withOpacity(0.3),
@@ -3215,8 +3242,10 @@ class _MainAppState extends State<MainApp> with TickerProviderStateMixin {
             style: const TextStyle(
               fontSize: 12,
               fontFamily: 'Inter',
-              color: Colors.white, // White text on blue background
-              fontWeight: FontWeight.w600, // Slightly bolder font for emphasis
+              color: Colors.white,
+              // White text on blue background
+              fontWeight: FontWeight.w600,
+              // Slightly bolder font for emphasis
               letterSpacing: 0.5, // Slight letter spacing for better readability
             ),
           ),
@@ -3244,11 +3273,14 @@ class _MainAppState extends State<MainApp> with TickerProviderStateMixin {
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(12.0), // Rounded edges
             ),
-            elevation: 6.0, // Slight elevation for a modern look
-            shadowColor: Colors.grey.shade300, // Softer shadow color
+            elevation: 6.0,
+            // Slight elevation for a modern look
+            shadowColor: Colors.grey.shade300,
+            // Softer shadow color
             margin: const EdgeInsets.all(12.0),
             child: ClipRRect(
-              borderRadius: BorderRadius.circular(12.0), // Rounded edges for media
+              borderRadius: BorderRadius.circular(12.0),
+              // Rounded edges for media
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -3257,38 +3289,45 @@ class _MainAppState extends State<MainApp> with TickerProviderStateMixin {
                   // Display the image
                     SizedBox(
                       width: cardWidth,
-                      height: MediaQuery.of(context).size.height * 0.25,
+                      height: MediaQuery
+                          .of(context)
+                          .size
+                          .height * 0.25,
                       child: Image.network(
                         course['images'],
                         fit: BoxFit.cover,
                       ),
                     )
-                  else if (course['videos'] != null)
-                  // Video section with play/pause control based on visibility
-                    GestureDetector(
-                      onTap: () {},
-                      child: VisibilityDetector(
-                        key: Key(course['id'].toString()),
-                        onVisibilityChanged: (VisibilityInfo info) {
-                          setState(() {
-                            _shouldPlay = info.visibleFraction > 0.5;
-                          });
-                        },
-                        child: SizedBox(
-                          width: cardWidth,
-                          height: MediaQuery.of(context).size.height * 0.25,
-                          child: AspectRatio(
-                            aspectRatio: 16 / 9,
-                            child: ClipRect(
-                              child: VideoPlayerWidget(
-                                videoUrl: course['videos'],
-                                shouldPlay: _shouldPlay,
+                  else
+                    if (course['videos'] != null)
+                    // Video section with play/pause control based on visibility
+                      GestureDetector(
+                        onTap: () {},
+                        child: VisibilityDetector(
+                          key: Key(course['id'].toString()),
+                          onVisibilityChanged: (VisibilityInfo info) {
+                            setState(() {
+                              _shouldPlay = info.visibleFraction > 0.5;
+                            });
+                          },
+                          child: SizedBox(
+                            width: cardWidth,
+                            height: MediaQuery
+                                .of(context)
+                                .size
+                                .height * 0.25,
+                            child: AspectRatio(
+                              aspectRatio: 16 / 9,
+                              child: ClipRect(
+                                child: VideoPlayerWidget(
+                                  videoUrl: course['videos'],
+                                  shouldPlay: _shouldPlay,
+                                ),
                               ),
                             ),
                           ),
                         ),
                       ),
-                    ),
                   // Content Section
                   Padding(
                     padding: const EdgeInsets.all(16.0),
@@ -3324,11 +3363,37 @@ class _MainAppState extends State<MainApp> with TickerProviderStateMixin {
                         // Author Info Row
                         Row(
                           children: [
-                            CircleAvatar(
-                              backgroundImage: AssetImage(
-                                'images/Pexels Photo by Pixabay.png', // Placeholder for user image
+                            ClipRRect(
+                              borderRadius: BorderRadius.circular(55),
+                              child: Container(
+                                width: (35 /
+                                    MediaQuery
+                                        .of(context)
+                                        .size
+                                        .width) *
+                                    MediaQuery
+                                        .of(context)
+                                        .size
+                                        .width,
+                                height: (35 /
+                                    MediaQuery
+                                        .of(context)
+                                        .size
+                                        .height) *
+                                    MediaQuery
+                                        .of(context)
+                                        .size
+                                        .height,
+                                color: Colors.grey,
+                                child: Image.network(
+                                  course['user_profile_image'],
+                                  fit: BoxFit.cover,
+                                  errorBuilder:
+                                      (context, error, stackTrace) {
+                                    return const Icon(Icons.error);
+                                  },
+                                ),
                               ),
-                              radius: 16, // Size of avatar
                             ),
                             const SizedBox(width: 12.0),
                             Expanded(

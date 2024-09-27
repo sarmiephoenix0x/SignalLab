@@ -348,7 +348,9 @@ class CardDetailsState extends State<CardDetails> {
                                     Navigator.pop(context);
                                   },
                                   child: Image.asset(
-                                      'images/tabler_arrow-back.png',height:50,),
+                                    'images/tabler_arrow-back.png',
+                                    height: 50,
+                                  ),
                                 ),
                                 const Spacer(),
                               ],
@@ -450,9 +452,28 @@ class CardDetailsState extends State<CardDetails> {
                                   const EdgeInsets.symmetric(horizontal: 20.0),
                               child: Row(
                                 children: [
-                                  const CircleAvatar(
-                                    backgroundImage: NetworkImage(
-                                      'https://via.placeholder.com/150', // Placeholder for author's image
+                                  ClipRRect(
+                                    borderRadius: BorderRadius.circular(55),
+                                    child: Container(
+                                      width: (35 /
+                                              MediaQuery.of(context)
+                                                  .size
+                                                  .width) *
+                                          MediaQuery.of(context).size.width,
+                                      height: (35 /
+                                              MediaQuery.of(context)
+                                                  .size
+                                                  .height) *
+                                          MediaQuery.of(context).size.height,
+                                      color: Colors.grey,
+                                      child: Image.network(
+                                        courseDetails!['user_profile_image'],
+                                        fit: BoxFit.cover,
+                                        errorBuilder:
+                                            (context, error, stackTrace) {
+                                          return const Icon(Icons.error);
+                                        },
+                                      ),
                                     ),
                                   ),
                                   SizedBox(
