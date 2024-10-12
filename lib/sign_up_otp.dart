@@ -3,7 +3,9 @@ import 'package:signal_app/main_app.dart';
 import 'package:signal_app/sign_up_page.dart';
 
 class SignUpOTPPage extends StatefulWidget {
-  const SignUpOTPPage({super.key});
+  final Function(bool) onToggleDarkMode;
+  final bool isDarkMode;
+  const SignUpOTPPage({super.key, required this.onToggleDarkMode, required this.isDarkMode});
 
   @override
   _SignUpOTPPageState createState() => _SignUpOTPPageState();
@@ -115,13 +117,13 @@ class _SignUpOTPPageState extends State<SignUpOTPPage> {
                             child: Image.asset('images/tabler_arrow-back.png',height:50,),
                           ),
                           const Spacer(),
-                          const Text(
+                          Text(
                             'Sign up',
                             style: TextStyle(
                               fontFamily: 'Inter',
                               fontWeight: FontWeight.bold,
                               fontSize: 22.0,
-                              color: Colors.black,
+                              color: Theme.of(context).colorScheme.onSurface,
                             ),
                           ),
                           SizedBox(
@@ -137,14 +139,14 @@ class _SignUpOTPPageState extends State<SignUpOTPPage> {
                         .of(context)
                         .size
                         .height * 0.1),
-                    const Center(
+                    Center(
                       child: Text(
                         'OTP Verification',
                         style: TextStyle(
                           fontFamily: 'Inter',
                           fontWeight: FontWeight.bold,
                           fontSize: 22.0,
-                          color: Colors.black,
+                          color: Theme.of(context).colorScheme.onSurface,
                         ),
                       ),
                     ),
@@ -200,12 +202,12 @@ class _SignUpOTPPageState extends State<SignUpOTPPage> {
                               ),
                               focusedBorder: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(8),
-                                borderSide: const BorderSide(
-                                  color: Colors.black,
+                                borderSide: BorderSide(
+                                  color: Theme.of(context).colorScheme.onSurface,
                                 ),
                               ),
                             ),
-                            cursorColor: Colors.black,
+                            cursorColor: Theme.of(context).colorScheme.onSurface,
                             enabled: index == 0 ||
                                 controllers[index - 1].text.isNotEmpty,
                             onChanged: (value) {
@@ -243,14 +245,14 @@ class _SignUpOTPPageState extends State<SignUpOTPPage> {
                         .of(context)
                         .size
                         .height * 0.02),
-                    const Center(
+                    Center(
                       child: Text(
                         "Resend it",
                         style: TextStyle(
                           fontFamily: 'Inter',
                           fontSize: 15.0,
                           fontWeight: FontWeight.bold,
-                          color: Colors.black,
+                          color: Theme.of(context).colorScheme.onSurface,
                         ),
                       ),
                     ),
@@ -274,7 +276,8 @@ class _SignUpOTPPageState extends State<SignUpOTPPage> {
                           Navigator.pushReplacement(
                             context,
                             MaterialPageRoute(
-                              builder: (context) => MainApp(key: UniqueKey()),
+                              builder: (context) => MainApp(key: UniqueKey(), onToggleDarkMode: widget.onToggleDarkMode,
+                                  isDarkMode: widget.isDarkMode),
                             ),
                           );
                         },

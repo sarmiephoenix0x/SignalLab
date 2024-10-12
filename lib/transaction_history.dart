@@ -193,13 +193,13 @@ class TransactionHistoryState extends State<TransactionHistory> {
         return Scaffold(
           body: RefreshIndicator(
             onRefresh: _refreshData,
-            color: Colors.black,
+            color: Theme.of(context).colorScheme.onSurface,
             child: FutureBuilder<List<Map<String, dynamic>>>(
               future: _transactionsFuture,
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(
-                      child: CircularProgressIndicator(color: Colors.black));
+                  return Center(
+                      child: CircularProgressIndicator(color: Theme.of(context).colorScheme.onSurface));
                 } else if (snapshot.hasError) {
                   return Center(
                     child: Column(
@@ -216,13 +216,13 @@ class TransactionHistoryState extends State<TransactionHistory> {
                         const SizedBox(height: 16),
                         ElevatedButton(
                           onPressed: _refreshData,
-                          child: const Text(
+                          child: Text(
                             'Retry',
                             style: TextStyle(
                               fontFamily: 'Inconsolata',
                               fontWeight: FontWeight.bold,
                               fontSize: 18,
-                              color: Colors.black,
+                              color: Theme.of(context).colorScheme.onSurface,
                             ),
                           ),
                         ),
@@ -245,13 +245,13 @@ class TransactionHistoryState extends State<TransactionHistory> {
                         const SizedBox(height: 16),
                         ElevatedButton(
                           onPressed: _refreshData,
-                          child: const Text(
+                          child: Text(
                             'Retry',
                             style: TextStyle(
                               fontFamily: 'Inconsolata',
                               fontWeight: FontWeight.bold,
                               fontSize: 18,
-                              color: Colors.black,
+                              color: Theme.of(context).colorScheme.onSurface,
                             ),
                           ),
                         ),
@@ -296,13 +296,13 @@ class TransactionHistoryState extends State<TransactionHistory> {
                               Image.asset('images/tabler_arrow-back.png',height:50,),
                             ),
                             const Spacer(),
-                            const Text(
+                            Text(
                               'Transaction History',
                               style: TextStyle(
                                 fontFamily: 'Inter',
                                 fontWeight: FontWeight.bold,
                                 fontSize: 22.0,
-                                color: Colors.black,
+                                color: Theme.of(context).colorScheme.onSurface,
                               ),
                             ),
                             SizedBox(
@@ -325,11 +325,11 @@ class TransactionHistoryState extends State<TransactionHistory> {
                             children: [
                               Text(
                                 entry.key,
-                                style: const TextStyle(
+                                style: TextStyle(
                                   fontFamily: 'Inter',
                                   fontWeight: FontWeight.bold,
                                   fontSize: 22.0,
-                                  color: Colors.black,
+                                  color: Theme.of(context).colorScheme.onSurface,
                                 ),
                               ),
                               SizedBox(
@@ -374,7 +374,7 @@ class TransactionHistoryState extends State<TransactionHistory> {
             .of(context)
             .size
             .width * 0.02),
-        Image.asset(img),
+        Image.asset(img, color:Theme.of(context).colorScheme.onSurface),
         SizedBox(width: MediaQuery
             .of(context)
             .size
@@ -386,11 +386,11 @@ class TransactionHistoryState extends State<TransactionHistory> {
               Text(
                 description,
                 softWrap: true,
-                style: const TextStyle(
+                style: TextStyle(
                   fontFamily: 'Inconsolata',
                   fontSize: 15,
                   fontWeight: FontWeight.bold,
-                  color: Colors.black,
+                  color: Theme.of(context).colorScheme.onSurface,
                 ),
               ),
               SizedBox(height: MediaQuery
@@ -399,11 +399,11 @@ class TransactionHistoryState extends State<TransactionHistory> {
                   .height * 0.02),
               Text(
                 time,
-                style: const TextStyle(
+                style: TextStyle(
                   fontFamily: 'Inconsolata',
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
-                  color: Colors.black,
+                  color: Theme.of(context).colorScheme.onSurface,
                 ),
               ),
             ],

@@ -87,7 +87,7 @@ class _ViewCoinState extends State<ViewCoin> with TickerProviderStateMixin {
       setState(() {
         loading = false;
         errorMessage =
-        'Failed to load data. Please check your network connection.';
+            'Failed to load data. Please check your network connection.';
       });
       print('Exception: $e');
     }
@@ -256,10 +256,7 @@ class _ViewCoinState extends State<ViewCoin> with TickerProviderStateMixin {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                SizedBox(height: MediaQuery
-                    .of(context)
-                    .size
-                    .height * 0.1),
+                SizedBox(height: MediaQuery.of(context).size.height * 0.1),
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 20.0),
                   child: Row(
@@ -268,28 +265,19 @@ class _ViewCoinState extends State<ViewCoin> with TickerProviderStateMixin {
                         onTap: () {
                           Navigator.pop(context);
                         },
-                        child: Image.asset('images/tabler_arrow-back.png',height:50,),
+                        child: Image.asset(
+                          'images/tabler_arrow-back.png',
+                          height: 50,
+                        ),
                       ),
                       const Spacer(),
                       ClipRRect(
                         borderRadius: BorderRadius.circular(35),
                         child: Container(
-                          width: (48 / MediaQuery
-                              .of(context)
-                              .size
-                              .width) *
-                              MediaQuery
-                                  .of(context)
-                                  .size
-                                  .width,
-                          height: (48 / MediaQuery
-                              .of(context)
-                              .size
-                              .height) *
-                              MediaQuery
-                                  .of(context)
-                                  .size
-                                  .height,
+                          width: (48 / MediaQuery.of(context).size.width) *
+                              MediaQuery.of(context).size.width,
+                          height: (48 / MediaQuery.of(context).size.height) *
+                              MediaQuery.of(context).size.height,
                           color: Colors.grey,
                           child: Image.network(
                             widget.eventImg,
@@ -297,20 +285,17 @@ class _ViewCoinState extends State<ViewCoin> with TickerProviderStateMixin {
                           ),
                         ),
                       ),
-                      SizedBox(width: MediaQuery
-                          .of(context)
-                          .size
-                          .width * 0.03),
+                      SizedBox(width: MediaQuery.of(context).size.width * 0.03),
                       Expanded(
                         flex: 10,
                         child: Text(
                           widget.eventTitle,
                           overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontFamily: 'Inconsolata',
                             fontWeight: FontWeight.bold,
                             fontSize: 22,
-                            color: Colors.black,
+                            color: Theme.of(context).colorScheme.onSurface,
                           ),
                         ),
                       ),
@@ -319,22 +304,16 @@ class _ViewCoinState extends State<ViewCoin> with TickerProviderStateMixin {
                     ],
                   ),
                 ),
-                SizedBox(height: MediaQuery
-                    .of(context)
-                    .size
-                    .height * 0.05),
+                SizedBox(height: MediaQuery.of(context).size.height * 0.05),
                 _tabBar(),
-                SizedBox(height: MediaQuery
-                    .of(context)
-                    .size
-                    .height * 0.05),
+                SizedBox(height: MediaQuery.of(context).size.height * 0.05),
                 Expanded(
                   child: TabBarView(
                     controller: tabController,
                     children: [
                       RefreshIndicator(
                         onRefresh: _refreshData,
-                        color: Colors.black,
+                        color: Theme.of(context).colorScheme.onSurface,
                         child: SingleChildScrollView(
                           controller: _scrollController,
                           child: Padding(
@@ -349,71 +328,78 @@ class _ViewCoinState extends State<ViewCoin> with TickerProviderStateMixin {
                                       flex: 10,
                                       child: Row(
                                         crossAxisAlignment:
-                                        CrossAxisAlignment.start,
+                                            CrossAxisAlignment.start,
                                         children: [
                                           Image.asset(
                                             'images/ph_coin-duotone.png',
                                           ),
                                           SizedBox(
-                                              width: MediaQuery
-                                                  .of(context)
-                                                  .size
-                                                  .width *
+                                              width: MediaQuery.of(context)
+                                                      .size
+                                                      .width *
                                                   0.03),
                                           Expanded(
                                             flex: 10,
                                             child: Column(
                                               crossAxisAlignment:
-                                              CrossAxisAlignment.start,
+                                                  CrossAxisAlignment.start,
                                               children: [
-                                                const Text(
+                                                Text(
                                                   'Price',
                                                   overflow:
-                                                  TextOverflow.ellipsis,
+                                                      TextOverflow.ellipsis,
                                                   style: TextStyle(
                                                     fontFamily: 'Inconsolata',
                                                     fontWeight: FontWeight.bold,
                                                     fontSize: 20,
-                                                    color: Colors.black,
+                                                    color: Theme.of(context)
+                                                        .colorScheme
+                                                        .onSurface,
                                                   ),
                                                 ),
                                                 RichText(
                                                   overflow:
-                                                  TextOverflow.ellipsis,
-                                                  text: const TextSpan(
+                                                      TextOverflow.ellipsis,
+                                                  text: TextSpan(
                                                     children: [
                                                       TextSpan(
                                                         text: '\$0.058(',
                                                         style: TextStyle(
                                                           fontFamily:
-                                                          'Inconsolata',
+                                                              'Inconsolata',
                                                           fontWeight:
-                                                          FontWeight.bold,
+                                                              FontWeight.bold,
                                                           fontSize: 18,
-                                                          color: Colors.black,
+                                                          color:
+                                                              Theme.of(context)
+                                                                  .colorScheme
+                                                                  .onSurface,
                                                         ),
                                                       ),
                                                       TextSpan(
                                                         text: '+2.57%',
                                                         style: TextStyle(
                                                           fontFamily:
-                                                          'Inconsolata',
+                                                              'Inconsolata',
                                                           fontWeight:
-                                                          FontWeight.bold,
+                                                              FontWeight.bold,
                                                           fontSize: 18,
                                                           color:
-                                                          Color(0xFF008000),
+                                                              Color(0xFF008000),
                                                         ),
                                                       ),
                                                       TextSpan(
                                                         text: ')',
                                                         style: TextStyle(
                                                           fontFamily:
-                                                          'Inconsolata',
+                                                              'Inconsolata',
                                                           fontWeight:
-                                                          FontWeight.bold,
+                                                              FontWeight.bold,
                                                           fontSize: 18,
-                                                          color: Colors.black,
+                                                          color:
+                                                              Theme.of(context)
+                                                                  .colorScheme
+                                                                  .onSurface,
                                                         ),
                                                       ),
                                                     ],
@@ -421,41 +407,47 @@ class _ViewCoinState extends State<ViewCoin> with TickerProviderStateMixin {
                                                 ),
                                                 RichText(
                                                   overflow:
-                                                  TextOverflow.ellipsis,
-                                                  text: const TextSpan(
+                                                      TextOverflow.ellipsis,
+                                                  text: TextSpan(
                                                     children: [
                                                       TextSpan(
                                                         text: '\$0(',
                                                         style: TextStyle(
                                                           fontFamily:
-                                                          'Inconsolata',
+                                                              'Inconsolata',
                                                           fontWeight:
-                                                          FontWeight.bold,
+                                                              FontWeight.bold,
                                                           fontSize: 18,
-                                                          color: Colors.black,
+                                                          color:
+                                                              Theme.of(context)
+                                                                  .colorScheme
+                                                                  .onSurface,
                                                         ),
                                                       ),
                                                       TextSpan(
                                                         text: '+1.22%',
                                                         style: TextStyle(
                                                           fontFamily:
-                                                          'Inconsolata',
+                                                              'Inconsolata',
                                                           fontWeight:
-                                                          FontWeight.bold,
+                                                              FontWeight.bold,
                                                           fontSize: 18,
                                                           color:
-                                                          Color(0xFF008000),
+                                                              Color(0xFF008000),
                                                         ),
                                                       ),
                                                       TextSpan(
                                                         text: ')',
                                                         style: TextStyle(
                                                           fontFamily:
-                                                          'Inconsolata',
+                                                              'Inconsolata',
                                                           fontWeight:
-                                                          FontWeight.bold,
+                                                              FontWeight.bold,
                                                           fontSize: 18,
-                                                          color: Colors.black,
+                                                          color:
+                                                              Theme.of(context)
+                                                                  .colorScheme
+                                                                  .onSurface,
                                                         ),
                                                       ),
                                                     ],
@@ -472,54 +464,59 @@ class _ViewCoinState extends State<ViewCoin> with TickerProviderStateMixin {
                                       flex: 10,
                                       child: Row(
                                         crossAxisAlignment:
-                                        CrossAxisAlignment.start,
+                                            CrossAxisAlignment.start,
                                         children: [
                                           Image.asset(
                                             'images/oui_vis-pie.png',
                                           ),
                                           SizedBox(
-                                              width: MediaQuery
-                                                  .of(context)
-                                                  .size
-                                                  .width *
+                                              width: MediaQuery.of(context)
+                                                      .size
+                                                      .width *
                                                   0.03),
-                                          const Expanded(
+                                          Expanded(
                                             flex: 10,
                                             child: Column(
                                               crossAxisAlignment:
-                                              CrossAxisAlignment.start,
+                                                  CrossAxisAlignment.start,
                                               children: [
                                                 Text(
                                                   'Market cap',
                                                   overflow:
-                                                  TextOverflow.ellipsis,
+                                                      TextOverflow.ellipsis,
                                                   style: TextStyle(
                                                     fontFamily: 'Inconsolata',
                                                     fontWeight: FontWeight.bold,
                                                     fontSize: 20,
-                                                    color: Colors.black,
+                                                    color: Theme.of(context)
+                                                        .colorScheme
+                                                        .onSurface,
                                                   ),
                                                 ),
                                                 Text(
                                                   '\$393 131 045',
                                                   overflow:
-                                                  TextOverflow.ellipsis,
+                                                      TextOverflow.ellipsis,
                                                   style: TextStyle(
                                                     fontFamily: 'Inconsolata',
                                                     fontWeight: FontWeight.bold,
                                                     fontSize: 18,
-                                                    color: Colors.black,
+                                                    color: Theme.of(context)
+                                                        .colorScheme
+                                                        .onSurface,
                                                   ),
                                                 ),
                                                 Text(
                                                   '\$6 557',
                                                   overflow:
-                                                  TextOverflow.ellipsis,
+                                                      TextOverflow.ellipsis,
                                                   style: TextStyle(
                                                     fontFamily: 'Inconsolata',
                                                     fontWeight: FontWeight.bold,
                                                     fontSize: 18,
-                                                    color: Colors.black,
+                                                    color: Theme.of(context)
+                                                        .colorScheme
+                                                        .onSurface,
                                                   ),
                                                 ),
                                               ],
@@ -531,10 +528,7 @@ class _ViewCoinState extends State<ViewCoin> with TickerProviderStateMixin {
                                   ],
                                 ),
                                 SizedBox(
-                                    height: MediaQuery
-                                        .of(context)
-                                        .size
-                                        .height *
+                                    height: MediaQuery.of(context).size.height *
                                         0.03),
                                 Row(
                                   children: [
@@ -542,54 +536,59 @@ class _ViewCoinState extends State<ViewCoin> with TickerProviderStateMixin {
                                       flex: 10,
                                       child: Row(
                                         crossAxisAlignment:
-                                        CrossAxisAlignment.start,
+                                            CrossAxisAlignment.start,
                                         children: [
                                           Image.asset(
                                             'images/vaadin_coin-piles.png',
                                           ),
                                           SizedBox(
-                                              width: MediaQuery
-                                                  .of(context)
-                                                  .size
-                                                  .width *
+                                              width: MediaQuery.of(context)
+                                                      .size
+                                                      .width *
                                                   0.03),
-                                          const Expanded(
+                                          Expanded(
                                             flex: 10,
                                             child: Column(
                                               crossAxisAlignment:
-                                              CrossAxisAlignment.start,
+                                                  CrossAxisAlignment.start,
                                               children: [
                                                 Text(
                                                   'Volume (24h)',
                                                   overflow:
-                                                  TextOverflow.ellipsis,
+                                                      TextOverflow.ellipsis,
                                                   style: TextStyle(
                                                     fontFamily: 'Inconsolata',
                                                     fontWeight: FontWeight.bold,
                                                     fontSize: 20,
-                                                    color: Colors.black,
+                                                    color: Theme.of(context)
+                                                        .colorScheme
+                                                        .onSurface,
                                                   ),
                                                 ),
                                                 Text(
                                                   '\$10 894 799',
                                                   overflow:
-                                                  TextOverflow.ellipsis,
+                                                      TextOverflow.ellipsis,
                                                   style: TextStyle(
                                                     fontFamily: 'Inconsolata',
                                                     fontWeight: FontWeight.bold,
                                                     fontSize: 18,
-                                                    color: Colors.black,
+                                                    color: Theme.of(context)
+                                                        .colorScheme
+                                                        .onSurface,
                                                   ),
                                                 ),
                                                 Text(
                                                   '\$181.7',
                                                   overflow:
-                                                  TextOverflow.ellipsis,
+                                                      TextOverflow.ellipsis,
                                                   style: TextStyle(
                                                     fontFamily: 'Inconsolata',
                                                     fontWeight: FontWeight.bold,
                                                     fontSize: 18,
-                                                    color: Colors.black,
+                                                    color: Theme.of(context)
+                                                        .colorScheme
+                                                        .onSurface,
                                                   ),
                                                 ),
                                               ],
@@ -603,54 +602,59 @@ class _ViewCoinState extends State<ViewCoin> with TickerProviderStateMixin {
                                       flex: 10,
                                       child: Row(
                                         crossAxisAlignment:
-                                        CrossAxisAlignment.start,
+                                            CrossAxisAlignment.start,
                                         children: [
                                           Image.asset(
                                             'images/clarity_block-line.png',
                                           ),
                                           SizedBox(
-                                              width: MediaQuery
-                                                  .of(context)
-                                                  .size
-                                                  .width *
+                                              width: MediaQuery.of(context)
+                                                      .size
+                                                      .width *
                                                   0.03),
-                                          const Expanded(
+                                          Expanded(
                                             flex: 10,
                                             child: Column(
                                               crossAxisAlignment:
-                                              CrossAxisAlignment.start,
+                                                  CrossAxisAlignment.start,
                                               children: [
                                                 Text(
                                                   'Volume (24h)',
                                                   overflow:
-                                                  TextOverflow.ellipsis,
+                                                      TextOverflow.ellipsis,
                                                   style: TextStyle(
                                                     fontFamily: 'Inconsolata',
                                                     fontWeight: FontWeight.bold,
                                                     fontSize: 20,
-                                                    color: Colors.black,
+                                                    color: Theme.of(context)
+                                                        .colorScheme
+                                                        .onSurface,
                                                   ),
                                                 ),
                                                 Text(
                                                   '\$10 894 799',
                                                   overflow:
-                                                  TextOverflow.ellipsis,
+                                                      TextOverflow.ellipsis,
                                                   style: TextStyle(
                                                     fontFamily: 'Inconsolata',
                                                     fontWeight: FontWeight.bold,
                                                     fontSize: 18,
-                                                    color: Colors.black,
+                                                    color: Theme.of(context)
+                                                        .colorScheme
+                                                        .onSurface,
                                                   ),
                                                 ),
                                                 Text(
                                                   '\$181.7',
                                                   overflow:
-                                                  TextOverflow.ellipsis,
+                                                      TextOverflow.ellipsis,
                                                   style: TextStyle(
                                                     fontFamily: 'Inconsolata',
                                                     fontWeight: FontWeight.bold,
                                                     fontSize: 18,
-                                                    color: Colors.black,
+                                                    color: Theme.of(context)
+                                                        .colorScheme
+                                                        .onSurface,
                                                   ),
                                                 ),
                                               ],
@@ -662,10 +666,7 @@ class _ViewCoinState extends State<ViewCoin> with TickerProviderStateMixin {
                                   ],
                                 ),
                                 SizedBox(
-                                    height: MediaQuery
-                                        .of(context)
-                                        .size
-                                        .height *
+                                    height: MediaQuery.of(context).size.height *
                                         0.03),
                                 Padding(
                                   padding: const EdgeInsets.only(
@@ -673,14 +674,16 @@ class _ViewCoinState extends State<ViewCoin> with TickerProviderStateMixin {
                                   child: RichText(
                                     text: TextSpan(
                                       children: [
-                                        const TextSpan(
+                                        TextSpan(
                                           text:
-                                          'Events are managed by official representatives',
+                                              'Events are managed by official representatives',
                                           style: TextStyle(
                                             fontSize: 17,
                                             fontWeight: FontWeight.bold,
                                             fontFamily: 'Inconsolata',
-                                            color: Colors.black,
+                                            color: Theme.of(context)
+                                                .colorScheme
+                                                .onSurface,
                                           ),
                                         ),
                                         WidgetSpan(
@@ -707,25 +710,26 @@ class _ViewCoinState extends State<ViewCoin> with TickerProviderStateMixin {
                                         ),
                                         child: Row(
                                           mainAxisAlignment:
-                                          MainAxisAlignment.center,
+                                              MainAxisAlignment.center,
                                           children: [
                                             Image.asset(
                                               'images/streamline_web.png',
                                             ),
                                             SizedBox(
-                                                width: MediaQuery
-                                                    .of(context)
-                                                    .size
-                                                    .width *
+                                                width: MediaQuery.of(context)
+                                                        .size
+                                                        .width *
                                                     0.03),
-                                            const Text(
+                                            Text(
                                               'Website',
                                               overflow: TextOverflow.ellipsis,
                                               style: TextStyle(
                                                 fontFamily: 'Inconsolata',
                                                 fontWeight: FontWeight.bold,
                                                 fontSize: 16,
-                                                color: Colors.black,
+                                                color: Theme.of(context)
+                                                    .colorScheme
+                                                    .onSurface,
                                               ),
                                             ),
                                           ],
@@ -738,25 +742,26 @@ class _ViewCoinState extends State<ViewCoin> with TickerProviderStateMixin {
                                         ),
                                         child: Row(
                                           mainAxisAlignment:
-                                          MainAxisAlignment.center,
+                                              MainAxisAlignment.center,
                                           children: [
                                             Image.asset(
                                               'images/logos_telegram.png',
                                             ),
                                             SizedBox(
-                                                width: MediaQuery
-                                                    .of(context)
-                                                    .size
-                                                    .width *
+                                                width: MediaQuery.of(context)
+                                                        .size
+                                                        .width *
                                                     0.03),
-                                            const Text(
+                                            Text(
                                               'Telegram',
                                               overflow: TextOverflow.ellipsis,
                                               style: TextStyle(
                                                 fontFamily: 'Inconsolata',
                                                 fontWeight: FontWeight.bold,
                                                 fontSize: 16,
-                                                color: Colors.black,
+                                                color: Theme.of(context)
+                                                    .colorScheme
+                                                    .onSurface,
                                               ),
                                             ),
                                           ],
@@ -778,25 +783,26 @@ class _ViewCoinState extends State<ViewCoin> with TickerProviderStateMixin {
                                         ),
                                         child: Row(
                                           mainAxisAlignment:
-                                          MainAxisAlignment.center,
+                                              MainAxisAlignment.center,
                                           children: [
                                             Image.asset(
                                               'images/logos_reddit-icon.png',
                                             ),
                                             SizedBox(
-                                                width: MediaQuery
-                                                    .of(context)
-                                                    .size
-                                                    .width *
+                                                width: MediaQuery.of(context)
+                                                        .size
+                                                        .width *
                                                     0.03),
-                                            const Text(
+                                            Text(
                                               'Reddit',
                                               overflow: TextOverflow.ellipsis,
                                               style: TextStyle(
                                                 fontFamily: 'Inconsolata',
                                                 fontWeight: FontWeight.bold,
                                                 fontSize: 16,
-                                                color: Colors.black,
+                                                color: Theme.of(context)
+                                                    .colorScheme
+                                                    .onSurface,
                                               ),
                                             ),
                                           ],
@@ -809,25 +815,26 @@ class _ViewCoinState extends State<ViewCoin> with TickerProviderStateMixin {
                                         ),
                                         child: Row(
                                           mainAxisAlignment:
-                                          MainAxisAlignment.center,
+                                              MainAxisAlignment.center,
                                           children: [
                                             Image.asset(
                                               'images/icon-park_github.png',
                                             ),
                                             SizedBox(
-                                                width: MediaQuery
-                                                    .of(context)
-                                                    .size
-                                                    .width *
+                                                width: MediaQuery.of(context)
+                                                        .size
+                                                        .width *
                                                     0.03),
-                                            const Text(
+                                            Text(
                                               'Github',
                                               overflow: TextOverflow.ellipsis,
                                               style: TextStyle(
                                                 fontFamily: 'Inconsolata',
                                                 fontWeight: FontWeight.bold,
                                                 fontSize: 16,
-                                                color: Colors.black,
+                                                color: Theme.of(context)
+                                                    .colorScheme
+                                                    .onSurface,
                                               ),
                                             ),
                                           ],
@@ -868,25 +875,22 @@ class _ViewCoinState extends State<ViewCoin> with TickerProviderStateMixin {
                                           ),
                                         ),
                                         SizedBox(
-                                            height: MediaQuery
-                                                .of(context)
-                                                .size
-                                                .height *
+                                            height: MediaQuery.of(context)
+                                                    .size
+                                                    .height *
                                                 0.03),
                                         Row(
                                           mainAxisAlignment:
-                                          MainAxisAlignment.center,
+                                              MainAxisAlignment.center,
                                           children: [
                                             Column(
                                               children: [
                                                 Container(
                                                   width: (120 /
-                                                      MediaQuery
-                                                          .of(context)
-                                                          .size
-                                                          .width) *
-                                                      MediaQuery
-                                                          .of(context)
+                                                          MediaQuery.of(context)
+                                                              .size
+                                                              .width) *
+                                                      MediaQuery.of(context)
                                                           .size
                                                           .width,
                                                   padding: const EdgeInsets.all(
@@ -894,8 +898,8 @@ class _ViewCoinState extends State<ViewCoin> with TickerProviderStateMixin {
                                                   decoration: BoxDecoration(
                                                     color: Colors.white,
                                                     borderRadius:
-                                                    BorderRadius.circular(
-                                                        0),
+                                                        BorderRadius.circular(
+                                                            0),
                                                     boxShadow: [
                                                       BoxShadow(
                                                         color: Colors.grey
@@ -909,31 +913,30 @@ class _ViewCoinState extends State<ViewCoin> with TickerProviderStateMixin {
                                                     children: [
                                                       Row(
                                                         mainAxisAlignment:
-                                                        MainAxisAlignment
-                                                            .center,
+                                                            MainAxisAlignment
+                                                                .center,
                                                         children: [
                                                           Image.asset(
                                                             'images/noto_fire.png',
                                                           ),
                                                           SizedBox(
-                                                              width: MediaQuery
-                                                                  .of(
-                                                                  context)
-                                                                  .size
-                                                                  .width *
+                                                              width: MediaQuery.of(
+                                                                          context)
+                                                                      .size
+                                                                      .width *
                                                                   0.01),
                                                           const Expanded(
                                                             child: Text(
                                                               'Upcoming',
                                                               overflow:
-                                                              TextOverflow
-                                                                  .ellipsis,
+                                                                  TextOverflow
+                                                                      .ellipsis,
                                                               style: TextStyle(
                                                                 fontFamily:
-                                                                'Inconsolata',
+                                                                    'Inconsolata',
                                                                 fontWeight:
-                                                                FontWeight
-                                                                    .bold,
+                                                                    FontWeight
+                                                                        .bold,
                                                                 fontSize: 16,
                                                                 color: Colors
                                                                     .black,
@@ -943,19 +946,18 @@ class _ViewCoinState extends State<ViewCoin> with TickerProviderStateMixin {
                                                         ],
                                                       ),
                                                       SizedBox(
-                                                          height: MediaQuery
-                                                              .of(
-                                                              context)
-                                                              .size
-                                                              .height *
+                                                          height: MediaQuery.of(
+                                                                      context)
+                                                                  .size
+                                                                  .height *
                                                               0.03),
                                                       const Text(
                                                         '1',
                                                         style: TextStyle(
                                                           fontFamily:
-                                                          'Inconsolata',
+                                                              'Inconsolata',
                                                           fontWeight:
-                                                          FontWeight.bold,
+                                                              FontWeight.bold,
                                                           fontSize: 30,
                                                           color: Colors.black,
                                                         ),
@@ -966,21 +968,18 @@ class _ViewCoinState extends State<ViewCoin> with TickerProviderStateMixin {
                                               ],
                                             ),
                                             SizedBox(
-                                                width: MediaQuery
-                                                    .of(context)
-                                                    .size
-                                                    .width *
+                                                width: MediaQuery.of(context)
+                                                        .size
+                                                        .width *
                                                     0.03),
                                             Column(
                                               children: [
                                                 Container(
                                                   width: (120 /
-                                                      MediaQuery
-                                                          .of(context)
-                                                          .size
-                                                          .width) *
-                                                      MediaQuery
-                                                          .of(context)
+                                                          MediaQuery.of(context)
+                                                              .size
+                                                              .width) *
+                                                      MediaQuery.of(context)
                                                           .size
                                                           .width,
                                                   padding: const EdgeInsets.all(
@@ -988,8 +987,8 @@ class _ViewCoinState extends State<ViewCoin> with TickerProviderStateMixin {
                                                   decoration: BoxDecoration(
                                                     color: Colors.white,
                                                     borderRadius:
-                                                    BorderRadius.circular(
-                                                        0),
+                                                        BorderRadius.circular(
+                                                            0),
                                                     boxShadow: [
                                                       BoxShadow(
                                                         color: Colors.grey
@@ -1003,31 +1002,30 @@ class _ViewCoinState extends State<ViewCoin> with TickerProviderStateMixin {
                                                     children: [
                                                       Row(
                                                         mainAxisAlignment:
-                                                        MainAxisAlignment
-                                                            .center,
+                                                            MainAxisAlignment
+                                                                .center,
                                                         children: [
                                                           Image.asset(
                                                             'images/lets-icons_up.png',
                                                           ),
                                                           SizedBox(
-                                                              width: MediaQuery
-                                                                  .of(
-                                                                  context)
-                                                                  .size
-                                                                  .width *
+                                                              width: MediaQuery.of(
+                                                                          context)
+                                                                      .size
+                                                                      .width *
                                                                   0.01),
                                                           const Expanded(
                                                             child: Text(
                                                               'Trending',
                                                               overflow:
-                                                              TextOverflow
-                                                                  .ellipsis,
+                                                                  TextOverflow
+                                                                      .ellipsis,
                                                               style: TextStyle(
                                                                 fontFamily:
-                                                                'Inconsolata',
+                                                                    'Inconsolata',
                                                                 fontWeight:
-                                                                FontWeight
-                                                                    .bold,
+                                                                    FontWeight
+                                                                        .bold,
                                                                 fontSize: 16,
                                                                 color: Colors
                                                                     .black,
@@ -1037,19 +1035,18 @@ class _ViewCoinState extends State<ViewCoin> with TickerProviderStateMixin {
                                                         ],
                                                       ),
                                                       SizedBox(
-                                                          height: MediaQuery
-                                                              .of(
-                                                              context)
-                                                              .size
-                                                              .height *
+                                                          height: MediaQuery.of(
+                                                                      context)
+                                                                  .size
+                                                                  .height *
                                                               0.03),
                                                       const Text(
                                                         '#1',
                                                         style: TextStyle(
                                                           fontFamily:
-                                                          'Inconsolata',
+                                                              'Inconsolata',
                                                           fontWeight:
-                                                          FontWeight.bold,
+                                                              FontWeight.bold,
                                                           fontSize: 30,
                                                           color: Colors.black,
                                                         ),
@@ -1062,25 +1059,22 @@ class _ViewCoinState extends State<ViewCoin> with TickerProviderStateMixin {
                                           ],
                                         ),
                                         SizedBox(
-                                            height: MediaQuery
-                                                .of(context)
-                                                .size
-                                                .height *
+                                            height: MediaQuery.of(context)
+                                                    .size
+                                                    .height *
                                                 0.03),
                                         Row(
                                           mainAxisAlignment:
-                                          MainAxisAlignment.center,
+                                              MainAxisAlignment.center,
                                           children: [
                                             Column(
                                               children: [
                                                 Container(
                                                   width: (120 /
-                                                      MediaQuery
-                                                          .of(context)
-                                                          .size
-                                                          .width) *
-                                                      MediaQuery
-                                                          .of(context)
+                                                          MediaQuery.of(context)
+                                                              .size
+                                                              .width) *
+                                                      MediaQuery.of(context)
                                                           .size
                                                           .width,
                                                   padding: const EdgeInsets.all(
@@ -1088,8 +1082,8 @@ class _ViewCoinState extends State<ViewCoin> with TickerProviderStateMixin {
                                                   decoration: BoxDecoration(
                                                     color: Colors.white,
                                                     borderRadius:
-                                                    BorderRadius.circular(
-                                                        0),
+                                                        BorderRadius.circular(
+                                                            0),
                                                     boxShadow: [
                                                       BoxShadow(
                                                         color: Colors.grey
@@ -1103,31 +1097,30 @@ class _ViewCoinState extends State<ViewCoin> with TickerProviderStateMixin {
                                                     children: [
                                                       Row(
                                                         mainAxisAlignment:
-                                                        MainAxisAlignment
-                                                            .center,
+                                                            MainAxisAlignment
+                                                                .center,
                                                         children: [
                                                           Image.asset(
                                                             'images/noto_crown.png',
                                                           ),
                                                           SizedBox(
-                                                              width: MediaQuery
-                                                                  .of(
-                                                                  context)
-                                                                  .size
-                                                                  .width *
+                                                              width: MediaQuery.of(
+                                                                          context)
+                                                                      .size
+                                                                      .width *
                                                                   0.01),
                                                           const Expanded(
                                                             child: Text(
                                                               'Significance',
                                                               overflow:
-                                                              TextOverflow
-                                                                  .ellipsis,
+                                                                  TextOverflow
+                                                                      .ellipsis,
                                                               style: TextStyle(
                                                                 fontFamily:
-                                                                'Inconsolata',
+                                                                    'Inconsolata',
                                                                 fontWeight:
-                                                                FontWeight
-                                                                    .bold,
+                                                                    FontWeight
+                                                                        .bold,
                                                                 fontSize: 16,
                                                                 color: Colors
                                                                     .black,
@@ -1137,19 +1130,18 @@ class _ViewCoinState extends State<ViewCoin> with TickerProviderStateMixin {
                                                         ],
                                                       ),
                                                       SizedBox(
-                                                          height: MediaQuery
-                                                              .of(
-                                                              context)
-                                                              .size
-                                                              .height *
+                                                          height: MediaQuery.of(
+                                                                      context)
+                                                                  .size
+                                                                  .height *
                                                               0.03),
                                                       const Text(
                                                         '1',
                                                         style: TextStyle(
                                                           fontFamily:
-                                                          'Inconsolata',
+                                                              'Inconsolata',
                                                           fontWeight:
-                                                          FontWeight.bold,
+                                                              FontWeight.bold,
                                                           fontSize: 30,
                                                           color: Colors.black,
                                                         ),
@@ -1160,21 +1152,18 @@ class _ViewCoinState extends State<ViewCoin> with TickerProviderStateMixin {
                                               ],
                                             ),
                                             SizedBox(
-                                                width: MediaQuery
-                                                    .of(context)
-                                                    .size
-                                                    .width *
+                                                width: MediaQuery.of(context)
+                                                        .size
+                                                        .width *
                                                     0.03),
                                             Column(
                                               children: [
                                                 Container(
                                                   width: (120 /
-                                                      MediaQuery
-                                                          .of(context)
-                                                          .size
-                                                          .width) *
-                                                      MediaQuery
-                                                          .of(context)
+                                                          MediaQuery.of(context)
+                                                              .size
+                                                              .width) *
+                                                      MediaQuery.of(context)
                                                           .size
                                                           .width,
                                                   padding: const EdgeInsets.all(
@@ -1182,8 +1171,8 @@ class _ViewCoinState extends State<ViewCoin> with TickerProviderStateMixin {
                                                   decoration: BoxDecoration(
                                                     color: Colors.white,
                                                     borderRadius:
-                                                    BorderRadius.circular(
-                                                        0),
+                                                        BorderRadius.circular(
+                                                            0),
                                                     boxShadow: [
                                                       BoxShadow(
                                                         color: Colors.grey
@@ -1197,51 +1186,49 @@ class _ViewCoinState extends State<ViewCoin> with TickerProviderStateMixin {
                                                     children: [
                                                       Row(
                                                         mainAxisAlignment:
-                                                        MainAxisAlignment
-                                                            .center,
+                                                            MainAxisAlignment
+                                                                .center,
                                                         children: [
                                                           Image.asset(
                                                             'images/noto_fire.png',
                                                           ),
                                                           SizedBox(
-                                                              width: MediaQuery
-                                                                  .of(
-                                                                  context)
-                                                                  .size
-                                                                  .width *
+                                                              width: MediaQuery.of(
+                                                                          context)
+                                                                      .size
+                                                                      .width *
                                                                   0.01),
                                                           const Text(
                                                             'Hot',
                                                             overflow:
-                                                            TextOverflow
-                                                                .ellipsis,
+                                                                TextOverflow
+                                                                    .ellipsis,
                                                             style: TextStyle(
                                                               fontFamily:
-                                                              'Inconsolata',
+                                                                  'Inconsolata',
                                                               fontWeight:
-                                                              FontWeight
-                                                                  .bold,
+                                                                  FontWeight
+                                                                      .bold,
                                                               fontSize: 16,
                                                               color:
-                                                              Colors.black,
+                                                                  Colors.black,
                                                             ),
                                                           ),
                                                         ],
                                                       ),
                                                       SizedBox(
-                                                          height: MediaQuery
-                                                              .of(
-                                                              context)
-                                                              .size
-                                                              .height *
+                                                          height: MediaQuery.of(
+                                                                      context)
+                                                                  .size
+                                                                  .height *
                                                               0.03),
                                                       const Text(
                                                         '1',
                                                         style: TextStyle(
                                                           fontFamily:
-                                                          'Inconsolata',
+                                                              'Inconsolata',
                                                           fontWeight:
-                                                          FontWeight.bold,
+                                                              FontWeight.bold,
                                                           fontSize: 30,
                                                           color: Colors.black,
                                                         ),
@@ -1263,51 +1250,52 @@ class _ViewCoinState extends State<ViewCoin> with TickerProviderStateMixin {
                         ),
                       ),
                       if (loading)
-                        const Center(
-                          child: CircularProgressIndicator(color: Colors.black),
+                        Center(
+                          child: CircularProgressIndicator(
+                              color: Theme.of(context).colorScheme.onSurface),
+                        )
+                      else if (errorMessage != null)
+                        Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Text(
+                                errorMessage!,
+                                textAlign: TextAlign.center,
+                                style: const TextStyle(
+                                  fontFamily: 'Inconsolata',
+                                  color: Colors.red,
+                                ),
+                              ),
+                              const SizedBox(height: 16),
+                              ElevatedButton(
+                                onPressed: _refreshData,
+                                child: Text(
+                                  'Retry',
+                                  style: TextStyle(
+                                    fontFamily: 'Inconsolata',
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 18,
+                                    color:
+                                        Theme.of(context).colorScheme.onSurface,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
                         )
                       else
-                        if (errorMessage != null)
-                          Center(
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Text(
-                                  errorMessage!,
-                                  textAlign: TextAlign.center,
-                                  style: const TextStyle(
-                                    fontFamily: 'Inconsolata',
-                                    color: Colors.red,
-                                  ),
-                                ),
-                                const SizedBox(height: 16),
-                                ElevatedButton(
-                                  onPressed: _refreshData,
-                                  child: const Text(
-                                    'Retry',
-                                    style: TextStyle(
-                                      fontFamily: 'Inconsolata',
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 18,
-                                      color: Colors.black,
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          )
-                        else
-                          RefreshIndicator(
-                            onRefresh: _refreshData,
-                            color: Colors.black,
-                            child: ListView.builder(
-                              controller: _scrollController,
-                              itemCount: events.length,
-                              itemBuilder: (context, index) {
-                                return cryptoCard(events[index]);
-                              },
-                            ),
+                        RefreshIndicator(
+                          onRefresh: _refreshData,
+                          color: Theme.of(context).colorScheme.onSurface,
+                          child: ListView.builder(
+                            controller: _scrollController,
+                            itemCount: events.length,
+                            itemBuilder: (context, index) {
+                              return cryptoCard(events[index]);
+                            },
                           ),
+                        ),
                     ],
                   ),
                 ),
@@ -1330,11 +1318,12 @@ class _ViewCoinState extends State<ViewCoin> with TickerProviderStateMixin {
           ),
           child: TabBar(
             indicator: BoxDecoration(
-              color: Colors.black,
+              color: Theme.of(context).colorScheme.onSurface,
               borderRadius: BorderRadius.circular(25),
             ),
             indicatorSize: TabBarIndicatorSize.tab,
-            overlayColor: const WidgetStatePropertyAll(Colors.black),
+            overlayColor:
+                WidgetStatePropertyAll(Theme.of(context).colorScheme.onSurface),
             splashBorderRadius: BorderRadius.circular(25),
             dividerHeight: 0,
             controller: tabController!,
@@ -1344,7 +1333,7 @@ class _ViewCoinState extends State<ViewCoin> with TickerProviderStateMixin {
             ],
             labelPadding: const EdgeInsets.symmetric(horizontal: 6),
             labelColor: Colors.white,
-            unselectedLabelColor: Colors.black,
+            unselectedLabelColor: Theme.of(context).colorScheme.onSurface,
             indicatorColor: Colors.transparent,
             labelStyle: const TextStyle(
               fontSize: 16,
@@ -1440,19 +1429,20 @@ class _ViewCoinState extends State<ViewCoin> with TickerProviderStateMixin {
         );
       }
     }
-
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
     return Padding(
       padding: const EdgeInsets.only(left: 20.0, right: 20.0, bottom: 20.0),
       child: InkWell(
-        onTap: () {},
+        onTap: () {
+        },
         child: Container(
           padding: const EdgeInsets.all(12.0),
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: isDarkMode ? Colors.grey[900] : Colors.white,
             borderRadius: BorderRadius.circular(15),
             boxShadow: [
               BoxShadow(
-                color: Colors.grey.withOpacity(0.5),
+                color: isDarkMode ? Colors.grey.withOpacity(0.2) : Colors.grey.withOpacity(0.5),
                 spreadRadius: 3,
                 blurRadius: 5,
               ),
@@ -1501,11 +1491,11 @@ class _ViewCoinState extends State<ViewCoin> with TickerProviderStateMixin {
                           event['title'],
                           overflow: TextOverflow.ellipsis,
                           maxLines: 1, // Limits title to one line
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontFamily: 'Inconsolata',
                             fontWeight: FontWeight.bold,
                             fontSize: 22,
-                            color: Colors.black,
+                            color: Theme.of(context).colorScheme.onSurface,
                           ),
                         ),
                         Text(
@@ -1527,10 +1517,10 @@ class _ViewCoinState extends State<ViewCoin> with TickerProviderStateMixin {
                           event['sub_text'],
                           maxLines: 2, // Limits sub_text to two lines
                           overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontFamily: 'Inconsolata',
                             fontSize: 16,
-                            color: Colors.black,
+                            color: Theme.of(context).colorScheme.onSurface,
                           ),
                         ),
                         Row(
@@ -1538,10 +1528,10 @@ class _ViewCoinState extends State<ViewCoin> with TickerProviderStateMixin {
                           children: [
                             Text(
                               'Upvotes: ${event['upvotes']} | Downvotes: ${event['downvotes']}',
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontFamily: 'Inconsolata',
                                 fontSize: 15,
-                                color: Colors.black,
+                                color: Theme.of(context).colorScheme.onSurface,
                               ),
                             ),
                           ],

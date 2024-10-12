@@ -175,7 +175,7 @@ class ChangePasswordState extends State<ChangePassword>
                     ),
                   ),
                   const Spacer(),
-                  const Expanded(
+                  Expanded(
                     flex: 10,
                     child: Text(
                       'Change Password',
@@ -184,7 +184,7 @@ class ChangePasswordState extends State<ChangePassword>
                         fontFamily: 'Inter',
                         fontWeight: FontWeight.bold,
                         fontSize: 22.0,
-                        color: Colors.black,
+                        color: Theme.of(context).colorScheme.onSurface,
                       ),
                     ),
                   ),
@@ -217,8 +217,8 @@ class ChangePasswordState extends State<ChangePassword>
                     ),
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(15),
-                      borderSide: const BorderSide(
-                        color: Colors.black,
+                      borderSide: BorderSide(
+                        color: Theme.of(context).colorScheme.onSurface,
                       ),
                     ),
                     suffixIcon: IconButton(
@@ -231,7 +231,7 @@ class ChangePasswordState extends State<ChangePassword>
                         });
                       },
                     )),
-                cursorColor: Colors.black,
+                cursorColor: Theme.of(context).colorScheme.onSurface,
                 obscureText: !_iscurrentPasswordVisible,
                 obscuringCharacter: "*",
               ),
@@ -261,8 +261,8 @@ class ChangePasswordState extends State<ChangePassword>
                     ),
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(15),
-                      borderSide: const BorderSide(
-                        color: Colors.black,
+                      borderSide: BorderSide(
+                        color: Theme.of(context).colorScheme.onSurface,
                       ),
                     ),
                     suffixIcon: IconButton(
@@ -275,7 +275,7 @@ class ChangePasswordState extends State<ChangePassword>
                         });
                       },
                     )),
-                cursorColor: Colors.black,
+                cursorColor: Theme.of(context).colorScheme.onSurface,
                 obscureText: !_isPasswordVisible,
                 obscuringCharacter: "*",
               ),
@@ -305,8 +305,8 @@ class ChangePasswordState extends State<ChangePassword>
                     ),
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(15),
-                      borderSide: const BorderSide(
-                        color: Colors.black,
+                      borderSide: BorderSide(
+                        color: Theme.of(context).colorScheme.onSurface,
                       ),
                     ),
                     suffixIcon: IconButton(
@@ -319,7 +319,7 @@ class ChangePasswordState extends State<ChangePassword>
                         });
                       },
                     )),
-                cursorColor: Colors.black,
+                cursorColor: Theme.of(context).colorScheme.onSurface,
                 obscureText: !_isPasswordVisible2,
                 obscuringCharacter: "*",
               ),

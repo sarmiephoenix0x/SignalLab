@@ -417,12 +417,12 @@ class _SentimentViewCoinState extends State<SentimentViewCoin>
       builder: (context, orientation) {
         return Scaffold(
           body: loading
-              ? const Center(
-                  child: CircularProgressIndicator(color: Colors.black))
+              ? Center(
+                  child: CircularProgressIndicator(color: Theme.of(context).colorScheme.onSurface))
               : Center(
                   child: RefreshIndicator(
                     onRefresh: _refreshData,
-                    color: Colors.black,
+                    color: Theme.of(context).colorScheme.onSurface,
                     child: Stack(
                       children: [
                         SingleChildScrollView(
@@ -450,11 +450,11 @@ class _SentimentViewCoinState extends State<SentimentViewCoin>
                                       child: Text(
                                         widget.sentimentTitle,
                                         overflow: TextOverflow.ellipsis,
-                                        style: const TextStyle(
+                                        style: TextStyle(
                                           fontFamily: 'Inconsolata',
                                           fontWeight: FontWeight.bold,
                                           fontSize: 22,
-                                          color: Colors.black,
+                                          color: Theme.of(context).colorScheme.onSurface,
                                         ),
                                       ),
                                     ),
@@ -466,9 +466,9 @@ class _SentimentViewCoinState extends State<SentimentViewCoin>
                                   height: MediaQuery.of(context).size.height *
                                       0.05),
                               if (loading)
-                                const Center(
+                                Center(
                                   child: CircularProgressIndicator(
-                                      color: Colors.black),
+                                      color: Theme.of(context).colorScheme.onSurface),
                                 )
                               else if (errorMessage != null)
                                 Center(
@@ -486,13 +486,13 @@ class _SentimentViewCoinState extends State<SentimentViewCoin>
                                       const SizedBox(height: 16),
                                       ElevatedButton(
                                         onPressed: _refreshData,
-                                        child: const Text(
+                                        child: Text(
                                           'Retry',
                                           style: TextStyle(
                                             fontFamily: 'Inconsolata',
                                             fontWeight: FontWeight.bold,
                                             fontSize: 18,
-                                            color: Colors.black,
+                                            color: Theme.of(context).colorScheme.onSurface,
                                           ),
                                         ),
                                       ),
@@ -515,7 +515,7 @@ class _SentimentViewCoinState extends State<SentimentViewCoin>
                                         height:
                                             MediaQuery.of(context).size.height *
                                                 0.01),
-                                    const Center(
+                                    Center(
                                       child: Text(
                                         'Share your opinion',
                                         textAlign: TextAlign.center,
@@ -523,7 +523,7 @@ class _SentimentViewCoinState extends State<SentimentViewCoin>
                                           fontFamily: 'Inconsolata',
                                           fontWeight: FontWeight.bold,
                                           fontSize: 16,
-                                          color: Colors.black,
+                                          color: Theme.of(context).colorScheme.onSurface,
                                         ),
                                       ),
                                     ),
@@ -535,10 +535,10 @@ class _SentimentViewCoinState extends State<SentimentViewCoin>
                                       child: Text(
                                         "${widget.sentimentTitle} will go",
                                         textAlign: TextAlign.center,
-                                        style: const TextStyle(
+                                        style: TextStyle(
                                           fontFamily: 'Inconsolata',
                                           fontSize: 14,
-                                          color: Colors.black,
+                                          color: Theme.of(context).colorScheme.onSurface,
                                         ),
                                       ),
                                     ),
@@ -556,10 +556,10 @@ class _SentimentViewCoinState extends State<SentimentViewCoin>
                                       child: Text(
                                         "${widget.sentimentTitle} will go $voteText over the",
                                         textAlign: TextAlign.center,
-                                        style: const TextStyle(
+                                        style: TextStyle(
                                           fontFamily: 'Inconsolata',
                                           fontSize: 14,
-                                          color: Colors.black,
+                                          color: Theme.of(context).colorScheme.onSurface,
                                         ),
                                       ),
                                     ),
@@ -577,7 +577,7 @@ class _SentimentViewCoinState extends State<SentimentViewCoin>
                                           const EdgeInsets.only(left: 20.0),
                                       child: Row(
                                         children: [
-                                          const Expanded(
+                                          Expanded(
                                             flex: 10,
                                             child: Text(
                                               'Notify me when the prediction has finished',
@@ -585,7 +585,7 @@ class _SentimentViewCoinState extends State<SentimentViewCoin>
                                               style: TextStyle(
                                                 fontFamily: 'Inconsolata',
                                                 fontSize: 14,
-                                                color: Colors.black,
+                                                color: Theme.of(context).colorScheme.onSurface,
                                               ),
                                             ),
                                           ),
@@ -800,9 +800,9 @@ class _SentimentViewCoinState extends State<SentimentViewCoin>
         padding: const EdgeInsets.symmetric(horizontal: 20.0),
         child: Container(
           decoration: BoxDecoration(
-            border: Border.all(width: 1, color: Colors.black),
+            border: Border.all(width: 1, color: Theme.of(context).colorScheme.onSurface),
             borderRadius: BorderRadius.circular(25),
-            color: Colors.black,
+            color: Theme.of(context).colorScheme.onSurface,
           ),
           child: TabBar(
             onTap: (index) {
@@ -851,9 +851,9 @@ class _SentimentViewCoinState extends State<SentimentViewCoin>
         padding: const EdgeInsets.symmetric(horizontal: 20.0),
         child: Container(
           decoration: BoxDecoration(
-            border: Border.all(width: 1, color: Colors.black),
+            border: Border.all(width: 1, color: Theme.of(context).colorScheme.onSurface),
             borderRadius: BorderRadius.circular(25),
-            color: Colors.black,
+            color: Theme.of(context).colorScheme.onSurface,
           ),
           child: TabBar(
             indicator: BoxDecoration(
@@ -872,7 +872,7 @@ class _SentimentViewCoinState extends State<SentimentViewCoin>
               _buildCurvedTab('YEAR'),
             ],
             labelPadding: const EdgeInsets.symmetric(horizontal: 6),
-            labelColor: Colors.black,
+            labelColor: Theme.of(context).colorScheme.onSurface,
             unselectedLabelColor: Colors.white,
             indicatorColor: Colors.transparent,
             labelStyle: const TextStyle(

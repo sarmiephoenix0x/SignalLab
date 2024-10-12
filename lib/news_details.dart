@@ -8,8 +8,9 @@ import 'package:http/http.dart' as http;
 
 class NewsDetails extends StatefulWidget {
   final int newsId;
+  final String tags;
 
-  const NewsDetails({super.key, required this.newsId});
+  const NewsDetails({super.key, required this.newsId, required this.tags});
 
   @override
   NewsDetailsState createState() => NewsDetailsState();
@@ -29,7 +30,7 @@ class NewsDetailsState extends State<NewsDetails> {
 
   void _showPopupMenu(BuildContext context) async {
     final RenderBox renderBox =
-    _key.currentContext!.findRenderObject() as RenderBox;
+        _key.currentContext!.findRenderObject() as RenderBox;
     final Offset position = renderBox.localToGlobal(Offset.zero);
 
     await showMenu(
@@ -47,12 +48,10 @@ class NewsDetailsState extends State<NewsDetails> {
               Image.asset(
                 'images/share-box-line.png',
                 height: 25,
+                color:Theme.of(context).colorScheme.onSurface,
               ),
               SizedBox(
-                width: MediaQuery
-                    .of(context)
-                    .size
-                    .width * 0.05,
+                width: MediaQuery.of(context).size.width * 0.05,
               ),
               const Text(
                 'Share',
@@ -72,12 +71,10 @@ class NewsDetailsState extends State<NewsDetails> {
               Image.asset(
                 'images/feedback-line.png',
                 height: 25,
+                color:Theme.of(context).colorScheme.onSurface,
               ),
               SizedBox(
-                width: MediaQuery
-                    .of(context)
-                    .size
-                    .width * 0.05,
+                width: MediaQuery.of(context).size.width * 0.05,
               ),
               const Text(
                 'Report',
@@ -97,12 +94,10 @@ class NewsDetailsState extends State<NewsDetails> {
               Image.asset(
                 'images/save-line.png',
                 height: 25,
+                color:Theme.of(context).colorScheme.onSurface,
               ),
               SizedBox(
-                width: MediaQuery
-                    .of(context)
-                    .size
-                    .width * 0.05,
+                width: MediaQuery.of(context).size.width * 0.05,
               ),
               const Text(
                 'Save',
@@ -122,12 +117,10 @@ class NewsDetailsState extends State<NewsDetails> {
               Image.asset(
                 'images/basketball-line.png',
                 height: 25,
+                color:Theme.of(context).colorScheme.onSurface,
               ),
               SizedBox(
-                width: MediaQuery
-                    .of(context)
-                    .size
-                    .width * 0.05,
+                width: MediaQuery.of(context).size.width * 0.05,
               ),
               const Text(
                 'Open in browser',
@@ -460,7 +453,6 @@ class NewsDetailsState extends State<NewsDetails> {
     }
   }
 
-
   Future<void> checkIfNewsIsBookmarked(String newsId) async {
     final String? accessToken = await storage.read(key: 'accessToken');
     final response = await http.get(
@@ -525,33 +517,25 @@ class NewsDetailsState extends State<NewsDetails> {
 
   @override
   Widget build(BuildContext context) {
-    Color originalIconColor = IconTheme
-        .of(context)
-        .color ?? Colors.black;
+    Color originalIconColor = IconTheme.of(context).color ?? Colors.black;
     return Scaffold(
       body: OrientationBuilder(
         builder: (context, orientation) {
           return Center(
             child: SizedBox(
               height: orientation == Orientation.portrait
-                  ? MediaQuery
-                  .of(context)
-                  .size
-                  .height
-                  : MediaQuery
-                  .of(context)
-                  .size
-                  .height * 1.5,
+                  ? MediaQuery.of(context).size.height
+                  : MediaQuery.of(context).size.height * 1.5,
               child: RefreshIndicator(
                 onRefresh: _refreshData,
-                color: Colors.black,
+                color: Theme.of(context).colorScheme.onSurface,
                 child: FutureBuilder<Map<String, dynamic>?>(
                   future: _newsFuture,
                   builder: (context, snapshot) {
                     if (snapshot.connectionState == ConnectionState.waiting) {
-                      return const Center(
-                          child:
-                          CircularProgressIndicator(color: Colors.black));
+                      return Center(
+                          child: CircularProgressIndicator(
+                              color: Theme.of(context).colorScheme.onSurface));
                     } else if (snapshot.hasError) {
                       return Center(
                         child: Column(
@@ -568,13 +552,14 @@ class NewsDetailsState extends State<NewsDetails> {
                             const SizedBox(height: 16),
                             ElevatedButton(
                               onPressed: _refreshData,
-                              child: const Text(
+                              child: Text(
                                 'Retry',
                                 style: TextStyle(
                                   fontFamily: 'Inconsolata',
                                   fontWeight: FontWeight.bold,
                                   fontSize: 18,
-                                  color: Colors.black,
+                                  color:
+                                      Theme.of(context).colorScheme.onSurface,
                                 ),
                               ),
                             ),
@@ -599,13 +584,14 @@ class NewsDetailsState extends State<NewsDetails> {
                               const SizedBox(height: 16),
                               ElevatedButton(
                                 onPressed: _refreshData,
-                                child: const Text(
+                                child: Text(
                                   'Retry',
                                   style: TextStyle(
                                     fontFamily: 'Inconsolata',
                                     fontWeight: FontWeight.bold,
                                     fontSize: 18,
-                                    color: Colors.black,
+                                    color:
+                                        Theme.of(context).colorScheme.onSurface,
                                   ),
                                 ),
                               ),
@@ -616,21 +602,18 @@ class NewsDetailsState extends State<NewsDetails> {
                       return Stack(
                         alignment: Alignment.center,
                         children: [
-                          Padding(
-                            padding:
-                            const EdgeInsets.symmetric(horizontal: 20.0),
-                            child: SingleChildScrollView(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  SizedBox(
-                                    height: MediaQuery
-                                        .of(context)
-                                        .size
-                                        .height *
-                                        0.1,
-                                  ),
-                                  Row(
+                          SingleChildScrollView(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                SizedBox(
+                                  height:
+                                      MediaQuery.of(context).size.height * 0.1,
+                                ),
+                                Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 20.0),
+                                  child: Row(
                                     children: [
                                       InkWell(
                                         onTap: () {
@@ -641,36 +624,61 @@ class NewsDetailsState extends State<NewsDetails> {
                                           height: 50,
                                         ),
                                       ),
+                                      // SizedBox(
+                                      //     width:
+                                      //     MediaQuery
+                                      //         .of(context)
+                                      //         .size
+                                      //         .width * 0.02),
+                                      // Expanded(
+                                      //   flex: 10,
+                                      //   child: Text(
+                                      //     'News',
+                                      //     overflow: TextOverflow.ellipsis,
+                                      //     style: TextStyle(
+                                      //       fontFamily: 'Inter',
+                                      //       fontWeight: FontWeight.bold,
+                                      //       fontSize: 22.0,
+                                      //       color: Theme.of(context).colorScheme.onSurface,
+                                      //     ),
+                                      //   ),
+                                      // ),
                                       const Spacer(),
+                                      SizedBox(
+                                        key: _key,
+                                        child: IconButton(
+                                          icon: const Icon(
+                                              Icons.more_vert_outlined),
+                                          onPressed: () {
+                                            _showPopupMenu(context);
+                                          },
+                                        ),
+                                      ),
                                     ],
                                   ),
-                                  SizedBox(
-                                    height: MediaQuery
-                                        .of(context)
-                                        .size
-                                        .height *
-                                        0.05,
-                                  ),
-                                  Row(
+                                ),
+                                SizedBox(
+                                  height:
+                                      MediaQuery.of(context).size.height * 0.05,
+                                ),
+                                Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 20.0),
+                                  child: Row(
                                     children: [
                                       ClipRRect(
                                         borderRadius: BorderRadius.circular(55),
                                         child: Container(
-                                          width: (40 / MediaQuery
-                                              .of(context)
-                                              .size
-                                              .width) *
-                                              MediaQuery
-                                                  .of(context)
-                                                  .size
-                                                  .width,
-                                          height:
-                                          (40 / MediaQuery
-                                              .of(context)
-                                              .size
-                                              .height) *
-                                              MediaQuery
-                                                  .of(context)
+                                          width: (40 /
+                                                  MediaQuery.of(context)
+                                                      .size
+                                                      .width) *
+                                              MediaQuery.of(context).size.width,
+                                          height: (40 /
+                                                  MediaQuery.of(context)
+                                                      .size
+                                                      .height) *
+                                              MediaQuery.of(context)
                                                   .size
                                                   .height,
                                           color: Colors.grey,
@@ -687,16 +695,13 @@ class NewsDetailsState extends State<NewsDetails> {
                                       ),
                                       SizedBox(
                                         width:
-                                        MediaQuery
-                                            .of(context)
-                                            .size
-                                            .width *
-                                            0.01,
+                                            MediaQuery.of(context).size.width *
+                                                0.02,
                                       ),
                                       Expanded(
                                         child: Column(
                                           crossAxisAlignment:
-                                          CrossAxisAlignment.start,
+                                              CrossAxisAlignment.start,
                                           children: [
                                             Text(
                                               news['user'] ?? '',
@@ -707,93 +712,99 @@ class NewsDetailsState extends State<NewsDetails> {
                                                 fontWeight: FontWeight.bold,
                                               ),
                                             ),
-                                            SizedBox(
-                                              height: MediaQuery
-                                                  .of(context)
-                                                  .size
-                                                  .height *
-                                                  0.01,
-                                            ),
-                                            Text(
-                                              news['created_at'] ?? '',
-                                              overflow: TextOverflow.ellipsis,
-                                              style: const TextStyle(
-                                                color: Colors.lightBlue,
-                                                fontSize: 16,
-                                                fontFamily: 'Inter',
-                                              ),
-                                            ),
                                           ],
                                         ),
                                       ),
                                       const Spacer(),
-                                      SizedBox(
-                                        key: _key,
-                                        child: IconButton(
-                                          icon: const Icon(
-                                              Icons.more_vert_outlined),
-                                          onPressed: () {
-                                            _showPopupMenu(context);
-                                          },
-                                        ),
-                                      ),
                                     ],
                                   ),
-                                  SizedBox(
-                                    height: MediaQuery
-                                        .of(context)
-                                        .size
-                                        .height *
-                                        0.03,
-                                  ),
-                                  Text(
-                                    news['title'] ?? '',
-                                    style: const TextStyle(
-                                        fontSize: 16, fontFamily: 'Inter'),
-                                  ),
-                                  Padding(
-                                    padding: const EdgeInsets.symmetric(
-                                        vertical: 20.0),
-                                    child: ClipRRect(
-                                      borderRadius: BorderRadius.circular(10),
-                                      child: Image.network(
-                                        news['images'] ?? '',
-                                      ),
+                                ),
+                                SizedBox(
+                                  height:
+                                      MediaQuery.of(context).size.height * 0.03,
+                                ),
+                                Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                      vertical: 20.0),
+                                  child: ClipRRect(
+                                    borderRadius: BorderRadius.circular(0),
+                                    child: Image.network(
+                                      news['images'] ?? '',
+                                      width: double.infinity,
                                     ),
                                   ),
-                                  Text(
+                                ),
+                                Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 20.0),
+                                  child: Text(
+                                    news['title'] ?? '',
+                                    style: const TextStyle(
+                                      fontSize: 24,
+                                      fontFamily: 'Inter',
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ),
+                                SizedBox(
+                                  height:
+                                      MediaQuery.of(context).size.height * 0.03,
+                                ),
+                                Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 20.0),
+                                  child: Text(
+                                    news['created_at'] ?? '',
+                                    overflow: TextOverflow.ellipsis,
+                                    style: const TextStyle(
+                                      fontSize: 16,
+                                      fontFamily: 'Inter',
+                                    ),
+                                  ),
+                                ),
+                                SizedBox(
+                                  height:
+                                      MediaQuery.of(context).size.height * 0.03,
+                                ),
+                                Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 20.0),
+                                  child: _buildTag(widget.tags),
+                                ),
+                                SizedBox(
+                                  height:
+                                      MediaQuery.of(context).size.height * 0.03,
+                                ),
+                                Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 20.0),
+                                  child: Text(
                                     news['article'] ?? '',
                                     style: const TextStyle(
                                         fontSize: 16, fontFamily: 'Inter'),
                                   ),
-                                  SizedBox(
-                                    height: MediaQuery
-                                        .of(context)
-                                        .size
-                                        .height *
-                                        0.1,
-                                  ),
-                                ],
-                              ),
+                                ),
+                                SizedBox(
+                                  height:
+                                      MediaQuery.of(context).size.height * 0.1,
+                                ),
+                              ],
                             ),
                           ),
                           Positioned(
                             bottom: 0,
                             child: Container(
                               height:
-                              (70 / MediaQuery
-                                  .of(context)
-                                  .size
-                                  .height) *
-                                  MediaQuery
-                                      .of(context)
-                                      .size
-                                      .height,
+                                  (70 / MediaQuery.of(context).size.height) *
+                                      MediaQuery.of(context).size.height,
                               padding: const EdgeInsets.all(12.0),
                               decoration: BoxDecoration(
                                 color: Colors.white,
-                                border:
-                                Border.all(width: 0, color: Colors.black),
+                                border: Border.all(
+                                    width: 0,
+                                    color: Theme.of(context)
+                                        .colorScheme
+                                        .onSurface),
                                 borderRadius: BorderRadius.circular(15),
                                 boxShadow: [
                                   BoxShadow(
@@ -804,10 +815,7 @@ class NewsDetailsState extends State<NewsDetails> {
                                 ],
                               ),
                               child: SizedBox(
-                                width: MediaQuery
-                                    .of(context)
-                                    .size
-                                    .width,
+                                width: MediaQuery.of(context).size.width,
                                 child: Padding(
                                   padding: const EdgeInsets.symmetric(
                                       horizontal: 20.0),
@@ -821,7 +829,7 @@ class NewsDetailsState extends State<NewsDetails> {
                                                   : Icons.favorite_border,
                                               color: isLiked
                                                   ? Colors.red
-                                                  : originalIconColor),
+                                                  : Colors.black),
                                           onPressed: () {
                                             if (!isLiked) {
                                               vote();
@@ -841,19 +849,17 @@ class NewsDetailsState extends State<NewsDetails> {
                                     ),
                                     SizedBox(
                                         width:
-                                        MediaQuery
-                                            .of(context)
-                                            .size
-                                            .width *
-                                            0.06),
+                                            MediaQuery.of(context).size.width *
+                                                0.06),
                                     Row(
                                       children: [
                                         IconButton(
-                                          icon: const Icon(Icons.comment),
+                                          icon: const Icon(Icons.comment,
+                                              color: Colors.black),
                                           onPressed: () {},
                                         ),
                                         const Text(
-                                          '1K',
+                                          '0',
                                           style: TextStyle(
                                             fontFamily: 'Inconsolata',
                                             fontSize: 15,
@@ -871,7 +877,7 @@ class NewsDetailsState extends State<NewsDetails> {
                                               : Icons.bookmark_border,
                                           color: isBookmarked
                                               ? Colors.blue
-                                              : originalIconColor),
+                                              : Colors.black),
                                       onPressed: () {
                                         if (isBookmarked == false) {
                                           addBookmark("news");
@@ -983,6 +989,45 @@ class NewsDetailsState extends State<NewsDetails> {
           );
         },
       ),
+    );
+  }
+
+  Widget _buildTag(String tags) {
+    List<String> tagList = tags.split(','); // Assuming tags are comma-separated
+    return Wrap(
+      spacing: 8.0, // Space between tags
+      children: tagList.map((tag) {
+        return Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 6.0),
+          // Padding around the tag
+          decoration: BoxDecoration(
+            color: Colors.grey,
+            // Modern blue color
+            borderRadius: BorderRadius.circular(30),
+            // More rounded corners for a pill-like shape
+            boxShadow: [
+              BoxShadow(
+                color: Colors.grey.withOpacity(0.3),
+                blurRadius: 6,
+                offset: const Offset(0, 3),
+              ),
+            ], // Subtle shadow for depth
+          ),
+          child: Text(
+            tag.trim(), // Display the tag text
+            style: const TextStyle(
+              fontSize: 12,
+              fontFamily: 'Inter',
+              color: Colors.black,
+              // White text on blue background
+              fontWeight: FontWeight.w600,
+              // Slightly bolder font for emphasis
+              letterSpacing:
+                  0.5, // Slight letter spacing for better readability
+            ),
+          ),
+        );
+      }).toList(),
     );
   }
 }

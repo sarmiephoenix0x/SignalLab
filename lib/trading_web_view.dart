@@ -358,7 +358,7 @@ class TradingViewPageState extends State<TradingViewPage> {
                     child: Image.asset('images/tabler_arrow-back.png',height:50,),
                   ),
                   const Spacer(),
-                  const Expanded(
+                  Expanded(
                     flex: 10,
                     child: Text(
                       'Live, Crypto, Forex and Stocks',
@@ -367,7 +367,7 @@ class TradingViewPageState extends State<TradingViewPage> {
                         fontFamily: 'Inter',
                         fontWeight: FontWeight.bold,
                         fontSize: 22.0,
-                        color: Colors.black,
+                        color: Theme.of(context).colorScheme.onSurface,
                       ),
                     ),
                   ),

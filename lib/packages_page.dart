@@ -203,13 +203,13 @@ class _PackagesPageState extends State<PackagesPage> {
                                     .of(context)
                                     .size
                                     .width * 0.02),
-                            const Text(
+                            Text(
                               'Packages',
                               style: TextStyle(
                                 fontFamily: 'Inter',
                                 fontWeight: FontWeight.bold,
                                 fontSize: 22.0,
-                                color: Colors.black,
+                                color: Theme.of(context).colorScheme.onSurface,
                               ),
                             ),
                             const Spacer(),
@@ -288,17 +288,18 @@ class _PackagesPageState extends State<PackagesPage> {
 
   Widget packages(String name, String amount, String text1, String text2,
       String text3, String text4, String text5) {
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
     return Padding(
       padding: const EdgeInsets.only(bottom: 20.0, left: 20, right: 20),
       child: IntrinsicHeight(
         child: Container(
           padding: const EdgeInsets.all(12.0),
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: isDarkMode ? Colors.grey[900] : Colors.white,
             borderRadius: BorderRadius.circular(15),
             boxShadow: [
               BoxShadow(
-                color: Colors.grey.withOpacity(0.5),
+                color: isDarkMode ? Colors.grey.withOpacity(0.2) : Colors.grey.withOpacity(0.5),
                 spreadRadius: 3,
                 blurRadius: 5,
               ),
@@ -312,20 +313,20 @@ class _PackagesPageState extends State<PackagesPage> {
                   .width * 0.02),
               Text(
                 name,
-                style: const TextStyle(
+                style: TextStyle(
                   fontFamily: 'Inconsolata',
                   fontSize: 20,
                   fontWeight: FontWeight.bold,
-                  color: Colors.black,
+                  color: Theme.of(context).colorScheme.onSurface,
                 ),
               ),
               Text(
                 '\$$amount',
-                style: const TextStyle(
+                style: TextStyle(
                   fontFamily: 'Inconsolata',
                   fontSize: 50,
                   fontWeight: FontWeight.bold,
-                  color: Colors.black,
+                  color: Theme.of(context).colorScheme.onSurface,
                 ),
               ),
               SizedBox(height: MediaQuery
@@ -340,6 +341,7 @@ class _PackagesPageState extends State<PackagesPage> {
                       .width * 0.02),
                   Image.asset(
                     'images/mdi_tick-decagram.png',
+                    color: Theme.of(context).colorScheme.onSurface,
                   ),
                   SizedBox(width: MediaQuery
                       .of(context)
@@ -347,10 +349,10 @@ class _PackagesPageState extends State<PackagesPage> {
                       .width * 0.04),
                   Text(
                     text1,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontFamily: 'Inconsolata',
                       fontSize: 15,
-                      color: Colors.black,
+                      color: Theme.of(context).colorScheme.onSurface,
                     ),
                   ),
                 ],
@@ -367,6 +369,7 @@ class _PackagesPageState extends State<PackagesPage> {
                       .width * 0.02),
                   Image.asset(
                     'images/mdi_tick-decagram.png',
+                    color: Theme.of(context).colorScheme.onSurface,
                   ),
                   SizedBox(width: MediaQuery
                       .of(context)
@@ -374,10 +377,10 @@ class _PackagesPageState extends State<PackagesPage> {
                       .width * 0.04),
                   Text(
                     text2,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontFamily: 'Inconsolata',
                       fontSize: 15,
-                      color: Colors.black,
+                      color: Theme.of(context).colorScheme.onSurface,
                     ),
                   ),
                 ],
@@ -394,6 +397,7 @@ class _PackagesPageState extends State<PackagesPage> {
                       .width * 0.02),
                   Image.asset(
                     'images/mdi_tick-decagram.png',
+                    color: Theme.of(context).colorScheme.onSurface,
                   ),
                   SizedBox(width: MediaQuery
                       .of(context)
@@ -401,10 +405,10 @@ class _PackagesPageState extends State<PackagesPage> {
                       .width * 0.04),
                   Text(
                     text3,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontFamily: 'Inconsolata',
                       fontSize: 15,
-                      color: Colors.black,
+                      color: Theme.of(context).colorScheme.onSurface,
                     ),
                   ),
                 ],
@@ -421,6 +425,7 @@ class _PackagesPageState extends State<PackagesPage> {
                       .width * 0.02),
                   Image.asset(
                     'images/mdi_tick-decagram.png',
+                    color: Theme.of(context).colorScheme.onSurface,
                   ),
                   SizedBox(width: MediaQuery
                       .of(context)
@@ -428,10 +433,10 @@ class _PackagesPageState extends State<PackagesPage> {
                       .width * 0.04),
                   Text(
                     text4,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontFamily: 'Inconsolata',
                       fontSize: 15,
-                      color: Colors.black,
+                      color: Theme.of(context).colorScheme.onSurface,
                     ),
                   ),
                 ],
@@ -448,6 +453,7 @@ class _PackagesPageState extends State<PackagesPage> {
                       .width * 0.02),
                   Image.asset(
                     'images/mdi_tick-decagram.png',
+                    color: Theme.of(context).colorScheme.onSurface,
                   ),
                   SizedBox(width: MediaQuery
                       .of(context)
@@ -455,10 +461,10 @@ class _PackagesPageState extends State<PackagesPage> {
                       .width * 0.04),
                   Text(
                     text5,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontFamily: 'Inconsolata',
                       fontSize: 15,
-                      color: Colors.black,
+                      color: Theme.of(context).colorScheme.onSurface,
                     ),
                   ),
                 ],

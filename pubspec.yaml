@@ -42,18 +42,20 @@ dependencies:
       ref: master
   webview_flutter: ^4.0.4    
   local_auth: ^2.0.0
-  http: ^0.13.3
+  http: ^1.2.2
   flutter_secure_storage: ^8.0.0
   shared_preferences: ^2.0.15
   connectivity_plus: ^4.0.1
   video_player: ^2.5.0
   chewie: ^1.3.4
-  youtube_player_flutter: ^8.0.0
-  image_picker: ^0.8.5+3
-  image_cropper: ^3.0.1
+  youtube_player_flutter: ^9.1.1
+  image_picker: ^1.1.2
+  image_cropper: ^8.0.2
   visibility_detector: ^0.3.3
   country_picker: ^2.0.26
   intl_phone_field: ^3.2.0
+  google_mobile_ads: ^5.2.0
+  flutter_inappwebview: ^6.1.5
 
 
 dev_dependencies:
@@ -238,6 +240,8 @@ flutter:
   - images/overview_tab_img.png
   - images/overview_tab_img_faded.png
   - images/bookmark.png
+  - images/tabler_brightness-filled.png
+  - images/CardImg.png
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware
 

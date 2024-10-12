@@ -16,11 +16,15 @@ import 'package:signal_app/main_app.dart';
 class EditProfile extends StatefulWidget {
   final String profileImgUrl;
   final String name;
+  final Function(bool) onToggleDarkMode;
+  final bool isDarkMode;
 
   const EditProfile({
     super.key,
     required this.profileImgUrl,
     required this.name,
+    required this.onToggleDarkMode,
+    required this.isDarkMode
   });
 
   @override
@@ -60,21 +64,20 @@ class _EditProfileState extends State<EditProfile> with WidgetsBindingObserver {
       if (decodedImage.width > maxWidth || decodedImage.height > maxHeight) {
         var cropper = ImageCropper();
         CroppedFile? croppedImage = await cropper
-            .cropImage(sourcePath: imageFile.path, aspectRatioPresets: [
-          CropAspectRatioPreset.square,
-          CropAspectRatioPreset.ratio3x2,
-          CropAspectRatioPreset.original,
-        ], uiSettings: [
-          AndroidUiSettings(
-            toolbarTitle: 'Crop Image',
-            toolbarColor: Colors.black,
-            toolbarWidgetColor: Colors.white,
-            lockAspectRatio: false,
-          ),
-          IOSUiSettings(
-            minimumAspectRatio: 1.0,
-          ),
-        ]);
+            .cropImage(
+          sourcePath: imageFile.path, 
+          aspectRatio: const CropAspectRatio(ratioX: 1, ratioY: 1),
+            uiSettings: [
+              AndroidUiSettings(
+                toolbarTitle: 'Crop Image',
+                toolbarColor: Colors.black,
+                toolbarWidgetColor: Colors.white,
+                lockAspectRatio: false,
+              ),
+              IOSUiSettings(
+                minimumAspectRatio: 1.0,
+              ),
+            ]);
 
         if (croppedImage != null) {
           setState(() {
@@ -204,7 +207,8 @@ class _EditProfileState extends State<EditProfile> with WidgetsBindingObserver {
             Navigator.pushReplacement(
               context,
               MaterialPageRoute(
-                  builder: (context) => MainApp(key: UniqueKey())),
+                  builder: (context) => MainApp(key: UniqueKey(), onToggleDarkMode: widget.onToggleDarkMode,
+                      isDarkMode: widget.isDarkMode)),
             );
           } catch (e) {
             print('Error parsing JSON: $e');
@@ -338,13 +342,13 @@ class _EditProfileState extends State<EditProfile> with WidgetsBindingObserver {
                             ),
                           ),
                           const Spacer(),
-                          const Text(
+                          Text(
                             'Edit Profile',
                             style: TextStyle(
                               fontFamily: 'Inter',
                               fontWeight: FontWeight.bold,
                               fontSize: 22.0,
-                              color: Colors.black,
+                              color: Theme.of(context).colorScheme.onSurface,
                             ),
                           ),
                           SizedBox(
@@ -426,12 +430,12 @@ class _EditProfileState extends State<EditProfile> with WidgetsBindingObserver {
                           ),
                           focusedBorder: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(15),
-                            borderSide: const BorderSide(
-                              color: Colors.black,
+                            borderSide: BorderSide(
+                              color: Theme.of(context).colorScheme.onSurface,
                             ),
                           ),
                         ),
-                        cursorColor: Colors.black,
+                        cursorColor: Theme.of(context).colorScheme.onSurface,
                       ),
                     ),
                     ListTile(
@@ -487,8 +491,8 @@ class _EditProfileState extends State<EditProfile> with WidgetsBindingObserver {
                                 ),
                                 focusedBorder: OutlineInputBorder(
                                   borderRadius: BorderRadius.circular(15),
-                                  borderSide: const BorderSide(
-                                    color: Colors.black,
+                                  borderSide: BorderSide(
+                                    color: Theme.of(context).colorScheme.onSurface,
                                   ),
                                 ),
                                 counterText: '',

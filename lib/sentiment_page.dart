@@ -76,17 +76,17 @@ class _SentimentPageState extends State<SentimentPage>
           resultImg = 'images/carbon_result-new.png';
           break;
         case 2:
-          _indicatorColor = Colors.black;
+          _indicatorColor = Theme.of(context).colorScheme.onSurface;
           todayImg = 'images/wpf_today.png';
           resultImg = 'images/carbon_result-new.png';
           break;
         case 5:
-          _indicatorColor = Colors.black;
+          _indicatorColor = Theme.of(context).colorScheme.onSurface;
           resultImg = 'images/carbon_result-new-white.png';
           todayImg = 'images/wpf_today-black.png';
           break;
         default:
-          _indicatorColor = Colors.black;
+          _indicatorColor = Theme.of(context).colorScheme.onSurface;
           trendImg = 'images/lets-icons_up.png';
           todayImg = 'images/wpf_today-black.png';
           resultImg = 'images/carbon_result-new.png';
@@ -96,7 +96,7 @@ class _SentimentPageState extends State<SentimentPage>
 
   void _showFilterOverlay() {
     final overlay = Overlay.of(context);
-
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
     _overlayEntry = OverlayEntry(
       builder: (context) =>
           SafeArea(
@@ -116,11 +116,11 @@ class _SentimentPageState extends State<SentimentPage>
                       padding: const EdgeInsets.only(
                           left: 12.0, right: 12.0, top: 20.0, bottom: 20.0),
                       decoration: BoxDecoration(
-                        color: Colors.white,
+                        color: isDarkMode ? Colors.grey[900] : Colors.white,
                         borderRadius: BorderRadius.circular(15),
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.grey.withOpacity(0.5),
+                            color: isDarkMode ? Colors.grey.withOpacity(0.2) : Colors.grey.withOpacity(0.5),
                             spreadRadius: 3,
                             blurRadius: 5,
                           ),
@@ -131,14 +131,14 @@ class _SentimentPageState extends State<SentimentPage>
                           mainAxisSize: MainAxisSize.min,
                           // Makes container adjust height based on content
                           children: [
-                            const Text(
+                            Text(
                               'Filter',
                               style: TextStyle(
                                 decoration: TextDecoration.none,
                                 fontFamily: 'Inconsolata',
                                 fontSize: 25,
                                 fontWeight: FontWeight.bold,
-                                color: Colors.black,
+                                color: Theme.of(context).colorScheme.onSurface,
                               ),
                             ),
                             SizedBox(
@@ -257,10 +257,12 @@ class _SentimentPageState extends State<SentimentPage>
   }
 
   Future<void> fetchSentiments() async {
-    setState(() {
-      loading = true;
-      errorMessage = null;
-    });
+    if (mounted) {
+      setState(() {
+        loading = true;
+        errorMessage = null;
+      });
+    }
     try {
       final String? accessToken = await storage.read(key: 'accessToken');
       const url = 'https://script.teendev.dev/signal/api/sentiments';
@@ -272,24 +274,30 @@ class _SentimentPageState extends State<SentimentPage>
       );
 
       if (response.statusCode == 200) {
-        setState(() {
-          sentiments = json.decode(response.body);
-          loading = false;
-        });
+        if (mounted) {
+          setState(() {
+            sentiments = json.decode(response.body);
+            loading = false;
+          });
+        }
       } else {
-        setState(() {
-          loading = false; // Failed to load data
-          errorMessage = 'Failed to load sentiments';
-        });
+        if (mounted) {
+          setState(() {
+            loading = false; // Failed to load data
+            errorMessage = 'Failed to load sentiments';
+          });
+        }
         // Handle the error accordingly
         print('Failed to load sentiments');
       }
     } catch (e) {
-      setState(() {
-        loading = false;
-        errorMessage =
-        'Failed to load data. Please check your network connection.';
-      });
+      if (mounted) {
+        setState(() {
+          loading = false;
+          errorMessage =
+          'Failed to load data. Please check your network connection.';
+        });
+      }
       print('Exception caught: $e');
     }
   }
@@ -479,7 +487,7 @@ class _SentimentPageState extends State<SentimentPage>
                                     .of(context)
                                     .size
                                     .width * 0.02),
-                            const Expanded(
+                            Expanded(
                               flex: 10,
                               child: Text(
                                 'Sentiment',
@@ -488,7 +496,7 @@ class _SentimentPageState extends State<SentimentPage>
                                   fontFamily: 'Inter',
                                   fontWeight: FontWeight.bold,
                                   fontSize: 22.0,
-                                  color: Colors.black,
+                                  color: Theme.of(context).colorScheme.onSurface,
                                 ),
                               ),
                             ),
@@ -516,7 +524,7 @@ class _SentimentPageState extends State<SentimentPage>
                           _buildTab('Forex'),
                           _buildTab('Stocks'),
                         ],
-                        labelColor: Colors.black,
+                        labelColor: Theme.of(context).colorScheme.onSurface,
                         unselectedLabelColor: Colors.grey,
                         labelStyle: const TextStyle(
                           fontSize: 16,
@@ -530,16 +538,16 @@ class _SentimentPageState extends State<SentimentPage>
                         ),
                         labelPadding: EdgeInsets.zero,
                         indicatorSize: TabBarIndicatorSize.tab,
-                        indicatorColor: Colors.black,
+                        indicatorColor: Theme.of(context).colorScheme.onSurface,
                       ),
                       Expanded(
                         child: TabBarView(
                           controller: tabController,
                           children: [
                             if (loading)
-                              const Center(
+                              Center(
                                 child: CircularProgressIndicator(
-                                    color: Colors.black),
+                                    color: Theme.of(context).colorScheme.onSurface),
                               )
                             else
                               if (errorMessage != null)
@@ -558,13 +566,13 @@ class _SentimentPageState extends State<SentimentPage>
                                       const SizedBox(height: 16),
                                       ElevatedButton(
                                         onPressed: _refreshData,
-                                        child: const Text(
+                                        child: Text(
                                           'Retry',
                                           style: TextStyle(
                                             fontFamily: 'Inconsolata',
                                             fontWeight: FontWeight.bold,
                                             fontSize: 18,
-                                            color: Colors.black,
+                                            color: Theme.of(context).colorScheme.onSurface,
                                           ),
                                         ),
                                       ),
@@ -574,7 +582,7 @@ class _SentimentPageState extends State<SentimentPage>
                               else
                                 RefreshIndicator(
                                   onRefresh: _refreshData,
-                                  color: Colors.black,
+                                  color: Theme.of(context).colorScheme.onSurface,
                                   child: ListView.builder(
                                     controller: _scrollController,
                                     itemCount: sentiments.length,
@@ -605,13 +613,13 @@ class _SentimentPageState extends State<SentimentPage>
                                       const SizedBox(height: 16),
                                       ElevatedButton(
                                         onPressed: _refreshData,
-                                        child: const Text(
+                                        child: Text(
                                           'Retry',
                                           style: TextStyle(
                                             fontFamily: 'Inconsolata',
                                             fontWeight: FontWeight.bold,
                                             fontSize: 18,
-                                            color: Colors.black,
+                                            color: Theme.of(context).colorScheme.onSurface,
                                           ),
                                         ),
                                       ),
@@ -621,7 +629,7 @@ class _SentimentPageState extends State<SentimentPage>
                               else
                                 RefreshIndicator(
                                   onRefresh: _refreshData,
-                                  color: Colors.black,
+                                  color: Theme.of(context).colorScheme.onSurface,
                                   child: ListView.builder(
                                     controller: _scrollController,
                                     itemCount: sentiments.length,
@@ -631,9 +639,9 @@ class _SentimentPageState extends State<SentimentPage>
                                   ),
                                 ),
                             if (loading)
-                              const Center(
+                              Center(
                                 child: CircularProgressIndicator(
-                                    color: Colors.black),
+                                    color: Theme.of(context).colorScheme.onSurface),
                               )
                             else
                               if (errorMessage != null)
@@ -652,13 +660,13 @@ class _SentimentPageState extends State<SentimentPage>
                                       const SizedBox(height: 16),
                                       ElevatedButton(
                                         onPressed: _refreshData,
-                                        child: const Text(
+                                        child: Text(
                                           'Retry',
                                           style: TextStyle(
                                             fontFamily: 'Inconsolata',
                                             fontWeight: FontWeight.bold,
                                             fontSize: 18,
-                                            color: Colors.black,
+                                            color: Theme.of(context).colorScheme.onSurface,
                                           ),
                                         ),
                                       ),
@@ -668,7 +676,7 @@ class _SentimentPageState extends State<SentimentPage>
                               else
                                 RefreshIndicator(
                                   onRefresh: _refreshData,
-                                  color: Colors.black,
+                                  color: Theme.of(context).colorScheme.onSurface,
                                   child: ListView.builder(
                                     controller: _scrollController,
                                     itemCount: sentiments.length,
@@ -727,13 +735,13 @@ class _SentimentPageState extends State<SentimentPage>
     return Padding(
       padding: EdgeInsets.only(left: 20, right: 20),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        const Text(
+        Text(
           'Daily Movers',
           style: TextStyle(
             fontFamily: 'Inconsolata',
             fontWeight: FontWeight.bold,
             fontSize: 20,
-            color: Colors.black,
+            color: Theme.of(context).colorScheme.onSurface,
           ),
         ),
         SizedBox(height: MediaQuery
@@ -1429,7 +1437,7 @@ class _SentimentPageState extends State<SentimentPage>
     double upvotePercentage = totalVotes > 0 ? (upvotes / totalVotes) * 100 : 0;
     double downvotePercentage =
     totalVotes > 0 ? (downvotes / totalVotes) * 100 : 0;
-
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
     return Padding(
       padding: EdgeInsets.symmetric(
         horizontal: screenWidth * 0.03,
@@ -1452,11 +1460,11 @@ class _SentimentPageState extends State<SentimentPage>
         child: Container(
           padding: EdgeInsets.all(screenWidth * 0.03),
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: isDarkMode ? Colors.grey[900] : Colors.white,
             borderRadius: BorderRadius.circular(15),
             boxShadow: [
               BoxShadow(
-                color: Colors.grey.withOpacity(0.3),
+                color: isDarkMode ? Colors.grey.withOpacity(0.2) : Colors.grey.withOpacity(0.5),
                 spreadRadius: 2,
                 blurRadius: 4,
               ),
@@ -1477,7 +1485,7 @@ class _SentimentPageState extends State<SentimentPage>
                         fontFamily: 'Inconsolata',
                         fontWeight: FontWeight.bold,
                         fontSize: screenWidth * 0.05,
-                        color: Colors.black,
+                        color: Theme.of(context).colorScheme.onSurface,
                       ),
                     ),
                   ),
@@ -1498,7 +1506,7 @@ class _SentimentPageState extends State<SentimentPage>
                           style: TextStyle(
                             fontFamily: 'Inconsolata',
                             fontSize: screenWidth * 0.03,
-                            color: Colors.black,
+                            color: Theme.of(context).colorScheme.onSurface,
                           ),
                         ),
                       ],
@@ -1573,6 +1581,7 @@ class _SentimentPageState extends State<SentimentPage>
   }
 
   Widget filterContents(String text, ValueNotifier<bool> notifier) {
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
     return ValueListenableBuilder<bool>(
       valueListenable: notifier,
       builder: (context, varName, _) {
@@ -1580,11 +1589,11 @@ class _SentimentPageState extends State<SentimentPage>
           padding: const EdgeInsets.symmetric(vertical: 10.0),
           child: Container(
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: isDarkMode ? Colors.grey[900] : Colors.white,
               borderRadius: BorderRadius.circular(10),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.grey.withOpacity(0.5),
+                  color: isDarkMode ? Colors.grey.withOpacity(0.2) : Colors.grey.withOpacity(0.5),
                   spreadRadius: 3,
                   blurRadius: 5,
                 ),
@@ -1627,11 +1636,11 @@ class _SentimentPageState extends State<SentimentPage>
                     padding: const EdgeInsets.only(top: 10.0),
                     child: Container(
                       decoration: BoxDecoration(
-                        color: Colors.white,
+                        color: isDarkMode ? Colors.grey[900] : Colors.white,
                         borderRadius: BorderRadius.circular(10),
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.grey.withOpacity(0.5),
+                            color: isDarkMode ? Colors.grey.withOpacity(0.2) : Colors.grey.withOpacity(0.5),
                             spreadRadius: 3,
                             blurRadius: 5,
                           ),
@@ -1639,7 +1648,7 @@ class _SentimentPageState extends State<SentimentPage>
                       ),
                       padding: const EdgeInsets.symmetric(
                           horizontal: 20, vertical: 6),
-                      child: const Row(
+                      child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           Expanded(
@@ -1653,7 +1662,7 @@ class _SentimentPageState extends State<SentimentPage>
                                 fontSize: 15,
                                 fontWeight: FontWeight.bold,
                                 fontFamily: 'Inconsolata',
-                                color: Colors.black,
+                                color: Theme.of(context).colorScheme.onSurface,
                               ),
                             ),
                           ),
@@ -1666,11 +1675,11 @@ class _SentimentPageState extends State<SentimentPage>
                     padding: const EdgeInsets.only(top: 10.0),
                     child: Container(
                       decoration: BoxDecoration(
-                        color: Colors.white,
+                        color: isDarkMode ? Colors.grey[900] : Colors.white,
                         borderRadius: BorderRadius.circular(10),
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.grey.withOpacity(0.5),
+                            color: isDarkMode ? Colors.grey.withOpacity(0.2) : Colors.grey.withOpacity(0.5),
                             spreadRadius: 3,
                             blurRadius: 5,
                           ),
@@ -1678,7 +1687,7 @@ class _SentimentPageState extends State<SentimentPage>
                       ),
                       padding: const EdgeInsets.symmetric(
                           horizontal: 20, vertical: 6),
-                      child: const Row(
+                      child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           Expanded(
@@ -1692,7 +1701,7 @@ class _SentimentPageState extends State<SentimentPage>
                                 fontSize: 15,
                                 fontWeight: FontWeight.bold,
                                 fontFamily: 'Inconsolata',
-                                color: Colors.black,
+                                color: Theme.of(context).colorScheme.onSurface,
                               ),
                             ),
                           ),
@@ -1705,11 +1714,11 @@ class _SentimentPageState extends State<SentimentPage>
                     padding: const EdgeInsets.only(top: 10.0),
                     child: Container(
                       decoration: BoxDecoration(
-                        color: Colors.white,
+                        color: isDarkMode ? Colors.grey[900] : Colors.white,
                         borderRadius: BorderRadius.circular(10),
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.grey.withOpacity(0.5),
+                            color: isDarkMode ? Colors.grey.withOpacity(0.2) : Colors.grey.withOpacity(0.5),
                             spreadRadius: 3,
                             blurRadius: 5,
                           ),
@@ -1717,7 +1726,7 @@ class _SentimentPageState extends State<SentimentPage>
                       ),
                       padding: const EdgeInsets.symmetric(
                           horizontal: 20, vertical: 6),
-                      child: const Row(
+                      child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           Expanded(
@@ -1731,7 +1740,7 @@ class _SentimentPageState extends State<SentimentPage>
                                 fontSize: 15,
                                 fontWeight: FontWeight.bold,
                                 fontFamily: 'Inconsolata',
-                                color: Colors.black,
+                                color: Theme.of(context).colorScheme.onSurface,
                               ),
                             ),
                           ),
@@ -1748,16 +1757,17 @@ class _SentimentPageState extends State<SentimentPage>
   }
 
   Widget filterContents2(String text, ValueNotifier<bool> notifier) {
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
     return ValueListenableBuilder<bool>(
       valueListenable: notifier,
       builder: (context, varName, _) {
         return Container(
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: isDarkMode ? Colors.grey[900] : Colors.white,
             borderRadius: BorderRadius.circular(10),
             boxShadow: [
               BoxShadow(
-                color: Colors.grey.withOpacity(0.5),
+                color: isDarkMode ? Colors.grey.withOpacity(0.2) : Colors.grey.withOpacity(0.5),
                 spreadRadius: 3,
                 blurRadius: 5,
               ),
@@ -1806,11 +1816,11 @@ class _SentimentPageState extends State<SentimentPage>
                   padding: const EdgeInsets.only(top: 10.0),
                   child: Container(
                     decoration: BoxDecoration(
-                      color: Colors.white,
+                      color: isDarkMode ? Colors.grey[900] : Colors.white,
                       borderRadius: BorderRadius.circular(10),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.grey.withOpacity(0.5),
+                          color: isDarkMode ? Colors.grey.withOpacity(0.2) : Colors.grey.withOpacity(0.5),
                           spreadRadius: 3,
                           blurRadius: 5,
                         ),
@@ -1818,7 +1828,7 @@ class _SentimentPageState extends State<SentimentPage>
                     ),
                     padding:
                     const EdgeInsets.symmetric(horizontal: 20, vertical: 6),
-                    child: const Row(
+                    child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         Expanded(
@@ -1832,7 +1842,7 @@ class _SentimentPageState extends State<SentimentPage>
                               fontSize: 15,
                               fontWeight: FontWeight.bold,
                               fontFamily: 'Inconsolata',
-                              color: Colors.black,
+                              color: Theme.of(context).colorScheme.onSurface,
                             ),
                           ),
                         ),
@@ -1845,11 +1855,11 @@ class _SentimentPageState extends State<SentimentPage>
                   padding: const EdgeInsets.only(top: 10.0),
                   child: Container(
                     decoration: BoxDecoration(
-                      color: Colors.white,
+                      color: isDarkMode ? Colors.grey[900] : Colors.white,
                       borderRadius: BorderRadius.circular(10),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.grey.withOpacity(0.5),
+                          color: isDarkMode ? Colors.grey.withOpacity(0.2) : Colors.grey.withOpacity(0.5),
                           spreadRadius: 3,
                           blurRadius: 5,
                         ),
@@ -1857,7 +1867,7 @@ class _SentimentPageState extends State<SentimentPage>
                     ),
                     padding:
                     const EdgeInsets.symmetric(horizontal: 20, vertical: 6),
-                    child: const Row(
+                    child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         Expanded(
@@ -1871,7 +1881,7 @@ class _SentimentPageState extends State<SentimentPage>
                               fontSize: 15,
                               fontWeight: FontWeight.bold,
                               fontFamily: 'Inconsolata',
-                              color: Colors.black,
+                              color: Theme.of(context).colorScheme.onSurface,
                             ),
                           ),
                         ),
@@ -1884,11 +1894,11 @@ class _SentimentPageState extends State<SentimentPage>
                   padding: const EdgeInsets.only(top: 10.0),
                   child: Container(
                     decoration: BoxDecoration(
-                      color: Colors.white,
+                      color: isDarkMode ? Colors.grey[900] : Colors.white,
                       borderRadius: BorderRadius.circular(10),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.grey.withOpacity(0.5),
+                          color: isDarkMode ? Colors.grey.withOpacity(0.2) : Colors.grey.withOpacity(0.5),
                           spreadRadius: 3,
                           blurRadius: 5,
                         ),
@@ -1896,7 +1906,7 @@ class _SentimentPageState extends State<SentimentPage>
                     ),
                     padding:
                     const EdgeInsets.symmetric(horizontal: 20, vertical: 6),
-                    child: const Row(
+                    child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         Expanded(
@@ -1910,7 +1920,7 @@ class _SentimentPageState extends State<SentimentPage>
                               fontSize: 15,
                               fontWeight: FontWeight.bold,
                               fontFamily: 'Inconsolata',
-                              color: Colors.black,
+                              color: Theme.of(context).colorScheme.onSurface,
                             ),
                           ),
                         ),

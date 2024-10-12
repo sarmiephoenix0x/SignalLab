@@ -144,8 +144,8 @@ class BookmarkPageState extends State<BookmarkPage>
 
   Widget _buildBookmarkedNewsList() {
     if (loading) {
-      return const Center(
-          child: CircularProgressIndicator(color: Colors.black));
+      return Center(
+          child: CircularProgressIndicator(color: Theme.of(context).colorScheme.onSurface));
     } else if (errorMessage != null) {
       return Center(
         child: Column(
@@ -162,13 +162,13 @@ class BookmarkPageState extends State<BookmarkPage>
             const SizedBox(height: 16),
             ElevatedButton(
               onPressed: _fetchBookmarkedItems,
-              child: const Text(
+              child: Text(
                 'Retry',
                 style: TextStyle(
                   fontFamily: 'Inconsolata',
                   fontWeight: FontWeight.bold,
                   fontSize: 18,
-                  color: Colors.black,
+                  color: Theme.of(context).colorScheme.onSurface,
                 ),
               ),
             ),
@@ -178,7 +178,7 @@ class BookmarkPageState extends State<BookmarkPage>
     } else {
       return RefreshIndicator(
         onRefresh: _refreshData,
-        color: Colors.black,
+        color: Theme.of(context).colorScheme.onSurface,
         child: ListView.builder(
           controller: _scrollController,
           itemCount: bookmarkedNews.length,
@@ -197,8 +197,8 @@ class BookmarkPageState extends State<BookmarkPage>
 
   Widget _buildBookmarkedCoursesList() {
     if (loading) {
-      return const Center(
-          child: CircularProgressIndicator(color: Colors.black));
+      return Center(
+          child: CircularProgressIndicator(color: Theme.of(context).colorScheme.onSurface));
     } else if (errorMessage != null) {
       return Center(
         child: Text(errorMessage!, style: const TextStyle(color: Colors.red)),
@@ -206,7 +206,7 @@ class BookmarkPageState extends State<BookmarkPage>
     } else {
       return RefreshIndicator(
         onRefresh: _refreshData,
-        color: Colors.black,
+        color: Theme.of(context).colorScheme.onSurface,
         child: ListView.builder(
           controller: _scrollController,
           itemCount: bookmarkedCourses.length,
@@ -238,6 +238,7 @@ class BookmarkPageState extends State<BookmarkPage>
   }
 
   Widget newsCard(Map<String, dynamic> newsItem) {
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
     return Padding(
       padding: const EdgeInsets.only(bottom: 0.0), // Increased bottom padding for more spacing
       child: InkWell(
@@ -245,14 +246,14 @@ class BookmarkPageState extends State<BookmarkPage>
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (context) => NewsDetails(newsId: newsItem['id']),
+              builder: (context) => NewsDetails(newsId: newsItem['id'], tags: newsItem['tags']),
             ),
           );
         },
         child: Container(
           padding: const EdgeInsets.all(16.0),
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: isDarkMode ? Colors.grey[900] : Colors.white,
             borderRadius: BorderRadius.circular(12), // Smoother corners
             boxShadow: [
               BoxShadow(
@@ -308,11 +309,11 @@ class BookmarkPageState extends State<BookmarkPage>
                           newsItem['title'],
                           overflow: TextOverflow.ellipsis,
                           maxLines: 2,
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 16,
                             fontFamily: 'Inter',
                             fontWeight: FontWeight.bold,
-                            color: Colors.black87, // Softer black for better contrast
+                            color: isDarkMode ? Colors.white : Colors.black87,
                           ),
                         ),
                         const SizedBox(height: 8),
@@ -437,11 +438,11 @@ class BookmarkPageState extends State<BookmarkPage>
                         // Title
                         Text(
                           course['title'],
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontFamily: 'Inter',
                             fontWeight: FontWeight.w600, // Semi-bold for title
                             fontSize: 18.0,
-                            color: Colors.black,
+                            color: Theme.of(context).colorScheme.onSurface,
                           ),
                         ),
                         const SizedBox(height: 8.0),
@@ -524,13 +525,13 @@ class BookmarkPageState extends State<BookmarkPage>
                   child: Image.asset('images/tabler_arrow-back.png',height:50,),
                 ),
                 SizedBox(width: MediaQuery.of(context).size.width * 0.02),
-                const Text(
+                Text(
                   'Bookmarks',
                   style: TextStyle(
                     fontFamily: 'Inter',
                     fontWeight: FontWeight.bold,
                     fontSize: 22.0,
-                    color: Colors.black,
+                    color: Theme.of(context).colorScheme.onSurface,
                   ),
                 ),
                 const Spacer(),

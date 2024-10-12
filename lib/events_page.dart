@@ -69,17 +69,19 @@ class _EventsPageState extends State<EventsPage> with TickerProviderStateMixin {
           trendImg = 'images/lets-icons_up.png';
           break;
         default:
-          _indicatorColor = Colors.black;
+          _indicatorColor = Theme.of(context).colorScheme.onSurface;
           trendImg = 'images/lets-icons_up.png';
       }
     });
   }
 
   Future<void> fetchEvents() async {
-    setState(() {
-      loading = true;
-      errorMessage = null;
-    });
+    if (mounted) {
+      setState(() {
+        loading = true;
+        errorMessage = null;
+      });
+    }
     try {
       final String? accessToken = await storage.read(key: 'accessToken');
       const url = 'https://script.teendev.dev/signal/api/events';
@@ -91,24 +93,30 @@ class _EventsPageState extends State<EventsPage> with TickerProviderStateMixin {
       );
 
       if (response.statusCode == 200) {
-        setState(() {
-          events = json.decode(response.body);
-          loading = false;
-        });
+        if (mounted) {
+          setState(() {
+            events = json.decode(response.body);
+            loading = false;
+          });
+        }
       } else {
-        setState(() {
-          loading = false;
-          errorMessage = 'Failed to load events'; // Failed to load data
-        });
+        if (mounted) {
+          setState(() {
+            loading = false;
+            errorMessage = 'Failed to load events'; // Failed to load data
+          });
+        }
         // Handle the error accordingly
         print('Failed to load events');
       }
     } catch (e) {
-      setState(() {
-        loading = false;
-        errorMessage =
-        'Failed to load data. Please check your network connection.';
-      });
+      if (mounted) {
+        setState(() {
+          loading = false;
+          errorMessage =
+          'Failed to load data. Please check your network connection.';
+        });
+      }
       print('Exception caught: $e');
     }
   }
@@ -239,7 +247,7 @@ class _EventsPageState extends State<EventsPage> with TickerProviderStateMixin {
 
   void _showFilterOverlay() {
     final overlay = Overlay.of(context);
-
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
     _overlayEntry = OverlayEntry(
       builder: (context) =>
           SafeArea(
@@ -259,11 +267,11 @@ class _EventsPageState extends State<EventsPage> with TickerProviderStateMixin {
                       padding: const EdgeInsets.only(
                           left: 12.0, right: 12.0, top: 20.0, bottom: 20.0),
                       decoration: BoxDecoration(
-                        color: Colors.white,
+                        color: isDarkMode ? Colors.grey[900] : Colors.white,
                         borderRadius: BorderRadius.circular(15),
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.grey.withOpacity(0.5),
+                            color: isDarkMode ? Colors.grey.withOpacity(0.2) : Colors.grey.withOpacity(0.5),
                             spreadRadius: 3,
                             blurRadius: 5,
                           ),
@@ -274,14 +282,14 @@ class _EventsPageState extends State<EventsPage> with TickerProviderStateMixin {
                           mainAxisSize: MainAxisSize.min,
                           // Makes container adjust height based on content
                           children: [
-                            const Text(
+                            Text(
                               'Add Event',
                               style: TextStyle(
                                 decoration: TextDecoration.none,
                                 fontFamily: 'Inconsolata',
                                 fontSize: 25,
                                 fontWeight: FontWeight.bold,
-                                color: Colors.black,
+                                color: Theme.of(context).colorScheme.onSurface,
                               ),
                             ),
                             SizedBox(
@@ -451,13 +459,13 @@ class _EventsPageState extends State<EventsPage> with TickerProviderStateMixin {
                                   .of(context)
                                   .size
                                   .width * 0.02),
-                          const Text(
+                          Text(
                             'Events',
                             style: TextStyle(
                               fontFamily: 'Inter',
                               fontWeight: FontWeight.bold,
                               fontSize: 22.0,
-                              color: Colors.black,
+                              color: Theme.of(context).colorScheme.onSurface,
                             ),
                           ),
                           const Spacer(),
@@ -482,9 +490,9 @@ class _EventsPageState extends State<EventsPage> with TickerProviderStateMixin {
                         controller: tabController,
                         children: [
                           if (loading)
-                            const Center(
+                            Center(
                               child: CircularProgressIndicator(
-                                  color: Colors.black),
+                                  color: Theme.of(context).colorScheme.onSurface),
                             )
                           else
                             if (errorMessage != null)
@@ -503,13 +511,107 @@ class _EventsPageState extends State<EventsPage> with TickerProviderStateMixin {
                                     const SizedBox(height: 16),
                                     ElevatedButton(
                                       onPressed: _refreshData,
-                                      child: const Text(
+                                      child: Text(
                                         'Retry',
                                         style: TextStyle(
                                           fontFamily: 'Inconsolata',
                                           fontWeight: FontWeight.bold,
                                           fontSize: 18,
-                                          color: Colors.black,
+                                          color: Theme.of(context).colorScheme.onSurface,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              )
+                            else
+                              RefreshIndicator(
+                                onRefresh: _refreshData,
+                                color: Theme.of(context).colorScheme.onSurface,
+                                child: ListView.builder(
+                                  controller: _scrollController,
+                                  itemCount: events.length,
+                                  itemBuilder: (context, index) {
+                                    return cryptoCard(events[index]);
+                                  },
+                                ),
+                              ),
+                          if (loading)
+                            Center(
+                              child: CircularProgressIndicator(
+                                  color: Theme.of(context).colorScheme.onSurface),
+                            )
+                          else
+                            if (errorMessage != null)
+                              Center(
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Text(
+                                      errorMessage!,
+                                      textAlign: TextAlign.center,
+                                      style: const TextStyle(
+                                        fontFamily: 'Inconsolata',
+                                        color: Colors.red,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 16),
+                                    ElevatedButton(
+                                      onPressed: _refreshData,
+                                      child: Text(
+                                        'Retry',
+                                        style: TextStyle(
+                                          fontFamily: 'Inconsolata',
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 18,
+                                          color: Theme.of(context).colorScheme.onSurface,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              )
+                            else
+                              RefreshIndicator(
+                                onRefresh: _refreshData,
+                                color: Theme.of(context).colorScheme.onSurface,
+                                child: ListView.builder(
+                                  controller: _scrollController,
+                                  itemCount: events.length,
+                                  itemBuilder: (context, index) {
+                                    return cryptoCard(events[index]);
+                                  },
+                                ),
+                              ),
+                          if (loading)
+                            Center(
+                              child: CircularProgressIndicator(
+                                  color: Theme.of(context).colorScheme.onSurface),
+                            )
+                          else
+                            if (errorMessage != null)
+                              Center(
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Text(
+                                      errorMessage!,
+                                      textAlign: TextAlign.center,
+                                      style: const TextStyle(
+                                        fontFamily: 'Inconsolata',
+                                        color: Colors.red,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 16),
+                                    ElevatedButton(
+                                      onPressed: _refreshData,
+                                      child: Text(
+                                        'Retry',
+                                        style: TextStyle(
+                                          fontFamily: 'Inconsolata',
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 18,
+                                          color: Theme.of(context).colorScheme.onSurface,
                                         ),
                                       ),
                                     ),
@@ -529,9 +631,9 @@ class _EventsPageState extends State<EventsPage> with TickerProviderStateMixin {
                                 ),
                               ),
                           if (loading)
-                            const Center(
+                            Center(
                               child: CircularProgressIndicator(
-                                  color: Colors.black),
+                                  color: Theme.of(context).colorScheme.onSurface),
                             )
                           else
                             if (errorMessage != null)
@@ -550,13 +652,13 @@ class _EventsPageState extends State<EventsPage> with TickerProviderStateMixin {
                                     const SizedBox(height: 16),
                                     ElevatedButton(
                                       onPressed: _refreshData,
-                                      child: const Text(
+                                      child: Text(
                                         'Retry',
                                         style: TextStyle(
                                           fontFamily: 'Inconsolata',
                                           fontWeight: FontWeight.bold,
                                           fontSize: 18,
-                                          color: Colors.black,
+                                          color: Theme.of(context).colorScheme.onSurface,
                                         ),
                                       ),
                                     ),
@@ -566,7 +668,7 @@ class _EventsPageState extends State<EventsPage> with TickerProviderStateMixin {
                             else
                               RefreshIndicator(
                                 onRefresh: _refreshData,
-                                color: Colors.black,
+                                color: Theme.of(context).colorScheme.onSurface,
                                 child: ListView.builder(
                                   controller: _scrollController,
                                   itemCount: events.length,
@@ -576,9 +678,9 @@ class _EventsPageState extends State<EventsPage> with TickerProviderStateMixin {
                                 ),
                               ),
                           if (loading)
-                            const Center(
+                            Center(
                               child: CircularProgressIndicator(
-                                  color: Colors.black),
+                                  color: Theme.of(context).colorScheme.onSurface),
                             )
                           else
                             if (errorMessage != null)
@@ -597,13 +699,13 @@ class _EventsPageState extends State<EventsPage> with TickerProviderStateMixin {
                                     const SizedBox(height: 16),
                                     ElevatedButton(
                                       onPressed: _refreshData,
-                                      child: const Text(
+                                      child: Text(
                                         'Retry',
                                         style: TextStyle(
                                           fontFamily: 'Inconsolata',
                                           fontWeight: FontWeight.bold,
                                           fontSize: 18,
-                                          color: Colors.black,
+                                          color: Theme.of(context).colorScheme.onSurface,
                                         ),
                                       ),
                                     ),
@@ -613,7 +715,7 @@ class _EventsPageState extends State<EventsPage> with TickerProviderStateMixin {
                             else
                               RefreshIndicator(
                                 onRefresh: _refreshData,
-                                color: Colors.black,
+                                color: Theme.of(context).colorScheme.onSurface,
                                 child: ListView.builder(
                                   controller: _scrollController,
                                   itemCount: events.length,
@@ -623,9 +725,9 @@ class _EventsPageState extends State<EventsPage> with TickerProviderStateMixin {
                                 ),
                               ),
                           if (loading)
-                            const Center(
+                            Center(
                               child: CircularProgressIndicator(
-                                  color: Colors.black),
+                                  color: Theme.of(context).colorScheme.onSurface),
                             )
                           else
                             if (errorMessage != null)
@@ -644,13 +746,13 @@ class _EventsPageState extends State<EventsPage> with TickerProviderStateMixin {
                                     const SizedBox(height: 16),
                                     ElevatedButton(
                                       onPressed: _refreshData,
-                                      child: const Text(
+                                      child: Text(
                                         'Retry',
                                         style: TextStyle(
                                           fontFamily: 'Inconsolata',
                                           fontWeight: FontWeight.bold,
                                           fontSize: 18,
-                                          color: Colors.black,
+                                          color: Theme.of(context).colorScheme.onSurface,
                                         ),
                                       ),
                                     ),
@@ -660,7 +762,7 @@ class _EventsPageState extends State<EventsPage> with TickerProviderStateMixin {
                             else
                               RefreshIndicator(
                                 onRefresh: _refreshData,
-                                color: Colors.black,
+                                color: Theme.of(context).colorScheme.onSurface,
                                 child: ListView.builder(
                                   controller: _scrollController,
                                   itemCount: events.length,
@@ -670,9 +772,9 @@ class _EventsPageState extends State<EventsPage> with TickerProviderStateMixin {
                                 ),
                               ),
                           if (loading)
-                            const Center(
+                            Center(
                               child: CircularProgressIndicator(
-                                  color: Colors.black),
+                                  color: Theme.of(context).colorScheme.onSurface),
                             )
                           else
                             if (errorMessage != null)
@@ -691,13 +793,13 @@ class _EventsPageState extends State<EventsPage> with TickerProviderStateMixin {
                                     const SizedBox(height: 16),
                                     ElevatedButton(
                                       onPressed: _refreshData,
-                                      child: const Text(
+                                      child: Text(
                                         'Retry',
                                         style: TextStyle(
                                           fontFamily: 'Inconsolata',
                                           fontWeight: FontWeight.bold,
                                           fontSize: 18,
-                                          color: Colors.black,
+                                          color: Theme.of(context).colorScheme.onSurface,
                                         ),
                                       ),
                                     ),
@@ -707,7 +809,7 @@ class _EventsPageState extends State<EventsPage> with TickerProviderStateMixin {
                             else
                               RefreshIndicator(
                                 onRefresh: _refreshData,
-                                color: Colors.black,
+                                color: Theme.of(context).colorScheme.onSurface,
                                 child: ListView.builder(
                                   controller: _scrollController,
                                   itemCount: events.length,
@@ -717,9 +819,9 @@ class _EventsPageState extends State<EventsPage> with TickerProviderStateMixin {
                                 ),
                               ),
                           if (loading)
-                            const Center(
+                            Center(
                               child: CircularProgressIndicator(
-                                  color: Colors.black),
+                                  color: Theme.of(context).colorScheme.onSurface),
                             )
                           else
                             if (errorMessage != null)
@@ -738,13 +840,13 @@ class _EventsPageState extends State<EventsPage> with TickerProviderStateMixin {
                                     const SizedBox(height: 16),
                                     ElevatedButton(
                                       onPressed: _refreshData,
-                                      child: const Text(
+                                      child: Text(
                                         'Retry',
                                         style: TextStyle(
                                           fontFamily: 'Inconsolata',
                                           fontWeight: FontWeight.bold,
                                           fontSize: 18,
-                                          color: Colors.black,
+                                          color: Theme.of(context).colorScheme.onSurface,
                                         ),
                                       ),
                                     ),
@@ -754,101 +856,7 @@ class _EventsPageState extends State<EventsPage> with TickerProviderStateMixin {
                             else
                               RefreshIndicator(
                                 onRefresh: _refreshData,
-                                color: Colors.black,
-                                child: ListView.builder(
-                                  controller: _scrollController,
-                                  itemCount: events.length,
-                                  itemBuilder: (context, index) {
-                                    return cryptoCard(events[index]);
-                                  },
-                                ),
-                              ),
-                          if (loading)
-                            const Center(
-                              child: CircularProgressIndicator(
-                                  color: Colors.black),
-                            )
-                          else
-                            if (errorMessage != null)
-                              Center(
-                                child: Column(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    Text(
-                                      errorMessage!,
-                                      textAlign: TextAlign.center,
-                                      style: const TextStyle(
-                                        fontFamily: 'Inconsolata',
-                                        color: Colors.red,
-                                      ),
-                                    ),
-                                    const SizedBox(height: 16),
-                                    ElevatedButton(
-                                      onPressed: _refreshData,
-                                      child: const Text(
-                                        'Retry',
-                                        style: TextStyle(
-                                          fontFamily: 'Inconsolata',
-                                          fontWeight: FontWeight.bold,
-                                          fontSize: 18,
-                                          color: Colors.black,
-                                        ),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              )
-                            else
-                              RefreshIndicator(
-                                onRefresh: _refreshData,
-                                color: Colors.black,
-                                child: ListView.builder(
-                                  controller: _scrollController,
-                                  itemCount: events.length,
-                                  itemBuilder: (context, index) {
-                                    return cryptoCard(events[index]);
-                                  },
-                                ),
-                              ),
-                          if (loading)
-                            const Center(
-                              child: CircularProgressIndicator(
-                                  color: Colors.black),
-                            )
-                          else
-                            if (errorMessage != null)
-                              Center(
-                                child: Column(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    Text(
-                                      errorMessage!,
-                                      textAlign: TextAlign.center,
-                                      style: const TextStyle(
-                                        fontFamily: 'Inconsolata',
-                                        color: Colors.red,
-                                      ),
-                                    ),
-                                    const SizedBox(height: 16),
-                                    ElevatedButton(
-                                      onPressed: _refreshData,
-                                      child: const Text(
-                                        'Retry',
-                                        style: TextStyle(
-                                          fontFamily: 'Inconsolata',
-                                          fontWeight: FontWeight.bold,
-                                          fontSize: 18,
-                                          color: Colors.black,
-                                        ),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              )
-                            else
-                              RefreshIndicator(
-                                onRefresh: _refreshData,
-                                color: Colors.black,
+                                color: Theme.of(context).colorScheme.onSurface,
                                 child: ListView.builder(
                                   controller: _scrollController,
                                   itemCount: events.length,
@@ -899,7 +907,7 @@ class _EventsPageState extends State<EventsPage> with TickerProviderStateMixin {
           ],
           labelPadding: const EdgeInsets.symmetric(horizontal: 6),
           labelColor: Colors.white,
-          unselectedLabelColor: Colors.black,
+          unselectedLabelColor: Theme.of(context).colorScheme.onSurface,
           labelStyle: const TextStyle(
             fontSize: 16,
             fontFamily: 'Inter',
@@ -1013,7 +1021,7 @@ class _EventsPageState extends State<EventsPage> with TickerProviderStateMixin {
         );
       }
     }
-
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
     return Padding(
       padding: const EdgeInsets.only(left: 20.0, right: 20.0, bottom: 20.0),
       child: InkWell(
@@ -1029,11 +1037,11 @@ class _EventsPageState extends State<EventsPage> with TickerProviderStateMixin {
         child: Container(
           padding: const EdgeInsets.all(12.0),
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: isDarkMode ? Colors.grey[900] : Colors.white,
             borderRadius: BorderRadius.circular(15),
             boxShadow: [
               BoxShadow(
-                color: Colors.grey.withOpacity(0.5),
+                color: isDarkMode ? Colors.grey.withOpacity(0.2) : Colors.grey.withOpacity(0.5),
                 spreadRadius: 3,
                 blurRadius: 5,
               ),
@@ -1082,11 +1090,11 @@ class _EventsPageState extends State<EventsPage> with TickerProviderStateMixin {
                           event['title'],
                           overflow: TextOverflow.ellipsis,
                           maxLines: 1, // Limits title to one line
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontFamily: 'Inconsolata',
                             fontWeight: FontWeight.bold,
                             fontSize: 22,
-                            color: Colors.black,
+                            color: Theme.of(context).colorScheme.onSurface,
                           ),
                         ),
                         Text(
@@ -1108,10 +1116,10 @@ class _EventsPageState extends State<EventsPage> with TickerProviderStateMixin {
                           event['sub_text'],
                           maxLines: 2, // Limits sub_text to two lines
                           overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontFamily: 'Inconsolata',
                             fontSize: 16,
-                            color: Colors.black,
+                            color: Theme.of(context).colorScheme.onSurface,
                           ),
                         ),
                         Row(
@@ -1119,10 +1127,10 @@ class _EventsPageState extends State<EventsPage> with TickerProviderStateMixin {
                           children: [
                             Text(
                               'Upvotes: ${event['upvotes']} | Downvotes: ${event['downvotes']}',
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontFamily: 'Inconsolata',
                                 fontSize: 15,
-                                color: Colors.black,
+                                color: Theme.of(context).colorScheme.onSurface,
                               ),
                             ),
                           ],
@@ -1193,6 +1201,7 @@ class _EventsPageState extends State<EventsPage> with TickerProviderStateMixin {
   }
 
   Widget dropDownEventInput(String text, ValueNotifier<bool> notifier) {
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
     return ValueListenableBuilder<bool>(
       valueListenable: notifier,
       builder: (context, varName, _) {
@@ -1200,11 +1209,11 @@ class _EventsPageState extends State<EventsPage> with TickerProviderStateMixin {
           padding: const EdgeInsets.symmetric(vertical: 10.0),
           child: Container(
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: isDarkMode ? Colors.grey[900] : Colors.white,
               borderRadius: BorderRadius.circular(10),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.grey.withOpacity(0.5),
+                  color: isDarkMode ? Colors.grey.withOpacity(0.2) : Colors.grey.withOpacity(0.5),
                   spreadRadius: 3,
                   blurRadius: 5,
                 ),
@@ -1247,11 +1256,11 @@ class _EventsPageState extends State<EventsPage> with TickerProviderStateMixin {
                     padding: const EdgeInsets.only(top: 10.0),
                     child: Container(
                       decoration: BoxDecoration(
-                        color: Colors.white,
+                        color: isDarkMode ? Colors.grey[900] : Colors.white,
                         borderRadius: BorderRadius.circular(10),
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.grey.withOpacity(0.5),
+                            color: isDarkMode ? Colors.grey.withOpacity(0.2) : Colors.grey.withOpacity(0.5),
                             spreadRadius: 3,
                             blurRadius: 5,
                           ),
@@ -1259,7 +1268,7 @@ class _EventsPageState extends State<EventsPage> with TickerProviderStateMixin {
                       ),
                       padding: const EdgeInsets.symmetric(
                           horizontal: 20, vertical: 6),
-                      child: const Row(
+                      child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           Expanded(
@@ -1273,7 +1282,7 @@ class _EventsPageState extends State<EventsPage> with TickerProviderStateMixin {
                                 fontSize: 15,
                                 fontWeight: FontWeight.bold,
                                 fontFamily: 'Inconsolata',
-                                color: Colors.black,
+                                color: Theme.of(context).colorScheme.onSurface,
                               ),
                             ),
                           ),
@@ -1286,11 +1295,11 @@ class _EventsPageState extends State<EventsPage> with TickerProviderStateMixin {
                     padding: const EdgeInsets.only(top: 10.0),
                     child: Container(
                       decoration: BoxDecoration(
-                        color: Colors.white,
+                        color: isDarkMode ? Colors.grey[900] : Colors.white,
                         borderRadius: BorderRadius.circular(10),
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.grey.withOpacity(0.5),
+                            color: isDarkMode ? Colors.grey.withOpacity(0.2) : Colors.grey.withOpacity(0.5),
                             spreadRadius: 3,
                             blurRadius: 5,
                           ),
@@ -1298,7 +1307,7 @@ class _EventsPageState extends State<EventsPage> with TickerProviderStateMixin {
                       ),
                       padding: const EdgeInsets.symmetric(
                           horizontal: 20, vertical: 6),
-                      child: const Row(
+                      child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           Expanded(
@@ -1312,7 +1321,7 @@ class _EventsPageState extends State<EventsPage> with TickerProviderStateMixin {
                                 fontSize: 15,
                                 fontWeight: FontWeight.bold,
                                 fontFamily: 'Inconsolata',
-                                color: Colors.black,
+                                color: Theme.of(context).colorScheme.onSurface,
                               ),
                             ),
                           ),
@@ -1325,11 +1334,11 @@ class _EventsPageState extends State<EventsPage> with TickerProviderStateMixin {
                     padding: const EdgeInsets.only(top: 10.0),
                     child: Container(
                       decoration: BoxDecoration(
-                        color: Colors.white,
+                        color: isDarkMode ? Colors.grey[900] : Colors.white,
                         borderRadius: BorderRadius.circular(10),
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.grey.withOpacity(0.5),
+                            color: isDarkMode ? Colors.grey.withOpacity(0.2) : Colors.grey.withOpacity(0.5),
                             spreadRadius: 3,
                             blurRadius: 5,
                           ),
@@ -1337,7 +1346,7 @@ class _EventsPageState extends State<EventsPage> with TickerProviderStateMixin {
                       ),
                       padding: const EdgeInsets.symmetric(
                           horizontal: 20, vertical: 6),
-                      child: const Row(
+                      child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           Expanded(
@@ -1351,7 +1360,7 @@ class _EventsPageState extends State<EventsPage> with TickerProviderStateMixin {
                                 fontSize: 15,
                                 fontWeight: FontWeight.bold,
                                 fontFamily: 'Inconsolata',
-                                color: Colors.black,
+                                color: Theme.of(context).colorScheme.onSurface,
                               ),
                             ),
                           ),
@@ -1368,15 +1377,16 @@ class _EventsPageState extends State<EventsPage> with TickerProviderStateMixin {
   }
 
   Widget textBoxEventInput(String text) {
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 10.0),
       child: Container(
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: isDarkMode ? Colors.grey[900] : Colors.white,
           borderRadius: BorderRadius.circular(10),
           boxShadow: [
             BoxShadow(
-              color: Colors.grey.withOpacity(0.5),
+              color: isDarkMode ? Colors.grey.withOpacity(0.2) : Colors.grey.withOpacity(0.5),
               spreadRadius: 3,
               blurRadius: 5,
             ),
@@ -1406,7 +1416,7 @@ class _EventsPageState extends State<EventsPage> with TickerProviderStateMixin {
                 floatingLabelBehavior: FloatingLabelBehavior.never,
                 border: InputBorder.none,
               ),
-              cursorColor: Colors.black,
+              cursorColor: Theme.of(context).colorScheme.onSurface,
             ),
           ],
         ),
@@ -1415,6 +1425,7 @@ class _EventsPageState extends State<EventsPage> with TickerProviderStateMixin {
   }
 
   Widget bigTextBoxEventInput(String text) {
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 10.0),
       child: Container(
@@ -1427,11 +1438,11 @@ class _EventsPageState extends State<EventsPage> with TickerProviderStateMixin {
                 .size
                 .height,
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: isDarkMode ? Colors.grey[900] : Colors.white,
           borderRadius: BorderRadius.circular(10),
           boxShadow: [
             BoxShadow(
-              color: Colors.grey.withOpacity(0.5),
+              color: isDarkMode ? Colors.grey.withOpacity(0.2) : Colors.grey.withOpacity(0.5),
               spreadRadius: 3,
               blurRadius: 5,
             ),
@@ -1464,7 +1475,7 @@ class _EventsPageState extends State<EventsPage> with TickerProviderStateMixin {
                 floatingLabelBehavior: FloatingLabelBehavior.never,
                 border: InputBorder.none,
               ),
-              cursorColor: Colors.black,
+              cursorColor: Theme.of(context).colorScheme.onSurface,
             ),
           ],
         ),

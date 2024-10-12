@@ -328,7 +328,7 @@ class CardDetailsState extends State<CardDetails> {
                   : MediaQuery.of(context).size.height * 1.5,
               child: RefreshIndicator(
                 onRefresh: _refreshData,
-                color: Colors.black,
+                color: Theme.of(context).colorScheme.onSurface,
                 child: Stack(
                   alignment: Alignment.center,
                   children: [
@@ -375,13 +375,13 @@ class CardDetailsState extends State<CardDetails> {
                                   const SizedBox(height: 16),
                                   ElevatedButton(
                                     onPressed: _refreshData,
-                                    child: const Text(
+                                    child: Text(
                                       'Retry',
                                       style: TextStyle(
                                         fontFamily: 'Inconsolata',
                                         fontWeight: FontWeight.bold,
                                         fontSize: 18,
-                                        color: Colors.black,
+                                        color: Theme.of(context).colorScheme.onSurface,
                                       ),
                                     ),
                                   ),
@@ -395,11 +395,11 @@ class CardDetailsState extends State<CardDetails> {
                               child: Center(
                                 child: Text(
                                   courseDetails!['title'],
-                                  style: const TextStyle(
+                                  style: TextStyle(
                                     fontFamily: 'Inter',
                                     fontWeight: FontWeight.bold,
                                     fontSize: 22.0,
-                                    color: Colors.black,
+                                    color: Theme.of(context).colorScheme.onSurface,
                                   ),
                                 ),
                               ),
@@ -523,9 +523,9 @@ class CardDetailsState extends State<CardDetails> {
                             //       0.1,
                             // ),
                           ] else ...[
-                            const Center(
+                            Center(
                                 child: CircularProgressIndicator(
-                                    color: Colors.black)),
+                                    color: Theme.of(context).colorScheme.onSurface)),
                           ],
                         ],
                       ),

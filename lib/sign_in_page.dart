@@ -8,8 +8,11 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'forgot_password_page.dart';
 
 class SignInPage extends StatefulWidget {
+  final Function(bool) onToggleDarkMode;
+  final bool isDarkMode;
   const SignInPage({
     super.key,
+    required this.onToggleDarkMode, required this.isDarkMode
   });
 
   @override
@@ -121,7 +124,8 @@ class _SignInPageState extends State<SignInPage> with WidgetsBindingObserver {
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(
-          builder: (context) => MainApp(key: UniqueKey()),
+          builder: (context) => MainApp(key: UniqueKey(), onToggleDarkMode: widget.onToggleDarkMode,
+              isDarkMode: widget.isDarkMode),
         ),
       );
     } else if (response.statusCode == 400) {
@@ -229,13 +233,13 @@ class _SignInPageState extends State<SignInPage> with WidgetsBindingObserver {
                             ),
                           ),
                           const Spacer(),
-                          const Text(
+                          Text(
                             'Sign in',
                             style: TextStyle(
                               fontFamily: 'Inter',
                               fontWeight: FontWeight.bold,
                               fontSize: 22.0,
-                              color: Colors.black,
+                              color: Theme.of(context).colorScheme.onSurface,
                             ),
                           ),
                           SizedBox(
@@ -251,14 +255,14 @@ class _SignInPageState extends State<SignInPage> with WidgetsBindingObserver {
                         .of(context)
                         .size
                         .height * 0.03),
-                    const Center(
+                    Center(
                       child: Text(
                         'Welcome',
                         style: TextStyle(
                           fontFamily: 'Inter',
                           fontWeight: FontWeight.bold,
                           fontSize: 30.0,
-                          color: Colors.black,
+                          color: Theme.of(context).colorScheme.onSurface,
                         ),
                       ),
                     ),
@@ -266,8 +270,8 @@ class _SignInPageState extends State<SignInPage> with WidgetsBindingObserver {
                         .of(context)
                         .size
                         .height * 0.05),
-                    const Padding(
-                      padding: EdgeInsets.symmetric(horizontal: 20.0),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20.0),
                       child: Text(
                         'Email / Phone Number',
                         textAlign: TextAlign.start,
@@ -275,7 +279,7 @@ class _SignInPageState extends State<SignInPage> with WidgetsBindingObserver {
                           fontFamily: 'Inter',
                           fontWeight: FontWeight.w600,
                           fontSize: 16.0,
-                          color: Colors.black,
+                          color: Theme.of(context).colorScheme.onSurface,
                         ),
                       ),
                     ),
@@ -301,20 +305,20 @@ class _SignInPageState extends State<SignInPage> with WidgetsBindingObserver {
                           ),
                           focusedBorder: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(15),
-                            borderSide: const BorderSide(
-                              color: Colors.black,
+                            borderSide: BorderSide(
+                              color: Theme.of(context).colorScheme.onSurface,
                             ),
                           ),
                         ),
-                        cursorColor: Colors.black,
+                        cursorColor: Theme.of(context).colorScheme.onSurface,
                       ),
                     ),
                     SizedBox(height: MediaQuery
                         .of(context)
                         .size
                         .height * 0.02),
-                    const Padding(
-                      padding: EdgeInsets.symmetric(horizontal: 20.0),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20.0),
                       child: Text(
                         'Password',
                         textAlign: TextAlign.start,
@@ -322,7 +326,7 @@ class _SignInPageState extends State<SignInPage> with WidgetsBindingObserver {
                           fontFamily: 'Inter',
                           fontWeight: FontWeight.w600,
                           fontSize: 16.0,
-                          color: Colors.black,
+                          color: Theme.of(context).colorScheme.onSurface,
                         ),
                       ),
                     ),
@@ -348,12 +352,12 @@ class _SignInPageState extends State<SignInPage> with WidgetsBindingObserver {
                           ),
                           focusedBorder: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(15),
-                            borderSide: const BorderSide(
-                              color: Colors.black,
+                            borderSide: BorderSide(
+                              color: Theme.of(context).colorScheme.onSurface,
                             ),
                           ),
                         ),
-                        cursorColor: Colors.black,
+                        cursorColor: Theme.of(context).colorScheme.onSurface,
                         obscureText: true,
                         obscuringCharacter: "*",
                       ),
@@ -369,7 +373,8 @@ class _SignInPageState extends State<SignInPage> with WidgetsBindingObserver {
                                 context,
                                 MaterialPageRoute(
                                   builder: (context) =>
-                                      ForgotPassword(key: UniqueKey()),
+                                      ForgotPassword(key: UniqueKey(), onToggleDarkMode: widget.onToggleDarkMode,
+                                          isDarkMode: widget.isDarkMode),
                                 ),
                               );
                             },
@@ -526,7 +531,8 @@ class _SignInPageState extends State<SignInPage> with WidgetsBindingObserver {
                             context,
                             MaterialPageRoute(
                               builder: (context) =>
-                                  SignUpPage(key: UniqueKey()),
+                                  SignUpPage(key: UniqueKey(), onToggleDarkMode: widget.onToggleDarkMode,
+                                      isDarkMode: widget.isDarkMode),
                             ),
                           );
                         },

@@ -8,8 +8,11 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:intl_phone_field/intl_phone_field.dart';
 
 class SignUpPage extends StatefulWidget {
+  final Function(bool) onToggleDarkMode;
+  final bool isDarkMode;
   const SignUpPage({
     super.key,
+    required this.onToggleDarkMode, required this.isDarkMode
   });
 
   @override
@@ -170,7 +173,8 @@ class _SignUpPageState extends State<SignUpPage> with WidgetsBindingObserver {
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(
-          builder: (context) => MainApp(key: UniqueKey()),
+          builder: (context) => MainApp(key: UniqueKey(), onToggleDarkMode: widget.onToggleDarkMode,
+              isDarkMode: widget.isDarkMode),
         ),
       );
     } else if (response.statusCode == 400) {
@@ -270,13 +274,13 @@ class _SignUpPageState extends State<SignUpPage> with WidgetsBindingObserver {
                             ),
                           ),
                           const Spacer(),
-                          const Text(
+                          Text(
                             'Sign up',
                             style: TextStyle(
                               fontFamily: 'Inter',
                               fontWeight: FontWeight.bold,
                               fontSize: 22.0,
-                              color: Colors.black,
+                              color: Theme.of(context).colorScheme.onSurface,
                             ),
                           ),
                           SizedBox(
@@ -286,8 +290,8 @@ class _SignUpPageState extends State<SignUpPage> with WidgetsBindingObserver {
                       ),
                     ),
                     SizedBox(height: MediaQuery.of(context).size.height * 0.05),
-                    const Padding(
-                      padding: EdgeInsets.symmetric(horizontal: 20.0),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20.0),
                       child: Text(
                         'Name',
                         textAlign: TextAlign.start,
@@ -295,7 +299,7 @@ class _SignUpPageState extends State<SignUpPage> with WidgetsBindingObserver {
                           fontFamily: 'Inter',
                           fontWeight: FontWeight.w600,
                           fontSize: 16.0,
-                          color: Colors.black,
+                          color: Theme.of(context).colorScheme.onSurface,
                         ),
                       ),
                     ),
@@ -314,17 +318,17 @@ class _SignUpPageState extends State<SignUpPage> with WidgetsBindingObserver {
                           ),
                           focusedBorder: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(15),
-                            borderSide: const BorderSide(
-                              color: Colors.black,
+                            borderSide: BorderSide(
+                              color: Theme.of(context).colorScheme.onSurface,
                             ),
                           ),
                         ),
-                        cursorColor: Colors.black,
+                        cursorColor: Theme.of(context).colorScheme.onSurface,
                       ),
                     ),
                     SizedBox(height: MediaQuery.of(context).size.height * 0.02),
-                    const Padding(
-                      padding: EdgeInsets.symmetric(horizontal: 20.0),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20.0),
                       child: Text(
                         'Username',
                         textAlign: TextAlign.start,
@@ -332,7 +336,7 @@ class _SignUpPageState extends State<SignUpPage> with WidgetsBindingObserver {
                           fontFamily: 'Inter',
                           fontWeight: FontWeight.w600,
                           fontSize: 16.0,
-                          color: Colors.black,
+                          color: Theme.of(context).colorScheme.onSurface,
                         ),
                       ),
                     ),
@@ -351,17 +355,17 @@ class _SignUpPageState extends State<SignUpPage> with WidgetsBindingObserver {
                           ),
                           focusedBorder: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(15),
-                            borderSide: const BorderSide(
-                              color: Colors.black,
+                            borderSide: BorderSide(
+                              color: Theme.of(context).colorScheme.onSurface,
                             ),
                           ),
                         ),
-                        cursorColor: Colors.black,
+                        cursorColor: Theme.of(context).colorScheme.onSurface,
                       ),
                     ),
                     SizedBox(height: MediaQuery.of(context).size.height * 0.02),
-                    const Padding(
-                      padding: EdgeInsets.symmetric(horizontal: 20.0),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20.0),
                       child: Text(
                         'Email',
                         textAlign: TextAlign.start,
@@ -369,7 +373,7 @@ class _SignUpPageState extends State<SignUpPage> with WidgetsBindingObserver {
                           fontFamily: 'Inter',
                           fontWeight: FontWeight.w600,
                           fontSize: 16.0,
-                          color: Colors.black,
+                          color: Theme.of(context).colorScheme.onSurface,
                         ),
                       ),
                     ),
@@ -395,17 +399,17 @@ class _SignUpPageState extends State<SignUpPage> with WidgetsBindingObserver {
                           ),
                           focusedBorder: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(15),
-                            borderSide: const BorderSide(
-                              color: Colors.black,
+                            borderSide: BorderSide(
+                              color: Theme.of(context).colorScheme.onSurface,
                             ),
                           ),
                         ),
-                        cursorColor: Colors.black,
+                        cursorColor: Theme.of(context).colorScheme.onSurface,
                       ),
                     ),
                     SizedBox(height: MediaQuery.of(context).size.height * 0.02),
-                    const Padding(
-                      padding: EdgeInsets.symmetric(horizontal: 20.0),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20.0),
                       child: Text(
                         'Phone Number',
                         textAlign: TextAlign.start,
@@ -413,7 +417,7 @@ class _SignUpPageState extends State<SignUpPage> with WidgetsBindingObserver {
                           fontFamily: 'Inter',
                           fontWeight: FontWeight.w600,
                           fontSize: 16.0,
-                          color: Colors.black,
+                          color: Theme.of(context).colorScheme.onSurface,
                         ),
                       ),
                     ),
@@ -433,8 +437,8 @@ class _SignUpPageState extends State<SignUpPage> with WidgetsBindingObserver {
                                 ),
                                 focusedBorder: OutlineInputBorder(
                                   borderRadius: BorderRadius.circular(15),
-                                  borderSide: const BorderSide(
-                                    color: Colors.black,
+                                  borderSide: BorderSide(
+                                    color: Theme.of(context).colorScheme.onSurface,
                                   ),
                                 ),
                                 counterText: '',
@@ -455,8 +459,8 @@ class _SignUpPageState extends State<SignUpPage> with WidgetsBindingObserver {
                       ),
                     ),
                     SizedBox(height: MediaQuery.of(context).size.height * 0.02),
-                    const Padding(
-                      padding: EdgeInsets.symmetric(horizontal: 20.0),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20.0),
                       child: Text(
                         'New Password',
                         textAlign: TextAlign.start,
@@ -464,7 +468,7 @@ class _SignUpPageState extends State<SignUpPage> with WidgetsBindingObserver {
                           fontFamily: 'Inter',
                           fontWeight: FontWeight.w600,
                           fontSize: 16.0,
-                          color: Colors.black,
+                          color: Theme.of(context).colorScheme.onSurface,
                         ),
                       ),
                     ),
@@ -490,8 +494,8 @@ class _SignUpPageState extends State<SignUpPage> with WidgetsBindingObserver {
                             ),
                             focusedBorder: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(15),
-                              borderSide: const BorderSide(
-                                color: Colors.black,
+                              borderSide: BorderSide(
+                                color: Theme.of(context).colorScheme.onSurface,
                               ),
                             ),
                             suffixIcon: IconButton(
@@ -504,13 +508,13 @@ class _SignUpPageState extends State<SignUpPage> with WidgetsBindingObserver {
                                 });
                               },
                             )),
-                        cursorColor: Colors.black,
+                        cursorColor: Theme.of(context).colorScheme.onSurface,
                         obscureText: !_isPasswordVisible,
                         obscuringCharacter: "*",
                       ),
                     ),
                     SizedBox(height: MediaQuery.of(context).size.height * 0.02),
-                    const Padding(
+                    Padding(
                       padding: EdgeInsets.symmetric(horizontal: 20.0),
                       child: Text(
                         'Retype Password',
@@ -519,7 +523,7 @@ class _SignUpPageState extends State<SignUpPage> with WidgetsBindingObserver {
                           fontFamily: 'Inter',
                           fontWeight: FontWeight.w600,
                           fontSize: 16.0,
-                          color: Colors.black,
+                          color: Theme.of(context).colorScheme.onSurface,
                         ),
                       ),
                     ),
@@ -545,8 +549,8 @@ class _SignUpPageState extends State<SignUpPage> with WidgetsBindingObserver {
                             ),
                             focusedBorder: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(15),
-                              borderSide: const BorderSide(
-                                color: Colors.black,
+                              borderSide: BorderSide(
+                                color: Theme.of(context).colorScheme.onSurface,
                               ),
                             ),
                             suffixIcon: IconButton(
@@ -559,7 +563,7 @@ class _SignUpPageState extends State<SignUpPage> with WidgetsBindingObserver {
                                 });
                               },
                             )),
-                        cursorColor: Colors.black,
+                        cursorColor: Theme.of(context).colorScheme.onSurface,
                         obscureText: !_isPasswordVisible2,
                         obscuringCharacter: "*",
                       ),

@@ -231,8 +231,8 @@ class NotificationPageState extends State<NotificationPage> {
             future: _notificationsFuture,
             builder: (context, snapshot) {
               if (snapshot.connectionState == ConnectionState.waiting) {
-                return const Center(
-                    child: CircularProgressIndicator(color: Colors.black));
+                return Center(
+                    child: CircularProgressIndicator(color: Theme.of(context).colorScheme.onSurface));
               } else if (snapshot.hasError) {
                 return Center(
                   child: Column(
@@ -327,13 +327,13 @@ class NotificationPageState extends State<NotificationPage> {
                             child: Image.asset('images/tabler_arrow-back.png',height:50,),
                           ),
                           const Spacer(),
-                          const Text(
+                          Text(
                             'Notification',
                             style: TextStyle(
                               fontFamily: 'Inter',
                               fontWeight: FontWeight.bold,
                               fontSize: 22.0,
-                              color: Colors.black,
+                              color: Theme.of(context).colorScheme.onSurface,
                             ),
                           ),
                           SizedBox(
@@ -356,11 +356,11 @@ class NotificationPageState extends State<NotificationPage> {
                           children: [
                             Text(
                               entry.key,
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontFamily: 'Inter',
                                 fontWeight: FontWeight.bold,
                                 fontSize: 22.0,
-                                color: Colors.black,
+                                color: Theme.of(context).colorScheme.onSurface,
                               ),
                             ),
                             SizedBox(
@@ -402,7 +402,7 @@ class NotificationPageState extends State<NotificationPage> {
             .of(context)
             .size
             .width * 0.02),
-        Image.asset(img),
+        Image.asset(img, color:Theme.of(context).colorScheme.onSurface),
         SizedBox(width: MediaQuery
             .of(context)
             .size
@@ -415,11 +415,11 @@ class NotificationPageState extends State<NotificationPage> {
               Text(
                 message,
                 softWrap: true,
-                style: const TextStyle(
+                style: TextStyle(
                   fontFamily: 'Inconsolata',
                   fontSize: 15,
                   fontWeight: FontWeight.bold,
-                  color: Colors.black,
+                  color: Theme.of(context).colorScheme.onSurface,
                 ),
               ),
               SizedBox(height: MediaQuery
@@ -428,11 +428,11 @@ class NotificationPageState extends State<NotificationPage> {
                   .height * 0.02),
               Text(
                 time,
-                style: const TextStyle(
+                style: TextStyle(
                   fontFamily: 'Inconsolata',
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
-                  color: Colors.black,
+                  color: Theme.of(context).colorScheme.onSurface,
                 ),
               ),
             ],

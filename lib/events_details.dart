@@ -215,15 +215,15 @@ class _EventsDetailsState extends State<EventsDetails> {
         return Scaffold(
           body: RefreshIndicator(
             onRefresh: _refreshData,
-            color: Colors.black,
+            color: Theme.of(context).colorScheme.onSurface,
             child: FutureBuilder<Map<String, dynamic>>(
                 future: _eventDetails,
                 builder: (context, snapshot) {
                   if (snapshot.connectionState ==
                       ConnectionState.waiting) {
-                    return const Center(
+                    return Center(
                         child: CircularProgressIndicator(
-                            color: Colors.black));
+                            color: Theme.of(context).colorScheme.onSurface));
                   } else if (snapshot.hasError) {
                     return Center(
                       child: Column(
@@ -240,13 +240,13 @@ class _EventsDetailsState extends State<EventsDetails> {
                           const SizedBox(height: 16),
                           ElevatedButton(
                             onPressed: _refreshData,
-                            child: const Text(
+                            child: Text(
                               'Retry',
                               style: TextStyle(
                                 fontFamily: 'Inconsolata',
                                 fontWeight: FontWeight.bold,
                                 fontSize: 18,
-                                color: Colors.black,
+                                color: Theme.of(context).colorScheme.onSurface,
                               ),
                             ),
                           ),
@@ -269,13 +269,13 @@ class _EventsDetailsState extends State<EventsDetails> {
                           const SizedBox(height: 16),
                           ElevatedButton(
                             onPressed: _refreshData,
-                            child: const Text(
+                            child: Text(
                               'Retry',
                               style: TextStyle(
                                 fontFamily: 'Inconsolata',
                                 fontWeight: FontWeight.bold,
                                 fontSize: 18,
-                                color: Colors.black,
+                                color: Theme.of(context).colorScheme.onSurface,
                               ),
                             ),
                           ),
@@ -315,13 +315,13 @@ class _EventsDetailsState extends State<EventsDetails> {
                                           .size
                                           .width *
                                           0.02),
-                                  const Text(
+                                  Text(
                                     'Event details',
                                     style: TextStyle(
                                       fontFamily: 'Inter',
                                       fontWeight: FontWeight.bold,
                                       fontSize: 22.0,
-                                      color: Colors.black,
+                                      color: Theme.of(context).colorScheme.onSurface,
                                     ),
                                   ),
                                   const Spacer(),
@@ -391,12 +391,12 @@ class _EventsDetailsState extends State<EventsDetails> {
                                               event['title'],
                                               overflow:
                                               TextOverflow.ellipsis,
-                                              style: const TextStyle(
+                                              style: TextStyle(
                                                 fontFamily: 'Inconsolata',
                                                 fontWeight:
                                                 FontWeight.bold,
                                                 fontSize: 22,
-                                                color: Colors.black,
+                                                color: Theme.of(context).colorScheme.onSurface,
                                               ),
                                             ),
                                             Text(
@@ -434,7 +434,7 @@ class _EventsDetailsState extends State<EventsDetails> {
                                           decoration: BoxDecoration(
                                             border: Border.all(
                                                 width: 1,
-                                                color: Colors.black),
+                                                color: Theme.of(context).colorScheme.onSurface),
                                             borderRadius:
                                             BorderRadius.circular(15),
                                           ),
@@ -485,10 +485,10 @@ class _EventsDetailsState extends State<EventsDetails> {
                                       maxLines:
                                       2, // Limits sub_text to two lines
                                       overflow: TextOverflow.ellipsis,
-                                      style: const TextStyle(
+                                      style: TextStyle(
                                         fontFamily: 'Inconsolata',
                                         fontSize: 16,
-                                        color: Colors.black,
+                                        color: Theme.of(context).colorScheme.onSurface,
                                       ),
                                     ),
                                   ),
@@ -505,7 +505,7 @@ class _EventsDetailsState extends State<EventsDetails> {
                                   //           fontFamily: 'Inconsolata',
                                   //           fontWeight: FontWeight.bold,
                                   //           fontSize: 16,
-                                  //           color: Colors.black,
+                                  //           color: Theme.of(context).colorScheme.onSurface,
                                   //         ),
                                   //       ),
                                   //       Image.asset(
@@ -557,7 +557,7 @@ class _EventsDetailsState extends State<EventsDetails> {
                                           .size
                                           .height *
                                           0.03),
-                                  const Padding(
+                                  Padding(
                                     padding: EdgeInsets.only(
                                         left: 20.0,
                                         right: 20.0,
@@ -567,7 +567,7 @@ class _EventsDetailsState extends State<EventsDetails> {
                                       style: TextStyle(
                                         fontSize: 15,
                                         fontFamily: 'Inconsolata',
-                                        color: Colors.black,
+                                        color: Theme.of(context).colorScheme.onSurface,
                                       ),
                                     ),
                                   ),
@@ -582,7 +582,7 @@ class _EventsDetailsState extends State<EventsDetails> {
                                           decoration: BoxDecoration(
                                             border: Border.all(
                                                 width: 1,
-                                                color: Colors.black),
+                                                color: Theme.of(context).colorScheme.onSurface),
                                             borderRadius:
                                             BorderRadius.circular(15),
                                           ),
@@ -609,7 +609,7 @@ class _EventsDetailsState extends State<EventsDetails> {
                                           decoration: BoxDecoration(
                                             border: Border.all(
                                                 width: 1,
-                                                color: Colors.black),
+                                                color: Theme.of(context).colorScheme.onSurface),
                                             borderRadius:
                                             BorderRadius.circular(15),
                                           ),
@@ -884,7 +884,7 @@ class _EventsDetailsState extends State<EventsDetails> {
                                       ),
                                       child: Text(
                                         'Added ${event['updated_at']}',
-                                        style: const TextStyle(
+                                        style: TextStyle(
                                           fontFamily: 'Inconsolata',
                                           fontWeight: FontWeight.bold,
                                           fontSize: 16,

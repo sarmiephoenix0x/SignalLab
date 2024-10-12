@@ -6,7 +6,9 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:signal_app/sign_in_page.dart';
 
 class ForgotPassword extends StatefulWidget {
-  const ForgotPassword({super.key});
+  final Function(bool) onToggleDarkMode;
+  final bool isDarkMode;
+  const ForgotPassword({super.key, required this.onToggleDarkMode, required this.isDarkMode});
 
   @override
   ForgotPasswordState createState() => ForgotPasswordState();
@@ -162,7 +164,8 @@ class ForgotPasswordState extends State<ForgotPassword>
       Navigator.push(
         context,
         MaterialPageRoute(
-          builder: (context) => SignInPage(key: UniqueKey()),
+          builder: (context) => SignInPage(key: UniqueKey(), onToggleDarkMode: widget.onToggleDarkMode,
+              isDarkMode: widget.isDarkMode),
         ),
       );
     } else {
@@ -234,7 +237,7 @@ class ForgotPasswordState extends State<ForgotPassword>
                     ),
                   ),
                   const Spacer(),
-                  const Expanded(
+                  Expanded(
                     flex: 10,
                     child: Text(
                       'Forgot Password',
@@ -243,7 +246,7 @@ class ForgotPasswordState extends State<ForgotPassword>
                         fontFamily: 'Inter',
                         fontWeight: FontWeight.bold,
                         fontSize: 22.0,
-                        color: Colors.black,
+                        color: Theme.of(context).colorScheme.onSurface,
                       ),
                     ),
                   ),
@@ -255,8 +258,8 @@ class ForgotPasswordState extends State<ForgotPassword>
                 .of(context)
                 .size
                 .height * 0.05),
-            const Padding(
-              padding: EdgeInsets.symmetric(horizontal: 20.0),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20.0),
               child: Text(
                 'Email',
                 textAlign: TextAlign.start,
@@ -264,7 +267,7 @@ class ForgotPasswordState extends State<ForgotPassword>
                   fontFamily: 'Inter',
                   fontWeight: FontWeight.w600,
                   fontSize: 16.0,
-                  color: Colors.black,
+                  color: Theme.of(context).colorScheme.onSurface,
                 ),
               ),
             ),
@@ -289,20 +292,20 @@ class ForgotPasswordState extends State<ForgotPassword>
                   ),
                   focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(15),
-                    borderSide: const BorderSide(
-                      color: Colors.black,
+                    borderSide: BorderSide(
+                      color: Theme.of(context).colorScheme.onSurface,
                     ),
                   ),
                 ),
-                cursorColor: Colors.black,
+                cursorColor: Theme.of(context).colorScheme.onSurface,
               ),
             ),
             SizedBox(height: MediaQuery
                 .of(context)
                 .size
                 .height * 0.02),
-            const Padding(
-              padding: EdgeInsets.symmetric(horizontal: 20.0),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20.0),
               child: Text(
                 'Token',
                 textAlign: TextAlign.start,
@@ -310,7 +313,7 @@ class ForgotPasswordState extends State<ForgotPassword>
                   fontFamily: 'Inter',
                   fontWeight: FontWeight.w600,
                   fontSize: 16.0,
-                  color: Colors.black,
+                  color: Theme.of(context).colorScheme.onSurface,
                 ),
               ),
             ),
@@ -335,12 +338,12 @@ class ForgotPasswordState extends State<ForgotPassword>
                   ),
                   focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(15),
-                    borderSide: const BorderSide(
-                      color: Colors.black,
+                    borderSide: BorderSide(
+                      color: Theme.of(context).colorScheme.onSurface,
                     ),
                   ),
                 ),
-                cursorColor: Colors.black,
+                cursorColor: Theme.of(context).colorScheme.onSurface,
               ),
             ),
             SizedBox(height: MediaQuery
@@ -394,8 +397,8 @@ class ForgotPasswordState extends State<ForgotPassword>
                 .of(context)
                 .size
                 .height * 0.02),
-            const Padding(
-              padding: EdgeInsets.symmetric(horizontal: 20.0),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20.0),
               child: Text(
                 'New Password',
                 textAlign: TextAlign.start,
@@ -403,7 +406,7 @@ class ForgotPasswordState extends State<ForgotPassword>
                   fontFamily: 'Inter',
                   fontWeight: FontWeight.w600,
                   fontSize: 16.0,
-                  color: Colors.black,
+                  color: Theme.of(context).colorScheme.onSurface,
                 ),
               ),
             ),
@@ -428,8 +431,8 @@ class ForgotPasswordState extends State<ForgotPassword>
                     ),
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(15),
-                      borderSide: const BorderSide(
-                        color: Colors.black,
+                      borderSide: BorderSide(
+                        color: Theme.of(context).colorScheme.onSurface,
                       ),
                     ),
                     suffixIcon: IconButton(
@@ -442,7 +445,7 @@ class ForgotPasswordState extends State<ForgotPassword>
                         });
                       },
                     )),
-                cursorColor: Colors.black,
+                cursorColor: Theme.of(context).colorScheme.onSurface,
                 obscureText: !_isPasswordVisible,
                 obscuringCharacter: "*",
               ),
@@ -451,8 +454,8 @@ class ForgotPasswordState extends State<ForgotPassword>
                 .of(context)
                 .size
                 .height * 0.02),
-            const Padding(
-              padding: EdgeInsets.symmetric(horizontal: 20.0),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20.0),
               child: Text(
                 'Retype Password',
                 textAlign: TextAlign.start,
@@ -460,7 +463,7 @@ class ForgotPasswordState extends State<ForgotPassword>
                   fontFamily: 'Inter',
                   fontWeight: FontWeight.w600,
                   fontSize: 16.0,
-                  color: Colors.black,
+                  color: Theme.of(context).colorScheme.onSurface,
                 ),
               ),
             ),
@@ -485,8 +488,8 @@ class ForgotPasswordState extends State<ForgotPassword>
                     ),
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(15),
-                      borderSide: const BorderSide(
-                        color: Colors.black,
+                      borderSide: BorderSide(
+                        color: Theme.of(context).colorScheme.onSurface,
                       ),
                     ),
                     suffixIcon: IconButton(
@@ -499,7 +502,7 @@ class ForgotPasswordState extends State<ForgotPassword>
                         });
                       },
                     )),
-                cursorColor: Colors.black,
+                cursorColor: Theme.of(context).colorScheme.onSurface,
                 obscureText: !_isPasswordVisible2,
                 obscuringCharacter: "*",
               ),
