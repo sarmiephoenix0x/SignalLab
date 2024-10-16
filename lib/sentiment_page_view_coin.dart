@@ -418,7 +418,8 @@ class _SentimentViewCoinState extends State<SentimentViewCoin>
         return Scaffold(
           body: loading
               ? Center(
-                  child: CircularProgressIndicator(color: Theme.of(context).colorScheme.onSurface))
+                  child: CircularProgressIndicator(
+                      color: Theme.of(context).colorScheme.onSurface))
               : Center(
                   child: RefreshIndicator(
                     onRefresh: _refreshData,
@@ -430,8 +431,8 @@ class _SentimentViewCoinState extends State<SentimentViewCoin>
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               SizedBox(
-                                  height:
-                                      MediaQuery.of(context).size.height * 0.1),
+                                  height: MediaQuery.of(context).size.height *
+                                      0.05),
                               Padding(
                                 padding: const EdgeInsets.symmetric(
                                     horizontal: 20.0),
@@ -442,7 +443,9 @@ class _SentimentViewCoinState extends State<SentimentViewCoin>
                                         Navigator.pop(context);
                                       },
                                       child: Image.asset(
-                                          'images/tabler_arrow-back.png',height:50,),
+                                        'images/tabler_arrow-back.png',
+                                        height: 50,
+                                      ),
                                     ),
                                     const Spacer(),
                                     Expanded(
@@ -454,7 +457,9 @@ class _SentimentViewCoinState extends State<SentimentViewCoin>
                                           fontFamily: 'Inconsolata',
                                           fontWeight: FontWeight.bold,
                                           fontSize: 22,
-                                          color: Theme.of(context).colorScheme.onSurface,
+                                          color: Theme.of(context)
+                                              .colorScheme
+                                              .onSurface,
                                         ),
                                       ),
                                     ),
@@ -464,11 +469,13 @@ class _SentimentViewCoinState extends State<SentimentViewCoin>
                               ),
                               SizedBox(
                                   height: MediaQuery.of(context).size.height *
-                                      0.05),
+                                      0.001),
                               if (loading)
                                 Center(
                                   child: CircularProgressIndicator(
-                                      color: Theme.of(context).colorScheme.onSurface),
+                                      color: Theme.of(context)
+                                          .colorScheme
+                                          .onSurface),
                                 )
                               else if (errorMessage != null)
                                 Center(
@@ -492,7 +499,9 @@ class _SentimentViewCoinState extends State<SentimentViewCoin>
                                             fontFamily: 'Inconsolata',
                                             fontWeight: FontWeight.bold,
                                             fontSize: 18,
-                                            color: Theme.of(context).colorScheme.onSurface,
+                                            color: Theme.of(context)
+                                                .colorScheme
+                                                .onSurface,
                                           ),
                                         ),
                                       ),
@@ -523,7 +532,9 @@ class _SentimentViewCoinState extends State<SentimentViewCoin>
                                           fontFamily: 'Inconsolata',
                                           fontWeight: FontWeight.bold,
                                           fontSize: 16,
-                                          color: Theme.of(context).colorScheme.onSurface,
+                                          color: Theme.of(context)
+                                              .colorScheme
+                                              .onSurface,
                                         ),
                                       ),
                                     ),
@@ -538,7 +549,9 @@ class _SentimentViewCoinState extends State<SentimentViewCoin>
                                         style: TextStyle(
                                           fontFamily: 'Inconsolata',
                                           fontSize: 14,
-                                          color: Theme.of(context).colorScheme.onSurface,
+                                          color: Theme.of(context)
+                                              .colorScheme
+                                              .onSurface,
                                         ),
                                       ),
                                     ),
@@ -559,7 +572,9 @@ class _SentimentViewCoinState extends State<SentimentViewCoin>
                                         style: TextStyle(
                                           fontFamily: 'Inconsolata',
                                           fontSize: 14,
-                                          color: Theme.of(context).colorScheme.onSurface,
+                                          color: Theme.of(context)
+                                              .colorScheme
+                                              .onSurface,
                                         ),
                                       ),
                                     ),
@@ -585,7 +600,9 @@ class _SentimentViewCoinState extends State<SentimentViewCoin>
                                               style: TextStyle(
                                                 fontFamily: 'Inconsolata',
                                                 fontSize: 14,
-                                                color: Theme.of(context).colorScheme.onSurface,
+                                                color: Theme.of(context)
+                                                    .colorScheme
+                                                    .onSurface,
                                               ),
                                             ),
                                           ),
@@ -800,7 +817,8 @@ class _SentimentViewCoinState extends State<SentimentViewCoin>
         padding: const EdgeInsets.symmetric(horizontal: 20.0),
         child: Container(
           decoration: BoxDecoration(
-            border: Border.all(width: 1, color: Theme.of(context).colorScheme.onSurface),
+            border: Border.all(
+                width: 1, color: Theme.of(context).colorScheme.onSurface),
             borderRadius: BorderRadius.circular(25),
             color: Theme.of(context).colorScheme.onSurface,
           ),
@@ -851,7 +869,8 @@ class _SentimentViewCoinState extends State<SentimentViewCoin>
         padding: const EdgeInsets.symmetric(horizontal: 20.0),
         child: Container(
           decoration: BoxDecoration(
-            border: Border.all(width: 1, color: Theme.of(context).colorScheme.onSurface),
+            border: Border.all(
+                width: 1, color: Theme.of(context).colorScheme.onSurface),
             borderRadius: BorderRadius.circular(25),
             color: Theme.of(context).colorScheme.onSurface,
           ),

@@ -48,7 +48,7 @@ class NewsDetailsState extends State<NewsDetails> {
               Image.asset(
                 'images/share-box-line.png',
                 height: 25,
-                color:Theme.of(context).colorScheme.onSurface,
+                color: Theme.of(context).colorScheme.onSurface,
               ),
               SizedBox(
                 width: MediaQuery.of(context).size.width * 0.05,
@@ -71,7 +71,7 @@ class NewsDetailsState extends State<NewsDetails> {
               Image.asset(
                 'images/feedback-line.png',
                 height: 25,
-                color:Theme.of(context).colorScheme.onSurface,
+                color: Theme.of(context).colorScheme.onSurface,
               ),
               SizedBox(
                 width: MediaQuery.of(context).size.width * 0.05,
@@ -94,7 +94,7 @@ class NewsDetailsState extends State<NewsDetails> {
               Image.asset(
                 'images/save-line.png',
                 height: 25,
-                color:Theme.of(context).colorScheme.onSurface,
+                color: Theme.of(context).colorScheme.onSurface,
               ),
               SizedBox(
                 width: MediaQuery.of(context).size.width * 0.05,
@@ -117,7 +117,7 @@ class NewsDetailsState extends State<NewsDetails> {
               Image.asset(
                 'images/basketball-line.png',
                 height: 25,
-                color:Theme.of(context).colorScheme.onSurface,
+                color: Theme.of(context).colorScheme.onSurface,
               ),
               SizedBox(
                 width: MediaQuery.of(context).size.width * 0.05,
@@ -792,162 +792,106 @@ class NewsDetailsState extends State<NewsDetails> {
                             ),
                           ),
                           Positioned(
-                            bottom: 0,
-                            child: Container(
-                              height:
-                                  (70 / MediaQuery.of(context).size.height) *
-                                      MediaQuery.of(context).size.height,
-                              padding: const EdgeInsets.all(12.0),
-                              decoration: BoxDecoration(
-                                color: Colors.white,
-                                border: Border.all(
-                                    width: 0,
-                                    color: Theme.of(context)
-                                        .colorScheme
-                                        .onSurface),
-                                borderRadius: BorderRadius.circular(15),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: Colors.grey.withOpacity(0.5),
-                                    spreadRadius: 3,
-                                    blurRadius: 5,
-                                  ),
-                                ],
-                              ),
-                              child: SizedBox(
-                                width: MediaQuery.of(context).size.width,
-                                child: Padding(
-                                  padding: const EdgeInsets.symmetric(
-                                      horizontal: 20.0),
-                                  child: Row(children: [
-                                    Row(
-                                      children: [
-                                        IconButton(
-                                          icon: Icon(
-                                              isLiked
-                                                  ? Icons.favorite
-                                                  : Icons.favorite_border,
-                                              color: isLiked
-                                                  ? Colors.red
-                                                  : Colors.black),
-                                          onPressed: () {
-                                            if (!isLiked) {
-                                              vote();
-                                            }
-                                          },
-                                        ),
-                                        Text(
-                                          _formatUpvotes(news['upvotes']),
-                                          style: const TextStyle(
-                                            fontFamily: 'Inconsolata',
-                                            fontSize: 15,
-                                            fontWeight: FontWeight.bold,
-                                            color: Colors.black,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                    SizedBox(
-                                        width:
-                                            MediaQuery.of(context).size.width *
-                                                0.06),
-                                    Row(
-                                      children: [
-                                        IconButton(
-                                          icon: const Icon(Icons.comment,
-                                              color: Colors.black),
-                                          onPressed: () {},
-                                        ),
-                                        const Text(
-                                          '0',
-                                          style: TextStyle(
-                                            fontFamily: 'Inconsolata',
-                                            fontSize: 15,
-                                            fontWeight: FontWeight.bold,
-                                            color: Colors.black,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                    const Spacer(),
-                                    IconButton(
-                                      icon: Icon(
-                                          isBookmarked
-                                              ? Icons.bookmark
-                                              : Icons.bookmark_border,
-                                          color: isBookmarked
-                                              ? Colors.blue
-                                              : Colors.black),
+                            bottom:
+                                20, // Distance from the bottom of the screen
+                            right:
+                                20, // Distance from the right side of the screen
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                // Like button with number
+                                Column(
+                                  children: [
+                                    FloatingActionButton(
                                       onPressed: () {
-                                        if (isBookmarked == false) {
-                                          addBookmark("news");
-                                        } else if (isBookmarked == true) {
-                                          removeBookmark();
+                                        if (!isLiked) {
+                                          vote();
                                         }
                                       },
+                                      backgroundColor: isLiked
+                                          ? Colors.red
+                                          : Colors.grey.shade300,
+                                      mini: true,
+                                      child: Icon(
+                                        isLiked
+                                            ? Icons.favorite
+                                            : Icons.favorite_border,
+                                        color: Colors.white,
+                                        size: 20,
+                                      ),
                                     ),
-                                    // Expanded(
-                                    //   child: Stack(
-                                    //     children: [
-                                    //       Container(
-                                    //         decoration: BoxDecoration(
-                                    //           color:
-                                    //               Colors.grey.withOpacity(0.1),
-                                    //           borderRadius:
-                                    //               BorderRadius.circular(25),
-                                    //         ),
-                                    //         child: SingleChildScrollView(
-                                    //           child: TextFormField(
-                                    //             keyboardType:
-                                    //                 TextInputType.multiline,
-                                    //             maxLines: null,
-                                    //             controller: commentController,
-                                    //             focusNode: _commentFocusNode,
-                                    //             style: const TextStyle(
-                                    //               fontSize: 16.0,
-                                    //               decoration:
-                                    //                   TextDecoration.none,
-                                    //             ),
-                                    //             decoration:
-                                    //                 const InputDecoration(
-                                    //               contentPadding:
-                                    //                   EdgeInsets.only(
-                                    //                       left: 20,
-                                    //                       right: 65,
-                                    //                       bottom: 20,
-                                    //                       top: 0),
-                                    //               labelText: 'Write a comment',
-                                    //               labelStyle: TextStyle(
-                                    //                 color: Colors.grey,
-                                    //                 fontFamily: 'Inter',
-                                    //                 fontSize: 16.0,
-                                    //               ),
-                                    //               floatingLabelBehavior:
-                                    //                   FloatingLabelBehavior
-                                    //                       .never,
-                                    //               border: InputBorder.none,
-                                    //             ),
-                                    //             cursorColor: Colors.black,
-                                    //           ),
-                                    //         ),
-                                    //       ),
-                                    //       Positioned(
-                                    //         top: 0,
-                                    //         right: MediaQuery.of(context)
-                                    //                 .padding
-                                    //                 .left +
-                                    //             10,
-                                    //         bottom: 0,
-                                    //         child: Image.asset(
-                                    //           'images/user-smile-line.png',
-                                    //         ),
-                                    //       ),
-                                    //     ],
-                                    //   ),
-                                    // ),
-                                  ]),
+                                    const SizedBox(
+                                        height:
+                                            4), // Space between FAB and number
+                                    Text(
+                                      _formatUpvotes(news[
+                                          'upvotes']), // Use your existing method
+                                      style: const TextStyle(
+                                        fontFamily: 'Inconsolata',
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                  ],
                                 ),
-                              ),
+                                const SizedBox(
+                                    height:
+                                        16), // Space between Like and Comment sections
+
+                                // Comment button with number
+                                Column(
+                                  children: [
+                                    FloatingActionButton(
+                                      onPressed: () {
+                                        // Action to open comments section
+                                      },
+                                      backgroundColor: Colors.grey.shade300,
+                                      mini: true,
+                                      child: const Icon(
+                                        Icons.comment,
+                                        color: Colors.white,
+                                        size: 20,
+                                      ),
+                                    ),
+                                    const SizedBox(
+                                        height:
+                                            4), // Space between FAB and number
+                                    const Text(
+                                      '0', // Replace with dynamic comment count
+                                      style: TextStyle(
+                                        fontFamily: 'Inconsolata',
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(
+                                    height:
+                                        16), // Space between Comment and Bookmark sections
+
+                                // Bookmark button (no number needed for bookmark)
+                                FloatingActionButton(
+                                  onPressed: () {
+                                    if (!isBookmarked) {
+                                      addBookmark("news");
+                                    } else {
+                                      removeBookmark();
+                                    }
+                                  },
+                                  backgroundColor: isBookmarked
+                                      ? Colors.blue
+                                      : Colors.grey.shade300,
+                                  mini: true,
+                                  child: Icon(
+                                    isBookmarked
+                                        ? Icons.bookmark
+                                        : Icons.bookmark_border,
+                                    color: Colors.white,
+                                    size: 20,
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
                         ],
