@@ -71,8 +71,9 @@ class _MainAppState extends State<MainApp> with TickerProviderStateMixin {
   bool isLoading = false;
   final ScrollController _scrollController = ScrollController();
   bool _isRefreshing = false;
-  bool loading = false;
-  bool loading2 = false;
+  bool loadingNews = false;
+  bool loadingLatestNews = false;
+  bool loadingCourse = false;
   bool loading3 = false;
   int _eduIndex = 0;
   String? errorMessage;
@@ -101,19 +102,20 @@ class _MainAppState extends State<MainApp> with TickerProviderStateMixin {
   bool isFetchingCourse = false; // To prevent multiple fetch calls
   ScrollController _courseScrollController = ScrollController();
   ScrollController _signalScrollController = ScrollController();
+  bool loadingMoreCourses = false;
+  bool loadingMoreNews = false;
+  bool _isLoadingMoreCourses = false;
+  bool _isLoadingMoreNews = false;
+  bool _hasMoreCourses = true;
+  bool _hasMoreNews = true;
 
   @override
   void initState() {
     super.initState();
-    _pageController.addListener(() {
-      setState(() {
-        _currentPage = _pageController.page!.round(); // Update current page
-      });
-    });
     _initializePrefs();
-    fetchCourses();
-    fetchNews();
-    //fetchLatestNews();
+    fetchCourses(isRefresh: true);
+    fetchNews(isRefresh: true);
+    fetchLatestNews();
     homeTab = TabController(length: 2, vsync: this);
     homeTab!.addListener(() {
       setState(() {
@@ -125,48 +127,9 @@ class _MainAppState extends State<MainApp> with TickerProviderStateMixin {
     _signalsFuture2 = _fetchInitialSignals('forex');
     _signalsFuture3 = _fetchInitialSignals('stocks');
     _signalScrollController.addListener(_onScroll);
-    _newsScrollController.addListener(() {
-      if (_newsScrollController.offset <= 0) {
-        if (_isRefreshing) {
-          // Logic to cancel refresh if needed
-          setState(() {
-            _isRefreshing = false;
-          });
-        }
-      }
-      if (_newsScrollController.position.pixels ==
-          _newsScrollController.position.maxScrollExtent) {
-        // Check if we can load more
-        if (!isFetchingNews && currentNewsPage < totalNewsPages) {
-          isFetchingNews = true; // Prevent multiple fetches
-          fetchNews(page: currentNewsPage + 1).then((_) {
-            isFetchingNews = false; // Reset fetching flag after data is fetched
-          });
-        }
-      }
-    });
+    _newsScrollController.addListener(_onScrollNews);
 
-    _courseScrollController.addListener(() {
-      if (_courseScrollController.offset <= 0) {
-        if (_isRefreshing) {
-          // Logic to cancel refresh if needed
-          setState(() {
-            _isRefreshing = false;
-          });
-        }
-      }
-      if (_courseScrollController.position.pixels ==
-          _courseScrollController.position.maxScrollExtent) {
-        // Check if we can load more
-        if (!isFetchingCourse && currentCoursePage < totalCoursePages) {
-          isFetchingCourse = true; // Prevent multiple fetches
-          fetchCourses(page: currentCoursePage + 1).then((_) {
-            isFetchingCourse =
-                false; // Reset fetching flag after data is fetched
-          });
-        }
-      }
-    });
+    _courseScrollController.addListener(_onScrollCourse);
     _scrollController.addListener(() {
       if (_scrollController.offset <= 0) {
         if (_isRefreshing) {
@@ -181,7 +144,6 @@ class _MainAppState extends State<MainApp> with TickerProviderStateMixin {
 
 // Initialize the BannerAd only once
   void _initializeAd(int index) {
-    // If an ad is already created for this index, do not recreate it
     if (_bannerAds[index] != null) return;
 
     _bannerAds[index] = BannerAd(
@@ -247,11 +209,13 @@ class _MainAppState extends State<MainApp> with TickerProviderStateMixin {
   List<Map<String, dynamic>> news = [];
   List<Map<String, dynamic>> latestNews = [];
 
-  Future<void> fetchCourses({int page = 1}) async {
+  Future<void> fetchCourses({int page = 1, bool isRefresh = false}) async {
     if (mounted) {
       setState(() {
-        loading2 = true;
-        errorMessage = null; // Reset error message before fetch
+        if (isRefresh) {
+          loadingCourse = true;
+        }
+        errorMessage = null;
       });
     }
 
@@ -272,20 +236,23 @@ class _MainAppState extends State<MainApp> with TickerProviderStateMixin {
 
         if (mounted) {
           setState(() {
-            courses.addAll(fetchedCourses); // Append new data to the list
-            totalCoursePages =
-                responseData['pagination']['total_pages']; // Update total pages
-            currentCoursePage = page; // Update current page
-            loading2 = false;
+            if (isRefresh) {
+              courses.clear();
+            }
+            courses.addAll(fetchedCourses);
+            totalCoursePages = responseData['pagination']['total_pages'];
+            currentCoursePage = page;
+            _hasMoreCourses =
+                responseData['pagination']['next_page_url'] != null;
+            loadingCourse = false;
           });
         }
         print("Courses Loaded");
-      } else if (response.statusCode == 400 || response.statusCode == 404) {
+      } else {
         final message = json.decode(response.body)['message'];
-        print('Error: $message');
         if (mounted) {
           setState(() {
-            loading2 = false;
+            loadingCourse = false;
             errorMessage = message;
           });
         }
@@ -293,7 +260,7 @@ class _MainAppState extends State<MainApp> with TickerProviderStateMixin {
     } catch (e) {
       if (mounted) {
         setState(() {
-          loading2 = false;
+          loadingCourse = false;
           errorMessage =
               'Failed to load data. Please check your network connection.';
         });
@@ -302,10 +269,31 @@ class _MainAppState extends State<MainApp> with TickerProviderStateMixin {
     }
   }
 
-  Future<void> fetchNews({int page = 1}) async {
+  Future<void> _fetchMoreCourses() async {
+    if (_isLoadingMoreCourses || !_hasMoreCourses) return;
+
+    setState(() {
+      _isLoadingMoreCourses = true;
+    });
+
+    try {
+      currentCoursePage++;
+      await fetchCourses(page: currentCoursePage); // No need to store result
+    } catch (e) {
+      print('Error fetching more signals: $e');
+    } finally {
+      setState(() {
+        _isLoadingMoreCourses = false;
+      });
+    }
+  }
+
+  Future<void> fetchNews({int page = 1, bool isRefresh = false}) async {
     if (mounted) {
       setState(() {
-        loading = true;
+        if (isRefresh) {
+          loadingNews = true;
+        }
         errorMessage = null; // Reset error message before fetch
       });
     }
@@ -327,22 +315,27 @@ class _MainAppState extends State<MainApp> with TickerProviderStateMixin {
 
         if (mounted) {
           setState(() {
+            if (isRefresh) {
+              news.clear();
+            }
             news.addAll(fetchedNews); // Append new data to the list
             totalNewsPages =
                 responseData['pagination']['total_pages']; // Update total pages
             currentNewsPage = page; // Update current page
-            loading = false;
+            _hasMoreNews = responseData['pagination']['next_page_url'] !=
+                null; // Check if there's more data
+            loadingNews = false;
           });
         }
         print('Total News Length: ${news.length}');
-        adIndices =
-            getAdIndices(news.length, minCardsBetweenAds, maxRandomCards);
+        adIndices = getAdIndices(news.length, minCardsBetweenAds,
+            maxRandomCards); // Update ad positions
         print('Generated Ad Indices: $adIndices');
         print("News Loaded");
       } else if (response.statusCode == 400 || response.statusCode == 404) {
         if (mounted) {
           setState(() {
-            loading = false;
+            loadingNews = false;
             errorMessage = json.decode(response.body)['message'];
           });
         }
@@ -351,7 +344,7 @@ class _MainAppState extends State<MainApp> with TickerProviderStateMixin {
     } catch (e) {
       if (mounted) {
         setState(() {
-          loading = false;
+          loadingNews = false;
           errorMessage =
               'Failed to load data. Please check your network connection.';
         });
@@ -360,10 +353,30 @@ class _MainAppState extends State<MainApp> with TickerProviderStateMixin {
     }
   }
 
+  Future<void> _fetchMoreNews() async {
+    if (_isLoadingMoreNews || !_hasMoreNews)
+      return; // Prevent further loading if already loading or no more data
+
+    setState(() {
+      _isLoadingMoreNews = true;
+    });
+
+    try {
+      currentNewsPage++; // Move to the next page
+      await fetchNews(page: currentNewsPage); // Fetch the next page of news
+    } catch (e) {
+      print('Error fetching more news: $e');
+    } finally {
+      setState(() {
+        _isLoadingMoreNews = false; // Stop the loading spinner
+      });
+    }
+  }
+
   Future<void> fetchLatestNews() async {
     if (mounted) {
       setState(() {
-        loading = true;
+        loadingLatestNews = true;
         errorMessage = null; // Reset error message before fetch
       });
     }
@@ -383,13 +396,13 @@ class _MainAppState extends State<MainApp> with TickerProviderStateMixin {
           final newsData =
               List<Map<String, dynamic>>.from(json.decode(response.body));
           latestNews = newsData; // Store all news items
-          loading = false;
+          loadingLatestNews = false;
           print("Latest News Loaded");
         }
       } else if (response.statusCode == 400 || response.statusCode == 404) {
         if (mounted) {
           setState(() {
-            loading = false;
+            loadingLatestNews = false;
             errorMessage = json.decode(response.body)['message'];
           });
         }
@@ -398,7 +411,7 @@ class _MainAppState extends State<MainApp> with TickerProviderStateMixin {
     } catch (e) {
       if (mounted) {
         setState(() {
-          loading = false;
+          loadingLatestNews = false;
           errorMessage =
               'Failed to load data. Please check your network connection.';
         });
@@ -480,6 +493,23 @@ class _MainAppState extends State<MainApp> with TickerProviderStateMixin {
       } else if (signalTab!.index == 2) {
         _fetchMoreSignals('stocks');
       }
+    }
+  }
+
+  void _onScrollCourse() {
+    if (_courseScrollController.position.pixels >=
+            _courseScrollController.position.maxScrollExtent - 200 &&
+        !_isLoadingMoreCourses) {
+      _fetchMoreCourses();
+    }
+  }
+
+  void _onScrollNews() {
+    if (_newsScrollController.position.pixels >=
+            _newsScrollController.position.maxScrollExtent - 200 &&
+        !_isLoadingMoreNews) {
+      fetchLatestNews();
+      _fetchMoreNews();
     }
   }
 
@@ -820,8 +850,8 @@ class _MainAppState extends State<MainApp> with TickerProviderStateMixin {
       await _details();
       userName = await getUserName();
       userBalance = await getUserBalance();
-      await fetchCourses();
-      await fetchNews();
+      await fetchCourses(isRefresh: true);
+      await fetchNews(isRefresh: true);
     } else if (_currentBottomIndex == 1) {
       if (signalTab!.index == 0) {
         _fetchMoreSignals('crypto');
@@ -832,9 +862,9 @@ class _MainAppState extends State<MainApp> with TickerProviderStateMixin {
       }
       // await Future.wait([_signalsFuture1, _signalsFuture2, _signalsFuture3]);
     } else if (_currentBottomIndex == 2) {
-      await fetchNews();
+      await fetchNews(isRefresh: true);
     } else if (_currentBottomIndex == 3) {
-      await fetchCourses();
+      await fetchCourses(isRefresh: true);
     } else if (_currentBottomIndex == 4) {
       await _details();
       userName = await getUserName();
@@ -2135,7 +2165,7 @@ class _MainAppState extends State<MainApp> with TickerProviderStateMixin {
                                 child: TabBarView(
                                   controller: homeTab,
                                   children: [
-                                    if (loading)
+                                    if (loadingNews)
                                       Center(
                                         child: CircularProgressIndicator(
                                             color: Theme.of(context)
@@ -2158,7 +2188,10 @@ class _MainAppState extends State<MainApp> with TickerProviderStateMixin {
                                             ),
                                             const SizedBox(height: 16),
                                             ElevatedButton(
-                                              onPressed: _refreshData,
+                                              onPressed: () async {
+                                                await fetchNews(
+                                                    isRefresh: true);
+                                              },
                                               child: Text(
                                                 'Retry',
                                                 style: TextStyle(
@@ -2177,9 +2210,8 @@ class _MainAppState extends State<MainApp> with TickerProviderStateMixin {
                                     else
                                       ListView.builder(
                                         controller: _newsScrollController,
-                                        itemCount: news.length +
-                                            (loading ? 1 : 0) +
-                                            adIndices.length,
+                                        itemCount:
+                                            news.length + adIndices.length,
                                         itemBuilder: (context, index) {
                                           int actualIndex = index;
                                           int adCount = adIndices
@@ -2189,10 +2221,19 @@ class _MainAppState extends State<MainApp> with TickerProviderStateMixin {
                                           final newsIndex =
                                               actualIndex - adCount;
 
+                                          // Display loader as the last item if loading is true
+                                          if (_isLoadingMoreNews &&
+                                              index ==
+                                                  news.length +
+                                                      adIndices.length) {
+                                            return const Center(
+                                                child:
+                                                    CircularProgressIndicator());
+                                          }
+
                                           // Check if the current index should display an ad
                                           if (adIndices.contains(actualIndex)) {
                                             _initializeAd(actualIndex);
-                                            // Display the ad for this index if it's available
                                             BannerAd? bannerAd =
                                                 _bannerAds[actualIndex];
                                             return Padding(
@@ -2212,16 +2253,7 @@ class _MainAppState extends State<MainApp> with TickerProviderStateMixin {
                                           // Ensure that we do not access out of bounds for news items
                                           if (newsIndex >= news.length) {
                                             return const SizedBox
-                                                .shrink(); // or handle it differently if needed
-                                          }
-
-                                          if (loading &&
-                                              index ==
-                                                  news.length +
-                                                      adIndices.length) {
-                                            return const Center(
-                                                child:
-                                                    CircularProgressIndicator());
+                                                .shrink(); // Handle out of bounds differently if needed
                                           }
 
                                           // Display the news card
@@ -2233,7 +2265,7 @@ class _MainAppState extends State<MainApp> with TickerProviderStateMixin {
                                           );
                                         },
                                       ),
-                                    if (loading2)
+                                    if (loadingCourse)
                                       Center(
                                         child: CircularProgressIndicator(
                                             color: Theme.of(context)
@@ -2256,7 +2288,10 @@ class _MainAppState extends State<MainApp> with TickerProviderStateMixin {
                                             ),
                                             const SizedBox(height: 16),
                                             ElevatedButton(
-                                              onPressed: _refreshData,
+                                              onPressed: () async {
+                                                await fetchCourses(
+                                                    isRefresh: true);
+                                              },
                                               child: Text(
                                                 'Retry',
                                                 style: TextStyle(
@@ -2275,10 +2310,10 @@ class _MainAppState extends State<MainApp> with TickerProviderStateMixin {
                                     else
                                       ListView.builder(
                                         controller: _courseScrollController,
-                                        itemCount:
-                                            courses.length + (loading ? 1 : 0),
+                                        itemCount: courses.length,
                                         itemBuilder: (context, index) {
-                                          if (index == courses.length) {
+                                          if (_isLoadingMoreCourses &&
+                                              index == courses.length) {
                                             // Show loading indicator at the bottom
                                             return Center(
                                                 child:
@@ -2836,6 +2871,7 @@ class _MainAppState extends State<MainApp> with TickerProviderStateMixin {
               ),
             );
           } else if (bottomIndex == 2) {
+            final isDarkMode = Theme.of(context).brightness == Brightness.dark;
             tabBarViewChildren.add(
               Expanded(
                 child: Stack(
@@ -2861,8 +2897,11 @@ class _MainAppState extends State<MainApp> with TickerProviderStateMixin {
                             height: MediaQuery.of(context).size.height * 0.02),
                         Expanded(
                           child: RefreshIndicator(
-                            onRefresh: _refreshData,
-                            child: loading
+                            onRefresh: () async {
+                              await fetchLatestNews();
+                              await fetchNews(isRefresh: true);
+                            },
+                            child: loadingNews
                                 ? Center(
                                     child: CircularProgressIndicator(
                                         color: Theme.of(context)
@@ -2885,7 +2924,10 @@ class _MainAppState extends State<MainApp> with TickerProviderStateMixin {
                                             ),
                                             const SizedBox(height: 16),
                                             ElevatedButton(
-                                              onPressed: _refreshData,
+                                              onPressed: () async {
+                                                await fetchLatestNews();
+                                                await fetchNews();
+                                              },
                                               child: Text(
                                                 'Retry',
                                                 style: TextStyle(
@@ -2904,25 +2946,80 @@ class _MainAppState extends State<MainApp> with TickerProviderStateMixin {
                                     : Column(
                                         children: [
                                           // Carousel for the latest news
-                                          SizedBox(
-                                            height:
-                                                200, // Set a height for your carousel
-                                            child: PageView.builder(
-                                              itemCount: latestNews
-                                                  .length, // Number of latest news items
-                                              itemBuilder: (context, index) {
-                                                return latestNewsCard(latestNews[
-                                                    index]); // Display each news card
-                                              },
-                                            ),
+                                          Stack(
+                                            children: [
+                                              Container(
+                                                padding:
+                                                    const EdgeInsets.all(16.0),
+                                                decoration: BoxDecoration(
+                                                  color: isDarkMode
+                                                      ? Colors.grey[900]
+                                                      : Colors.white,
+                                                  borderRadius:
+                                                      BorderRadius.circular(
+                                                          12), // Smoother corners
+                                                  boxShadow: [
+                                                    BoxShadow(
+                                                      color: Colors.grey
+                                                          .withOpacity(0.2),
+                                                      // Softer shadow for a clean look
+                                                      spreadRadius: 2,
+                                                      blurRadius: 8,
+                                                      offset: const Offset(0,
+                                                          2), // Position shadow for depth
+                                                    ),
+                                                  ],
+                                                ),
+                                                child: Padding(
+                                                  padding: const EdgeInsets
+                                                      .symmetric(
+                                                      horizontal: 20.0,
+                                                      vertical: 10.0),
+                                                  child: SizedBox(
+                                                    height: (180.0 /
+                                                            MediaQuery.of(
+                                                                    context)
+                                                                .size
+                                                                .height) *
+                                                        MediaQuery.of(context)
+                                                            .size
+                                                            .height,
+                                                    child: PageView.builder(
+                                                      itemCount: latestNews
+                                                          .length, // Number of latest news items
+                                                      itemBuilder:
+                                                          (context, index) {
+                                                        return latestNewsCard(
+                                                          latestNews[
+                                                              index], // Display each news card
+                                                        );
+                                                      },
+                                                      onPageChanged: (index) {
+                                                        setState(() {
+                                                          _currentPage =
+                                                              index; // Update the current page index
+                                                        });
+                                                      },
+                                                    ),
+                                                  ),
+                                                ),
+                                              ),
+                                              Positioned(
+                                                left: 0,
+                                                right: 0,
+                                                bottom: 20,
+                                                child: buildIndicators(),
+                                              ),
+                                            ],
                                           ),
+
                                           // ListView for other news cards and ads
                                           Expanded(
                                             child: ListView.builder(
                                               controller: _newsScrollController,
                                               itemCount: news.length +
-                                                  (loading ? 1 : 0) +
-                                                  adIndices.length,
+                                                  adIndices
+                                                      .length, // The extra loader item when loading is true
                                               itemBuilder: (context, index) {
                                                 int actualIndex = index;
                                                 int adCount = adIndices
@@ -2932,11 +3029,20 @@ class _MainAppState extends State<MainApp> with TickerProviderStateMixin {
                                                 final newsIndex =
                                                     actualIndex - adCount;
 
+                                                // Display loader as the last item if loading is true
+                                                if (_isLoadingMoreNews &&
+                                                    index ==
+                                                        news.length +
+                                                            adIndices.length) {
+                                                  return const Center(
+                                                      child:
+                                                          CircularProgressIndicator());
+                                                }
+
                                                 // Check if the current index should display an ad
                                                 if (adIndices
                                                     .contains(actualIndex)) {
                                                   _initializeAd(actualIndex);
-                                                  // Display the ad for this index if it's available
                                                   BannerAd? bannerAd =
                                                       _bannerAds[actualIndex];
                                                   return Padding(
@@ -2958,16 +3064,7 @@ class _MainAppState extends State<MainApp> with TickerProviderStateMixin {
                                                 // Ensure that we do not access out of bounds for news items
                                                 if (newsIndex >= news.length) {
                                                   return const SizedBox
-                                                      .shrink(); // or handle it differently if needed
-                                                }
-
-                                                if (loading &&
-                                                    index ==
-                                                        news.length +
-                                                            adIndices.length) {
-                                                  return const Center(
-                                                      child:
-                                                          CircularProgressIndicator());
+                                                      .shrink(); // Handle out of bounds differently if needed
                                                 }
 
                                                 // Display the news card
@@ -3018,8 +3115,10 @@ class _MainAppState extends State<MainApp> with TickerProviderStateMixin {
                             height: MediaQuery.of(context).size.height * 0.02),
                         Expanded(
                           child: RefreshIndicator(
-                            onRefresh: _refreshData,
-                            child: loading2
+                            onRefresh: () async {
+                              // await fetchCourses();
+                            },
+                            child: loadingCourse
                                 ? Center(
                                     child: CircularProgressIndicator(
                                         color: Theme.of(context)
@@ -3042,7 +3141,10 @@ class _MainAppState extends State<MainApp> with TickerProviderStateMixin {
                                             ),
                                             const SizedBox(height: 16),
                                             ElevatedButton(
-                                              onPressed: _refreshData,
+                                              onPressed: () async {
+                                                await fetchCourses(
+                                                    isRefresh: true);
+                                              },
                                               child: Text(
                                                 'Retry',
                                                 style: TextStyle(
@@ -3060,10 +3162,10 @@ class _MainAppState extends State<MainApp> with TickerProviderStateMixin {
                                       )
                                     : ListView.builder(
                                         controller: _courseScrollController,
-                                        itemCount:
-                                            courses.length + (loading ? 1 : 0),
+                                        itemCount: courses.length,
                                         itemBuilder: (context, index) {
-                                          if (index == courses.length) {
+                                          if (_isLoadingMoreCourses &&
+                                              index == courses.length) {
                                             // Show loading indicator at the bottom
                                             return Center(
                                                 child:
@@ -3705,84 +3807,66 @@ class _MainAppState extends State<MainApp> with TickerProviderStateMixin {
             ),
           );
         },
-        child: Container(
-          padding: const EdgeInsets.all(16.0),
-          decoration: BoxDecoration(
-            color: isDarkMode ? Colors.grey[900] : Colors.white,
-            borderRadius: BorderRadius.circular(12), // Smoother corners
-            boxShadow: [
-              BoxShadow(
-                color: Colors.grey.withOpacity(0.2),
-                // Softer shadow for a clean look
-                spreadRadius: 2,
-                blurRadius: 8,
-                offset: const Offset(0, 2), // Position shadow for depth
-              ),
-            ],
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            // Align content to start
-            children: [
-              Row(
-                children: [
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(55),
-                    child: Container(
-                      width: (40 / MediaQuery.of(context).size.width) *
-                          MediaQuery.of(context).size.width,
-                      height: (40 / MediaQuery.of(context).size.height) *
-                          MediaQuery.of(context).size.height,
-                      color: Colors.grey,
-                      child: Image.network(
-                        newsItem['user_profile_image'],
-                        fit: BoxFit.cover,
-                        errorBuilder: (context, error, stackTrace) {
-                          return const Icon(Icons
-                              .error); // Show an error icon if image fails to load
-                        },
-                      ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          // Align content to start
+          children: [
+            Row(
+              children: [
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(55),
+                  child: Container(
+                    width: (40 / MediaQuery.of(context).size.width) *
+                        MediaQuery.of(context).size.width,
+                    height: (40 / MediaQuery.of(context).size.height) *
+                        MediaQuery.of(context).size.height,
+                    color: Colors.grey,
+                    child: Image.network(
+                      newsItem['user_profile_image'],
+                      fit: BoxFit.cover,
+                      errorBuilder: (context, error, stackTrace) {
+                        return const Icon(Icons
+                            .error); // Show an error icon if image fails to load
+                      },
                     ),
                   ),
-                  SizedBox(
-                    width: MediaQuery.of(context).size.width * 0.02,
-                  ),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          newsItem['user'] ?? '',
-                          overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(
-                            fontSize: 16,
-                            fontFamily: 'Inter',
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const Spacer(),
-                ],
-              ),
-              const SizedBox(height: 8),
-              // Title
-              Text(
-                newsItem['title'],
-                overflow: TextOverflow.ellipsis,
-                maxLines: 2,
-                style: TextStyle(
-                  fontSize: 16,
-                  fontFamily: 'Inter',
-                  fontWeight: FontWeight.bold,
-                  color: isDarkMode ? Colors.white : Colors.black87,
                 ),
+                SizedBox(
+                  width: MediaQuery.of(context).size.width * 0.02,
+                ),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        newsItem['user'] ?? '',
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontFamily: 'Inter',
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const Spacer(),
+              ],
+            ),
+            const SizedBox(height: 8),
+            // Title
+            Text(
+              newsItem['title'],
+              overflow: TextOverflow.ellipsis,
+              maxLines: 2,
+              style: TextStyle(
+                fontSize: 16,
+                fontFamily: 'Inter',
+                fontWeight: FontWeight.bold,
+                color: isDarkMode ? Colors.white : Colors.black87,
               ),
-              const SizedBox(height: 8),
-              buildIndicators(),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
