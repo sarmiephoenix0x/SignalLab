@@ -48,7 +48,7 @@ class CardDetailsState extends State<CardDetails> {
     try {
       final String? accessToken = await storage.read(key: 'accessToken');
       final response = await http.get(
-        Uri.parse('https://script.teendev.dev/signal/api/courses/$id?id=$id'),
+        Uri.parse('https://signal.payguru.com.ng/api/courses/$id?id=$id'),
         headers: {
           'Authorization': 'Bearer $accessToken',
           'Content-Type': 'application/json',
@@ -213,7 +213,7 @@ class CardDetailsState extends State<CardDetails> {
   Future<void> addBookmark(String type) async {
     final String? accessToken = await storage.read(key: 'accessToken');
     final response = await http.post(
-      Uri.parse('https://script.teendev.dev/signal/api/bookmark/add'),
+      Uri.parse('https://signal.payguru.com.ng/api/bookmark/add'),
       headers: {
         'Authorization': 'Bearer $accessToken',
         'Content-Type': 'application/json',
@@ -251,7 +251,7 @@ class CardDetailsState extends State<CardDetails> {
   Future<void> removeBookmark() async {
     final String? accessToken = await storage.read(key: 'accessToken');
     final response = await http.post(
-      Uri.parse('https://script.teendev.dev/signal/api/bookmark/delete'),
+      Uri.parse('https://signal.payguru.com.ng/api/bookmark/delete'),
       headers: {
         'Authorization': 'Bearer $accessToken',
         'Content-Type': 'application/json',
@@ -381,7 +381,9 @@ class CardDetailsState extends State<CardDetails> {
                                         fontFamily: 'Inconsolata',
                                         fontWeight: FontWeight.bold,
                                         fontSize: 18,
-                                        color: Theme.of(context).colorScheme.onSurface,
+                                        color: Theme.of(context)
+                                            .colorScheme
+                                            .onSurface,
                                       ),
                                     ),
                                   ),
@@ -399,7 +401,8 @@ class CardDetailsState extends State<CardDetails> {
                                     fontFamily: 'Inter',
                                     fontWeight: FontWeight.bold,
                                     fontSize: 22.0,
-                                    color: Theme.of(context).colorScheme.onSurface,
+                                    color:
+                                        Theme.of(context).colorScheme.onSurface,
                                   ),
                                 ),
                               ),
@@ -525,7 +528,9 @@ class CardDetailsState extends State<CardDetails> {
                           ] else ...[
                             Center(
                                 child: CircularProgressIndicator(
-                                    color: Theme.of(context).colorScheme.onSurface)),
+                                    color: Theme.of(context)
+                                        .colorScheme
+                                        .onSurface)),
                           ],
                         ],
                       ),

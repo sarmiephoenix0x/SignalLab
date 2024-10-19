@@ -19,13 +19,12 @@ class EditProfile extends StatefulWidget {
   final Function(bool) onToggleDarkMode;
   final bool isDarkMode;
 
-  const EditProfile({
-    super.key,
-    required this.profileImgUrl,
-    required this.name,
-    required this.onToggleDarkMode,
-    required this.isDarkMode
-  });
+  const EditProfile(
+      {super.key,
+      required this.profileImgUrl,
+      required this.name,
+      required this.onToggleDarkMode,
+      required this.isDarkMode});
 
   @override
   // ignore: library_private_types_in_public_api
@@ -63,10 +62,9 @@ class _EditProfileState extends State<EditProfile> with WidgetsBindingObserver {
 
       if (decodedImage.width > maxWidth || decodedImage.height > maxHeight) {
         var cropper = ImageCropper();
-        CroppedFile? croppedImage = await cropper
-            .cropImage(
-          sourcePath: imageFile.path, 
-          aspectRatio: const CropAspectRatio(ratioX: 1, ratioY: 1),
+        CroppedFile? croppedImage = await cropper.cropImage(
+            sourcePath: imageFile.path,
+            aspectRatio: const CropAspectRatio(ratioX: 1, ratioY: 1),
             uiSettings: [
               AndroidUiSettings(
                 toolbarTitle: 'Crop Image',
@@ -110,7 +108,7 @@ class _EditProfileState extends State<EditProfile> with WidgetsBindingObserver {
       if (phoneNumber.isEmpty) {
         errorMessage += 'Please provide your phone number.\n';
       }
-      if (_profileImage.isEmpty  || _profileImage.startsWith('http')) {
+      if (_profileImage.isEmpty || _profileImage.startsWith('http')) {
         errorMessage += 'Please select a profile image.\n';
       }
 
@@ -144,7 +142,7 @@ class _EditProfileState extends State<EditProfile> with WidgetsBindingObserver {
 
       final request = http.MultipartRequest(
         'POST',
-        Uri.parse('https://script.teendev.dev/signal/api/update-profile'),
+        Uri.parse('https://signal.payguru.com.ng/api/update-profile'),
       );
 
       request.headers['Authorization'] = 'Bearer $accessToken';
@@ -207,7 +205,9 @@ class _EditProfileState extends State<EditProfile> with WidgetsBindingObserver {
             Navigator.pushReplacement(
               context,
               MaterialPageRoute(
-                  builder: (context) => MainApp(key: UniqueKey(), onToggleDarkMode: widget.onToggleDarkMode,
+                  builder: (context) => MainApp(
+                      key: UniqueKey(),
+                      onToggleDarkMode: widget.onToggleDarkMode,
                       isDarkMode: widget.isDarkMode)),
             );
           } catch (e) {
@@ -338,7 +338,8 @@ class _EditProfileState extends State<EditProfile> with WidgetsBindingObserver {
                               Navigator.pop(context);
                             },
                             child: Image.asset(
-                              'images/tabler_arrow-back.png',height:50,
+                              'images/tabler_arrow-back.png',
+                              height: 50,
                             ),
                           ),
                           const Spacer(),
@@ -492,7 +493,8 @@ class _EditProfileState extends State<EditProfile> with WidgetsBindingObserver {
                                 focusedBorder: OutlineInputBorder(
                                   borderRadius: BorderRadius.circular(15),
                                   borderSide: BorderSide(
-                                    color: Theme.of(context).colorScheme.onSurface,
+                                    color:
+                                        Theme.of(context).colorScheme.onSurface,
                                   ),
                                 ),
                                 counterText: '',

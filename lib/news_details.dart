@@ -173,7 +173,7 @@ class NewsDetailsState extends State<NewsDetails> {
 
   Future<Map<String, dynamic>?> fetchNewsDetails(int id) async {
     final String? accessToken = await storage.read(key: 'accessToken');
-    final url = 'https://script.teendev.dev/signal/api/news/$id';
+    final url = 'https://signal.payguru.com.ng/api/news/$id';
 
     try {
       final response = await http.get(
@@ -344,7 +344,7 @@ class NewsDetailsState extends State<NewsDetails> {
   Future<void> vote() async {
     final String? accessToken = await storage.read(key: 'accessToken');
     final response = await http.post(
-      Uri.parse('https://script.teendev.dev/signal/api/news/vote'),
+      Uri.parse('https://signal.payguru.com.ng/api/news/vote'),
       headers: {
         'Authorization': 'Bearer $accessToken',
         'Content-Type': 'application/json',
@@ -381,7 +381,7 @@ class NewsDetailsState extends State<NewsDetails> {
   Future<void> addBookmark(String type) async {
     final String? accessToken = await storage.read(key: 'accessToken');
     final response = await http.post(
-      Uri.parse('https://script.teendev.dev/signal/api/bookmark/add'),
+      Uri.parse('https://signal.payguru.com.ng/api/bookmark/add'),
       headers: {
         'Authorization': 'Bearer $accessToken',
         'Content-Type': 'application/json',
@@ -419,7 +419,7 @@ class NewsDetailsState extends State<NewsDetails> {
   Future<void> removeBookmark() async {
     final String? accessToken = await storage.read(key: 'accessToken');
     final response = await http.post(
-      Uri.parse('https://script.teendev.dev/signal/api/bookmark/delete'),
+      Uri.parse('https://signal.payguru.com.ng/api/bookmark/delete'),
       headers: {
         'Authorization': 'Bearer $accessToken',
         'Content-Type': 'application/json',
@@ -456,7 +456,7 @@ class NewsDetailsState extends State<NewsDetails> {
   Future<void> checkIfNewsIsBookmarked(String newsId) async {
     final String? accessToken = await storage.read(key: 'accessToken');
     final response = await http.get(
-      Uri.parse('https://script.teendev.dev/signal/api/bookmark/exist/$newsId'),
+      Uri.parse('https://signal.payguru.com.ng/api/bookmark/exist/$newsId'),
       headers: {
         'Authorization': 'Bearer $accessToken',
         'Content-Type': 'application/json',

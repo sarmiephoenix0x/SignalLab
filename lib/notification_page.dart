@@ -37,7 +37,7 @@ class NotificationPageState extends State<NotificationPage> {
 
   Future<List<Map<String, dynamic>>> fetchNotifications() async {
     final String? accessToken = await storage.read(key: 'accessToken');
-    const url = 'https://script.teendev.dev/signal/api/notifications';
+    const url = 'https://signal.payguru.com.ng/api/notifications';
     final response = await http.get(Uri.parse(url), headers: {
       'Authorization': 'Bearer $accessToken',
     });
@@ -86,15 +86,14 @@ class NotificationPageState extends State<NotificationPage> {
       // Handle cases like "5 days ago"
       if (dateString.contains('days ago')) {
         int daysAgo = int.tryParse(dateString.split(' ')[0]) ?? 0;
-        DateTime calculatedDate = DateTime.now().subtract(
-            Duration(days: daysAgo));
+        DateTime calculatedDate =
+            DateTime.now().subtract(Duration(days: daysAgo));
         return DateFormat('yMMMd').format(calculatedDate);
       }
       // If the date format is unknown, return the original string
       return dateString;
     }
   }
-
 
   Future<void> _refreshData() async {
     setState(() {
@@ -232,7 +231,8 @@ class NotificationPageState extends State<NotificationPage> {
             builder: (context, snapshot) {
               if (snapshot.connectionState == ConnectionState.waiting) {
                 return Center(
-                    child: CircularProgressIndicator(color: Theme.of(context).colorScheme.onSurface));
+                    child: CircularProgressIndicator(
+                        color: Theme.of(context).colorScheme.onSurface));
               } else if (snapshot.hasError) {
                 return Center(
                   child: Column(
@@ -313,10 +313,7 @@ class NotificationPageState extends State<NotificationPage> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       SizedBox(
-                        height: MediaQuery
-                            .of(context)
-                            .size
-                            .height * 0.1,
+                        height: MediaQuery.of(context).size.height * 0.1,
                       ),
                       Row(
                         children: [
@@ -324,7 +321,10 @@ class NotificationPageState extends State<NotificationPage> {
                             onTap: () {
                               Navigator.pop(context);
                             },
-                            child: Image.asset('images/tabler_arrow-back.png',height:50,),
+                            child: Image.asset(
+                              'images/tabler_arrow-back.png',
+                              height: 50,
+                            ),
                           ),
                           const Spacer(),
                           Text(
@@ -337,18 +337,12 @@ class NotificationPageState extends State<NotificationPage> {
                             ),
                           ),
                           SizedBox(
-                              width: MediaQuery
-                                  .of(context)
-                                  .size
-                                  .width * 0.1),
+                              width: MediaQuery.of(context).size.width * 0.1),
                           const Spacer(),
                         ],
                       ),
                       SizedBox(
-                        height: MediaQuery
-                            .of(context)
-                            .size
-                            .height * 0.05,
+                        height: MediaQuery.of(context).size.height * 0.05,
                       ),
                       ...groupedNotifications.entries.map((entry) {
                         return Column(
@@ -364,10 +358,7 @@ class NotificationPageState extends State<NotificationPage> {
                               ),
                             ),
                             SizedBox(
-                              height: MediaQuery
-                                  .of(context)
-                                  .size
-                                  .height * 0.02,
+                              height: MediaQuery.of(context).size.height * 0.02,
                             ),
                             Column(
                               children: entry.value.map((notification) {
@@ -398,15 +389,9 @@ class NotificationPageState extends State<NotificationPage> {
   Widget notificationWidget(String img, String message, String time) {
     return Row(
       children: [
-        SizedBox(width: MediaQuery
-            .of(context)
-            .size
-            .width * 0.02),
-        Image.asset(img, color:Theme.of(context).colorScheme.onSurface),
-        SizedBox(width: MediaQuery
-            .of(context)
-            .size
-            .width * 0.02),
+        SizedBox(width: MediaQuery.of(context).size.width * 0.02),
+        Image.asset(img, color: Theme.of(context).colorScheme.onSurface),
+        SizedBox(width: MediaQuery.of(context).size.width * 0.02),
         Expanded(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -422,10 +407,7 @@ class NotificationPageState extends State<NotificationPage> {
                   color: Theme.of(context).colorScheme.onSurface,
                 ),
               ),
-              SizedBox(height: MediaQuery
-                  .of(context)
-                  .size
-                  .height * 0.02),
+              SizedBox(height: MediaQuery.of(context).size.height * 0.02),
               Text(
                 time,
                 style: TextStyle(

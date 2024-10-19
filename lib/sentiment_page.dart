@@ -6,7 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart'
-as http; // import 'package:signal_app/sentiments_details.dart';
+    as http; // import 'package:signal_app/sentiments_details.dart';
 import 'package:signal_app/sentiment_page_view_coin.dart';
 import 'package:signal_app/sentiment_page_view_coin_crypto.dart';
 
@@ -98,154 +98,133 @@ class _SentimentPageState extends State<SentimentPage>
     final overlay = Overlay.of(context);
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
     _overlayEntry = OverlayEntry(
-      builder: (context) =>
-          SafeArea(
-            child: GestureDetector(
-              onTap: _removeOverlay, // Close the overlay on tap outside
-              child: Material(
-                color: Colors.black.withOpacity(0.5),
-                // Semi-transparent background
-                child: Center(
-                  child: GestureDetector(
-                    onTap: () {
-                      // Do nothing on tap inside this widget
-                    },
-                    child: Container(
-                      margin: const EdgeInsets.symmetric(
-                          horizontal: 30), // Margin to limit width
-                      padding: const EdgeInsets.only(
-                          left: 12.0, right: 12.0, top: 20.0, bottom: 20.0),
-                      decoration: BoxDecoration(
-                        color: isDarkMode ? Colors.grey[900] : Colors.white,
-                        borderRadius: BorderRadius.circular(15),
-                        boxShadow: [
-                          BoxShadow(
-                            color: isDarkMode ? Colors.grey.withOpacity(0.2) : Colors.grey.withOpacity(0.5),
-                            spreadRadius: 3,
-                            blurRadius: 5,
+      builder: (context) => SafeArea(
+        child: GestureDetector(
+          onTap: _removeOverlay, // Close the overlay on tap outside
+          child: Material(
+            color: Colors.black.withOpacity(0.5),
+            // Semi-transparent background
+            child: Center(
+              child: GestureDetector(
+                onTap: () {
+                  // Do nothing on tap inside this widget
+                },
+                child: Container(
+                  margin: const EdgeInsets.symmetric(
+                      horizontal: 30), // Margin to limit width
+                  padding: const EdgeInsets.only(
+                      left: 12.0, right: 12.0, top: 20.0, bottom: 20.0),
+                  decoration: BoxDecoration(
+                    color: isDarkMode ? Colors.grey[900] : Colors.white,
+                    borderRadius: BorderRadius.circular(15),
+                    boxShadow: [
+                      BoxShadow(
+                        color: isDarkMode
+                            ? Colors.grey.withOpacity(0.2)
+                            : Colors.grey.withOpacity(0.5),
+                        spreadRadius: 3,
+                        blurRadius: 5,
+                      ),
+                    ],
+                  ),
+                  child: SingleChildScrollView(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      // Makes container adjust height based on content
+                      children: [
+                        Text(
+                          'Filter',
+                          style: TextStyle(
+                            decoration: TextDecoration.none,
+                            fontFamily: 'Inconsolata',
+                            fontSize: 25,
+                            fontWeight: FontWeight.bold,
+                            color: Theme.of(context).colorScheme.onSurface,
                           ),
-                        ],
-                      ),
-                      child: SingleChildScrollView(
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          // Makes container adjust height based on content
-                          children: [
-                            Text(
-                              'Filter',
-                              style: TextStyle(
-                                decoration: TextDecoration.none,
-                                fontFamily: 'Inconsolata',
-                                fontSize: 25,
-                                fontWeight: FontWeight.bold,
-                                color: Theme.of(context).colorScheme.onSurface,
-                              ),
-                            ),
-                            SizedBox(
-                                height: MediaQuery
-                                    .of(context)
-                                    .size
-                                    .height * 0.05),
-                            SizedBox(
-                              width: MediaQuery
-                                  .of(context)
-                                  .size
-                                  .width,
-                              child: Row(
-                                children: [
-                                  Expanded(
-                                      flex: 10,
-                                      child: filterContents2(
-                                          'Dates', ValueNotifier<bool>(false))),
-                                  const Spacer(),
-                                  Expanded(
-                                      flex: 10,
-                                      child: filterContents2(
-                                          'Dates', ValueNotifier<bool>(false))),
-                                ],
-                              ),
-                            ),
-                            filterContents('Keywords',
-                                ValueNotifier<bool>(false)),
-                            filterContents(
-                                'Select coins', ValueNotifier<bool>(false)),
-                            filterContents(
-                                'Exchanges - All', ValueNotifier<bool>(false)),
-                            filterContents(
-                                'Categories - All', ValueNotifier<bool>(false)),
-                            filterContents('Sort by',
-                                ValueNotifier<bool>(false)),
-                            filterContents('Show only',
-                                ValueNotifier<bool>(false)),
-                            SizedBox(
-                                height: MediaQuery
-                                    .of(context)
-                                    .size
-                                    .height * 0.05),
-                            Container(
-                              width: double.infinity,
-                              height: (60 / MediaQuery
-                                  .of(context)
-                                  .size
-                                  .height) *
-                                  MediaQuery
-                                      .of(context)
-                                      .size
-                                      .height,
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 30.0),
-                              child: ElevatedButton(
-                                onPressed: () {},
-                                style: ButtonStyle(
-                                  backgroundColor:
-                                  WidgetStateProperty.resolveWith<Color>(
-                                        (Set<WidgetState> states) {
-                                      if (states.contains(
-                                          WidgetState.pressed)) {
-                                        return Colors.white;
-                                      }
-                                      return Colors.black;
-                                    },
-                                  ),
-                                  foregroundColor:
-                                  WidgetStateProperty.resolveWith<Color>(
-                                        (Set<WidgetState> states) {
-                                      if (states.contains(
-                                          WidgetState.pressed)) {
-                                        return Colors.black;
-                                      }
-                                      return Colors.white;
-                                    },
-                                  ),
-                                  elevation: WidgetStateProperty.all<double>(
-                                      4.0),
-                                  shape: WidgetStateProperty.all<
-                                      RoundedRectangleBorder>(
-                                    const RoundedRectangleBorder(
-                                      borderRadius:
-                                      BorderRadius.all(Radius.circular(15)),
-                                    ),
-                                  ),
-                                ),
-                                child: const Text(
-                                  'Proceed',
-                                  style: TextStyle(
-                                    fontSize: 18,
-                                    fontFamily: 'Inconsolata',
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ],
                         ),
-                      ),
+                        SizedBox(
+                            height: MediaQuery.of(context).size.height * 0.05),
+                        SizedBox(
+                          width: MediaQuery.of(context).size.width,
+                          child: Row(
+                            children: [
+                              Expanded(
+                                  flex: 10,
+                                  child: filterContents2(
+                                      'Dates', ValueNotifier<bool>(false))),
+                              const Spacer(),
+                              Expanded(
+                                  flex: 10,
+                                  child: filterContents2(
+                                      'Dates', ValueNotifier<bool>(false))),
+                            ],
+                          ),
+                        ),
+                        filterContents('Keywords', ValueNotifier<bool>(false)),
+                        filterContents(
+                            'Select coins', ValueNotifier<bool>(false)),
+                        filterContents(
+                            'Exchanges - All', ValueNotifier<bool>(false)),
+                        filterContents(
+                            'Categories - All', ValueNotifier<bool>(false)),
+                        filterContents('Sort by', ValueNotifier<bool>(false)),
+                        filterContents('Show only', ValueNotifier<bool>(false)),
+                        SizedBox(
+                            height: MediaQuery.of(context).size.height * 0.05),
+                        Container(
+                          width: double.infinity,
+                          height: (60 / MediaQuery.of(context).size.height) *
+                              MediaQuery.of(context).size.height,
+                          padding: const EdgeInsets.symmetric(horizontal: 30.0),
+                          child: ElevatedButton(
+                            onPressed: () {},
+                            style: ButtonStyle(
+                              backgroundColor:
+                                  WidgetStateProperty.resolveWith<Color>(
+                                (Set<WidgetState> states) {
+                                  if (states.contains(WidgetState.pressed)) {
+                                    return Colors.white;
+                                  }
+                                  return Colors.black;
+                                },
+                              ),
+                              foregroundColor:
+                                  WidgetStateProperty.resolveWith<Color>(
+                                (Set<WidgetState> states) {
+                                  if (states.contains(WidgetState.pressed)) {
+                                    return Colors.black;
+                                  }
+                                  return Colors.white;
+                                },
+                              ),
+                              elevation: WidgetStateProperty.all<double>(4.0),
+                              shape: WidgetStateProperty.all<
+                                  RoundedRectangleBorder>(
+                                const RoundedRectangleBorder(
+                                  borderRadius:
+                                      BorderRadius.all(Radius.circular(15)),
+                                ),
+                              ),
+                            ),
+                            child: const Text(
+                              'Proceed',
+                              style: TextStyle(
+                                fontSize: 18,
+                                fontFamily: 'Inconsolata',
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 ),
               ),
             ),
           ),
+        ),
+      ),
     );
 
     overlay.insert(_overlayEntry!);
@@ -265,7 +244,7 @@ class _SentimentPageState extends State<SentimentPage>
     }
     try {
       final String? accessToken = await storage.read(key: 'accessToken');
-      const url = 'https://script.teendev.dev/signal/api/sentiments';
+      const url = 'https://signal.payguru.com.ng/api/sentiments';
       final response = await http.get(
         Uri.parse(url),
         headers: {
@@ -295,7 +274,7 @@ class _SentimentPageState extends State<SentimentPage>
         setState(() {
           loading = false;
           errorMessage =
-          'Failed to load data. Please check your network connection.';
+              'Failed to load data. Please check your network connection.';
         });
       }
       print('Exception caught: $e');
@@ -449,27 +428,15 @@ class _SentimentPageState extends State<SentimentPage>
             body: Center(
               child: SizedBox(
                 height: orientation == Orientation.portrait
-                    ? MediaQuery
-                    .of(context)
-                    .size
-                    .height
-                    : MediaQuery
-                    .of(context)
-                    .size
-                    .height * 1.5,
+                    ? MediaQuery.of(context).size.height
+                    : MediaQuery.of(context).size.height * 1.5,
                 child: SizedBox(
-                  height: MediaQuery
-                      .of(context)
-                      .size
-                      .height,
+                  height: MediaQuery.of(context).size.height,
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       SizedBox(
-                          height: MediaQuery
-                              .of(context)
-                              .size
-                              .height * 0.1),
+                          height: MediaQuery.of(context).size.height * 0.1),
                       Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 20.0),
                         child: Row(
@@ -478,15 +445,14 @@ class _SentimentPageState extends State<SentimentPage>
                               onTap: () {
                                 Navigator.pop(context);
                               },
-                              child:
-                              Image.asset('images/tabler_arrow-back.png',height:50,),
+                              child: Image.asset(
+                                'images/tabler_arrow-back.png',
+                                height: 50,
+                              ),
                             ),
                             SizedBox(
                                 width:
-                                MediaQuery
-                                    .of(context)
-                                    .size
-                                    .width * 0.02),
+                                    MediaQuery.of(context).size.width * 0.02),
                             Expanded(
                               flex: 10,
                               child: Text(
@@ -496,26 +462,30 @@ class _SentimentPageState extends State<SentimentPage>
                                   fontFamily: 'Inter',
                                   fontWeight: FontWeight.bold,
                                   fontSize: 22.0,
-                                  color: Theme.of(context).colorScheme.onSurface,
+                                  color:
+                                      Theme.of(context).colorScheme.onSurface,
                                 ),
                               ),
                             ),
                             const Spacer(),
-                            Image.asset('images/SearchButton.png',height:50,),
+                            Image.asset(
+                              'images/SearchButton.png',
+                              height: 50,
+                            ),
                             InkWell(
                               onTap: () {
                                 _showFilterOverlay();
                               },
-                              child: Image.asset('images/FilterButton.png',height:50,),
+                              child: Image.asset(
+                                'images/FilterButton.png',
+                                height: 50,
+                              ),
                             ),
                           ],
                         ),
                       ),
                       SizedBox(
-                        height: MediaQuery
-                            .of(context)
-                            .size
-                            .height * 0.03,
+                        height: MediaQuery.of(context).size.height * 0.03,
                       ),
                       TabBar(
                         controller: tabController,
@@ -547,144 +517,151 @@ class _SentimentPageState extends State<SentimentPage>
                             if (loading)
                               Center(
                                 child: CircularProgressIndicator(
-                                    color: Theme.of(context).colorScheme.onSurface),
+                                    color: Theme.of(context)
+                                        .colorScheme
+                                        .onSurface),
+                              )
+                            else if (errorMessage != null)
+                              Center(
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Text(
+                                      errorMessage!,
+                                      textAlign: TextAlign.center,
+                                      style: const TextStyle(
+                                        fontFamily: 'Inconsolata',
+                                        color: Colors.red,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 16),
+                                    ElevatedButton(
+                                      onPressed: _refreshData,
+                                      child: Text(
+                                        'Retry',
+                                        style: TextStyle(
+                                          fontFamily: 'Inconsolata',
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 18,
+                                          color: Theme.of(context)
+                                              .colorScheme
+                                              .onSurface,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
                               )
                             else
-                              if (errorMessage != null)
-                                Center(
-                                  child: Column(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      Text(
-                                        errorMessage!,
-                                        textAlign: TextAlign.center,
-                                        style: const TextStyle(
-                                          fontFamily: 'Inconsolata',
-                                          color: Colors.red,
-                                        ),
-                                      ),
-                                      const SizedBox(height: 16),
-                                      ElevatedButton(
-                                        onPressed: _refreshData,
-                                        child: Text(
-                                          'Retry',
-                                          style: TextStyle(
-                                            fontFamily: 'Inconsolata',
-                                            fontWeight: FontWeight.bold,
-                                            fontSize: 18,
-                                            color: Theme.of(context).colorScheme.onSurface,
-                                          ),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                )
-                              else
-                                RefreshIndicator(
-                                  onRefresh: _refreshData,
-                                  color: Theme.of(context).colorScheme.onSurface,
-                                  child: ListView.builder(
-                                    controller: _scrollController,
-                                    itemCount: sentiments.length,
-                                    itemBuilder: (context, index) {
-                                      return forexCard(sentiments[index]);
-                                    },
-                                  ),
+                              RefreshIndicator(
+                                onRefresh: _refreshData,
+                                color: Theme.of(context).colorScheme.onSurface,
+                                child: ListView.builder(
+                                  controller: _scrollController,
+                                  itemCount: sentiments.length,
+                                  itemBuilder: (context, index) {
+                                    return forexCard(sentiments[index]);
+                                  },
                                 ),
+                              ),
                             if (loading)
                               const Center(
                                 child: CircularProgressIndicator(
                                     color: Colors.black),
                               )
-                            else
-                              if (errorMessage != null)
-                                Center(
-                                  child: Column(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      Text(
-                                        errorMessage!,
-                                        textAlign: TextAlign.center,
-                                        style: const TextStyle(
+                            else if (errorMessage != null)
+                              Center(
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Text(
+                                      errorMessage!,
+                                      textAlign: TextAlign.center,
+                                      style: const TextStyle(
+                                        fontFamily: 'Inconsolata',
+                                        color: Colors.red,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 16),
+                                    ElevatedButton(
+                                      onPressed: _refreshData,
+                                      child: Text(
+                                        'Retry',
+                                        style: TextStyle(
                                           fontFamily: 'Inconsolata',
-                                          color: Colors.red,
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 18,
+                                          color: Theme.of(context)
+                                              .colorScheme
+                                              .onSurface,
                                         ),
                                       ),
-                                      const SizedBox(height: 16),
-                                      ElevatedButton(
-                                        onPressed: _refreshData,
-                                        child: Text(
-                                          'Retry',
-                                          style: TextStyle(
-                                            fontFamily: 'Inconsolata',
-                                            fontWeight: FontWeight.bold,
-                                            fontSize: 18,
-                                            color: Theme.of(context).colorScheme.onSurface,
-                                          ),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                )
-                              else
-                                RefreshIndicator(
-                                  onRefresh: _refreshData,
-                                  color: Theme.of(context).colorScheme.onSurface,
-                                  child: ListView.builder(
-                                    controller: _scrollController,
-                                    itemCount: sentiments.length,
-                                    itemBuilder: (context, index) {
-                                      return forexCard(sentiments[index]);
-                                    },
-                                  ),
+                                    ),
+                                  ],
                                 ),
+                              )
+                            else
+                              RefreshIndicator(
+                                onRefresh: _refreshData,
+                                color: Theme.of(context).colorScheme.onSurface,
+                                child: ListView.builder(
+                                  controller: _scrollController,
+                                  itemCount: sentiments.length,
+                                  itemBuilder: (context, index) {
+                                    return forexCard(sentiments[index]);
+                                  },
+                                ),
+                              ),
                             if (loading)
                               Center(
                                 child: CircularProgressIndicator(
-                                    color: Theme.of(context).colorScheme.onSurface),
+                                    color: Theme.of(context)
+                                        .colorScheme
+                                        .onSurface),
+                              )
+                            else if (errorMessage != null)
+                              Center(
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Text(
+                                      errorMessage!,
+                                      textAlign: TextAlign.center,
+                                      style: const TextStyle(
+                                        fontFamily: 'Inconsolata',
+                                        color: Colors.red,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 16),
+                                    ElevatedButton(
+                                      onPressed: _refreshData,
+                                      child: Text(
+                                        'Retry',
+                                        style: TextStyle(
+                                          fontFamily: 'Inconsolata',
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 18,
+                                          color: Theme.of(context)
+                                              .colorScheme
+                                              .onSurface,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
                               )
                             else
-                              if (errorMessage != null)
-                                Center(
-                                  child: Column(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      Text(
-                                        errorMessage!,
-                                        textAlign: TextAlign.center,
-                                        style: const TextStyle(
-                                          fontFamily: 'Inconsolata',
-                                          color: Colors.red,
-                                        ),
-                                      ),
-                                      const SizedBox(height: 16),
-                                      ElevatedButton(
-                                        onPressed: _refreshData,
-                                        child: Text(
-                                          'Retry',
-                                          style: TextStyle(
-                                            fontFamily: 'Inconsolata',
-                                            fontWeight: FontWeight.bold,
-                                            fontSize: 18,
-                                            color: Theme.of(context).colorScheme.onSurface,
-                                          ),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                )
-                              else
-                                RefreshIndicator(
-                                  onRefresh: _refreshData,
-                                  color: Theme.of(context).colorScheme.onSurface,
-                                  child: ListView.builder(
-                                    controller: _scrollController,
-                                    itemCount: sentiments.length,
-                                    itemBuilder: (context, index) {
-                                      return forexCard(sentiments[index]);
-                                    },
-                                  ),
+                              RefreshIndicator(
+                                onRefresh: _refreshData,
+                                color: Theme.of(context).colorScheme.onSurface,
+                                child: ListView.builder(
+                                  controller: _scrollController,
+                                  itemCount: sentiments.length,
+                                  itemBuilder: (context, index) {
+                                    return forexCard(sentiments[index]);
+                                  },
                                 ),
+                              ),
                           ],
                         ),
                       ),
@@ -713,10 +690,7 @@ class _SentimentPageState extends State<SentimentPage>
               Image.asset(
                 img,
               ),
-            SizedBox(width: MediaQuery
-                .of(context)
-                .size
-                .width * 0.01),
+            SizedBox(width: MediaQuery.of(context).size.width * 0.01),
             Text(
               label,
               style: const TextStyle(
@@ -744,10 +718,7 @@ class _SentimentPageState extends State<SentimentPage>
             color: Theme.of(context).colorScheme.onSurface,
           ),
         ),
-        SizedBox(height: MediaQuery
-            .of(context)
-            .size
-            .height * 0.02),
+        SizedBox(height: MediaQuery.of(context).size.height * 0.02),
         Text(
           "Explore the biggest crypto movers in the market",
           style: TextStyle(
@@ -781,7 +752,7 @@ class _SentimentPageState extends State<SentimentPage>
               onPressed: () {},
               style: ButtonStyle(
                 backgroundColor: MaterialStateProperty.resolveWith<Color>(
-                      (Set<MaterialState> states) {
+                  (Set<MaterialState> states) {
                     if (states.contains(MaterialState.pressed)) {
                       return Colors.white;
                     }
@@ -789,7 +760,7 @@ class _SentimentPageState extends State<SentimentPage>
                   },
                 ),
                 foregroundColor: MaterialStateProperty.resolveWith<Color>(
-                      (Set<MaterialState> states) {
+                  (Set<MaterialState> states) {
                     if (states.contains(MaterialState.pressed)) {
                       return Colors.black;
                     }
@@ -813,10 +784,7 @@ class _SentimentPageState extends State<SentimentPage>
             ),
           ),
         ]),
-        SizedBox(height: MediaQuery
-            .of(context)
-            .size
-            .height * 0.02),
+        SizedBox(height: MediaQuery.of(context).size.height * 0.02),
         const Text(
           'By Market Cap',
           style: TextStyle(
@@ -826,10 +794,7 @@ class _SentimentPageState extends State<SentimentPage>
             color: Colors.black,
           ),
         ),
-        SizedBox(height: MediaQuery
-            .of(context)
-            .size
-            .height * 0.02),
+        SizedBox(height: MediaQuery.of(context).size.height * 0.02),
         Text(
           "The global market cap is 1.9T, a 0.78% increase over the last days",
           style: TextStyle(
@@ -838,10 +803,7 @@ class _SentimentPageState extends State<SentimentPage>
             color: Colors.black.withOpacity(0.5),
           ),
         ),
-        SizedBox(height: MediaQuery
-            .of(context)
-            .size
-            .height * 0.02),
+        SizedBox(height: MediaQuery.of(context).size.height * 0.02),
         Row(children: [
           const Expanded(
             flex: 10,
@@ -855,10 +817,7 @@ class _SentimentPageState extends State<SentimentPage>
               ),
             ),
           ),
-          SizedBox(width: MediaQuery
-              .of(context)
-              .size
-              .width * 0.13),
+          SizedBox(width: MediaQuery.of(context).size.width * 0.13),
           const Expanded(
             flex: 10,
             child: Text(
@@ -898,15 +857,8 @@ class _SentimentPageState extends State<SentimentPage>
             ),
           ),
         ]),
-        marketCap(
-            'images/logos_bitcoin.png',
-            'BTC',
-            "Bitcoin",
-            "53720.87",
-            "1.07T",
-            "18.35B",
-            "43.4%",
-            const Color(0xFF008000)),
+        marketCap('images/logos_bitcoin.png', 'BTC', "Bitcoin", "53720.87",
+            "1.07T", "18.35B", "43.4%", const Color(0xFF008000)),
         marketCap(
             'images/icon _Ethereum Cryptocurrency_.png',
             'ETH',
@@ -925,19 +877,9 @@ class _SentimentPageState extends State<SentimentPage>
             "18.35B",
             "43.4%",
             const Color(0xFF008000)),
-        marketCap(
-            'images/token-branded_solana.png',
-            'SOL',
-            "Solana",
-            "53720.87",
-            "1.07T",
-            "18.35B",
-            "43.4%",
-            const Color(0xFF008000)),
-        SizedBox(height: MediaQuery
-            .of(context)
-            .size
-            .height * 0.02),
+        marketCap('images/token-branded_solana.png', 'SOL', "Solana",
+            "53720.87", "1.07T", "18.35B", "43.4%", const Color(0xFF008000)),
+        SizedBox(height: MediaQuery.of(context).size.height * 0.02),
         Row(children: [
           const Spacer(),
           Container(
@@ -946,7 +888,7 @@ class _SentimentPageState extends State<SentimentPage>
               onPressed: () {},
               style: ButtonStyle(
                 backgroundColor: MaterialStateProperty.resolveWith<Color>(
-                      (Set<MaterialState> states) {
+                  (Set<MaterialState> states) {
                     if (states.contains(MaterialState.pressed)) {
                       return Colors.white;
                     }
@@ -954,7 +896,7 @@ class _SentimentPageState extends State<SentimentPage>
                   },
                 ),
                 foregroundColor: MaterialStateProperty.resolveWith<Color>(
-                      (Set<MaterialState> states) {
+                  (Set<MaterialState> states) {
                     if (states.contains(MaterialState.pressed)) {
                       return Colors.black;
                     }
@@ -978,10 +920,7 @@ class _SentimentPageState extends State<SentimentPage>
             ),
           ),
         ]),
-        SizedBox(height: MediaQuery
-            .of(context)
-            .size
-            .height * 0.02),
+        SizedBox(height: MediaQuery.of(context).size.height * 0.02),
         const Text(
           'Trending Crypto',
           style: TextStyle(
@@ -991,10 +930,7 @@ class _SentimentPageState extends State<SentimentPage>
             color: Colors.black,
           ),
         ),
-        SizedBox(height: MediaQuery
-            .of(context)
-            .size
-            .height * 0.02),
+        SizedBox(height: MediaQuery.of(context).size.height * 0.02),
         Text(
           "Coins accelerating among our users right now",
           style: TextStyle(
@@ -1003,10 +939,7 @@ class _SentimentPageState extends State<SentimentPage>
             color: Colors.black.withOpacity(0.5),
           ),
         ),
-        SizedBox(height: MediaQuery
-            .of(context)
-            .size
-            .height * 0.02),
+        SizedBox(height: MediaQuery.of(context).size.height * 0.02),
         Row(children: [
           const Expanded(
             flex: 10,
@@ -1020,10 +953,7 @@ class _SentimentPageState extends State<SentimentPage>
               ),
             ),
           ),
-          SizedBox(width: MediaQuery
-              .of(context)
-              .size
-              .width * 0.13),
+          SizedBox(width: MediaQuery.of(context).size.width * 0.13),
           const Expanded(
             flex: 10,
             child: Text(
@@ -1063,15 +993,8 @@ class _SentimentPageState extends State<SentimentPage>
             ),
           ),
         ]),
-        trendingCrypto(
-            'images/logos_bitcoin.png',
-            'BTC',
-            "Bitcoin",
-            "53720.87",
-            "1.07T",
-            "18.35B",
-            "43.4%",
-            const Color(0xFF008000)),
+        trendingCrypto('images/logos_bitcoin.png', 'BTC', "Bitcoin", "53720.87",
+            "1.07T", "18.35B", "43.4%", const Color(0xFF008000)),
         trendingCrypto(
             'images/icon _Ethereum Cryptocurrency_.png',
             'ETH',
@@ -1090,19 +1013,9 @@ class _SentimentPageState extends State<SentimentPage>
             "18.35B",
             "43.4%",
             const Color(0xFF008000)),
-        trendingCrypto(
-            'images/token-branded_solana.png',
-            'SOL',
-            "Solana",
-            "53720.87",
-            "1.07T",
-            "18.35B",
-            "43.4%",
-            const Color(0xFF008000)),
-        SizedBox(height: MediaQuery
-            .of(context)
-            .size
-            .height * 0.02),
+        trendingCrypto('images/token-branded_solana.png', 'SOL', "Solana",
+            "53720.87", "1.07T", "18.35B", "43.4%", const Color(0xFF008000)),
+        SizedBox(height: MediaQuery.of(context).size.height * 0.02),
         Row(children: [
           const Spacer(),
           Container(
@@ -1111,7 +1024,7 @@ class _SentimentPageState extends State<SentimentPage>
               onPressed: () {},
               style: ButtonStyle(
                 backgroundColor: MaterialStateProperty.resolveWith<Color>(
-                      (Set<MaterialState> states) {
+                  (Set<MaterialState> states) {
                     if (states.contains(MaterialState.pressed)) {
                       return Colors.white;
                     }
@@ -1119,7 +1032,7 @@ class _SentimentPageState extends State<SentimentPage>
                   },
                 ),
                 foregroundColor: MaterialStateProperty.resolveWith<Color>(
-                      (Set<MaterialState> states) {
+                  (Set<MaterialState> states) {
                     if (states.contains(MaterialState.pressed)) {
                       return Colors.black;
                     }
@@ -1156,12 +1069,11 @@ class _SentimentPageState extends State<SentimentPage>
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (context) =>
-                  SentimentViewCoinCrypto(
-                      key: UniqueKey(),
-                      sentimentId: 1,
-                      sentimentTitle: "BTC",
-                      sentimentImg: ""),
+              builder: (context) => SentimentViewCoinCrypto(
+                  key: UniqueKey(),
+                  sentimentId: 1,
+                  sentimentTitle: "BTC",
+                  sentimentImg: ""),
             ),
           );
         },
@@ -1176,10 +1088,7 @@ class _SentimentPageState extends State<SentimentPage>
               img,
               height: 50,
             ),
-            SizedBox(width: MediaQuery
-                .of(context)
-                .size
-                .width * 0.02),
+            SizedBox(width: MediaQuery.of(context).size.width * 0.02),
             Expanded(
               flex: 10,
               child: Column(
@@ -1195,10 +1104,7 @@ class _SentimentPageState extends State<SentimentPage>
                       color: Colors.black,
                     ),
                   ),
-                  SizedBox(height: MediaQuery
-                      .of(context)
-                      .size
-                      .height * 0.02),
+                  SizedBox(height: MediaQuery.of(context).size.height * 0.02),
                   Text(
                     description,
                     overflow: TextOverflow.ellipsis,
@@ -1235,10 +1141,7 @@ class _SentimentPageState extends State<SentimentPage>
           img,
           height: 30,
         ),
-        SizedBox(width: MediaQuery
-            .of(context)
-            .size
-            .width * 0.02),
+        SizedBox(width: MediaQuery.of(context).size.width * 0.02),
         Expanded(
           flex: 10,
           child: Column(
@@ -1254,7 +1157,6 @@ class _SentimentPageState extends State<SentimentPage>
                   color: Colors.black,
                 ),
               ),
-
               Text(
                 description,
                 overflow: TextOverflow.ellipsis,
@@ -1321,9 +1223,15 @@ class _SentimentPageState extends State<SentimentPage>
     );
   }
 
-  Widget trendingCrypto(String img, String name, String description,
+  Widget trendingCrypto(
+      String img,
+      String name,
+      String description,
       String price,
-      String marketCap, String volume, String percentage, Color textColor) {
+      String marketCap,
+      String volume,
+      String percentage,
+      Color textColor) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 20),
       child: Row(children: [
@@ -1331,10 +1239,7 @@ class _SentimentPageState extends State<SentimentPage>
           img,
           height: 30,
         ),
-        SizedBox(width: MediaQuery
-            .of(context)
-            .size
-            .width * 0.02),
+        SizedBox(width: MediaQuery.of(context).size.width * 0.02),
         Expanded(
           flex: 10,
           child: Column(
@@ -1350,7 +1255,6 @@ class _SentimentPageState extends State<SentimentPage>
                   color: Colors.black,
                 ),
               ),
-
               Text(
                 description,
                 overflow: TextOverflow.ellipsis,
@@ -1418,14 +1322,8 @@ class _SentimentPageState extends State<SentimentPage>
   }
 
   Widget forexCard(Map<String, dynamic> sentiment) {
-    final screenWidth = MediaQuery
-        .of(context)
-        .size
-        .width;
-    final screenHeight = MediaQuery
-        .of(context)
-        .size
-        .height;
+    final screenWidth = MediaQuery.of(context).size.width;
+    final screenHeight = MediaQuery.of(context).size.height;
 
     int upvotes = sentiment['upvotes'] is int
         ? sentiment['upvotes']
@@ -1436,7 +1334,7 @@ class _SentimentPageState extends State<SentimentPage>
     int totalVotes = upvotes + downvotes;
     double upvotePercentage = totalVotes > 0 ? (upvotes / totalVotes) * 100 : 0;
     double downvotePercentage =
-    totalVotes > 0 ? (downvotes / totalVotes) * 100 : 0;
+        totalVotes > 0 ? (downvotes / totalVotes) * 100 : 0;
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
     return Padding(
       padding: EdgeInsets.symmetric(
@@ -1448,12 +1346,11 @@ class _SentimentPageState extends State<SentimentPage>
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (context) =>
-                  SentimentViewCoin(
-                      key: UniqueKey(),
-                      sentimentId: sentiment['id'],
-                      sentimentTitle: sentiment['title'],
-                      sentimentImg: sentiment['image']),
+              builder: (context) => SentimentViewCoin(
+                  key: UniqueKey(),
+                  sentimentId: sentiment['id'],
+                  sentimentTitle: sentiment['title'],
+                  sentimentImg: sentiment['image']),
             ),
           );
         },
@@ -1464,7 +1361,9 @@ class _SentimentPageState extends State<SentimentPage>
             borderRadius: BorderRadius.circular(15),
             boxShadow: [
               BoxShadow(
-                color: isDarkMode ? Colors.grey.withOpacity(0.2) : Colors.grey.withOpacity(0.5),
+                color: isDarkMode
+                    ? Colors.grey.withOpacity(0.2)
+                    : Colors.grey.withOpacity(0.5),
                 spreadRadius: 2,
                 blurRadius: 4,
               ),
@@ -1593,7 +1492,9 @@ class _SentimentPageState extends State<SentimentPage>
               borderRadius: BorderRadius.circular(10),
               boxShadow: [
                 BoxShadow(
-                  color: isDarkMode ? Colors.grey.withOpacity(0.2) : Colors.grey.withOpacity(0.5),
+                  color: isDarkMode
+                      ? Colors.grey.withOpacity(0.2)
+                      : Colors.grey.withOpacity(0.5),
                   spreadRadius: 3,
                   blurRadius: 5,
                 ),
@@ -1640,7 +1541,9 @@ class _SentimentPageState extends State<SentimentPage>
                         borderRadius: BorderRadius.circular(10),
                         boxShadow: [
                           BoxShadow(
-                            color: isDarkMode ? Colors.grey.withOpacity(0.2) : Colors.grey.withOpacity(0.5),
+                            color: isDarkMode
+                                ? Colors.grey.withOpacity(0.2)
+                                : Colors.grey.withOpacity(0.5),
                             spreadRadius: 3,
                             blurRadius: 5,
                           ),
@@ -1679,7 +1582,9 @@ class _SentimentPageState extends State<SentimentPage>
                         borderRadius: BorderRadius.circular(10),
                         boxShadow: [
                           BoxShadow(
-                            color: isDarkMode ? Colors.grey.withOpacity(0.2) : Colors.grey.withOpacity(0.5),
+                            color: isDarkMode
+                                ? Colors.grey.withOpacity(0.2)
+                                : Colors.grey.withOpacity(0.5),
                             spreadRadius: 3,
                             blurRadius: 5,
                           ),
@@ -1718,7 +1623,9 @@ class _SentimentPageState extends State<SentimentPage>
                         borderRadius: BorderRadius.circular(10),
                         boxShadow: [
                           BoxShadow(
-                            color: isDarkMode ? Colors.grey.withOpacity(0.2) : Colors.grey.withOpacity(0.5),
+                            color: isDarkMode
+                                ? Colors.grey.withOpacity(0.2)
+                                : Colors.grey.withOpacity(0.5),
                             spreadRadius: 3,
                             blurRadius: 5,
                           ),
@@ -1767,7 +1674,9 @@ class _SentimentPageState extends State<SentimentPage>
             borderRadius: BorderRadius.circular(10),
             boxShadow: [
               BoxShadow(
-                color: isDarkMode ? Colors.grey.withOpacity(0.2) : Colors.grey.withOpacity(0.5),
+                color: isDarkMode
+                    ? Colors.grey.withOpacity(0.2)
+                    : Colors.grey.withOpacity(0.5),
                 spreadRadius: 3,
                 blurRadius: 5,
               ),
@@ -1777,10 +1686,7 @@ class _SentimentPageState extends State<SentimentPage>
           child: Column(
             children: [
               SizedBox(
-                width: MediaQuery
-                    .of(context)
-                    .size
-                    .width,
+                width: MediaQuery.of(context).size.width,
                 child: Row(
                   children: [
                     Expanded(
@@ -1820,14 +1726,16 @@ class _SentimentPageState extends State<SentimentPage>
                       borderRadius: BorderRadius.circular(10),
                       boxShadow: [
                         BoxShadow(
-                          color: isDarkMode ? Colors.grey.withOpacity(0.2) : Colors.grey.withOpacity(0.5),
+                          color: isDarkMode
+                              ? Colors.grey.withOpacity(0.2)
+                              : Colors.grey.withOpacity(0.5),
                           spreadRadius: 3,
                           blurRadius: 5,
                         ),
                       ],
                     ),
                     padding:
-                    const EdgeInsets.symmetric(horizontal: 20, vertical: 6),
+                        const EdgeInsets.symmetric(horizontal: 20, vertical: 6),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
@@ -1859,14 +1767,16 @@ class _SentimentPageState extends State<SentimentPage>
                       borderRadius: BorderRadius.circular(10),
                       boxShadow: [
                         BoxShadow(
-                          color: isDarkMode ? Colors.grey.withOpacity(0.2) : Colors.grey.withOpacity(0.5),
+                          color: isDarkMode
+                              ? Colors.grey.withOpacity(0.2)
+                              : Colors.grey.withOpacity(0.5),
                           spreadRadius: 3,
                           blurRadius: 5,
                         ),
                       ],
                     ),
                     padding:
-                    const EdgeInsets.symmetric(horizontal: 20, vertical: 6),
+                        const EdgeInsets.symmetric(horizontal: 20, vertical: 6),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
@@ -1898,14 +1808,16 @@ class _SentimentPageState extends State<SentimentPage>
                       borderRadius: BorderRadius.circular(10),
                       boxShadow: [
                         BoxShadow(
-                          color: isDarkMode ? Colors.grey.withOpacity(0.2) : Colors.grey.withOpacity(0.5),
+                          color: isDarkMode
+                              ? Colors.grey.withOpacity(0.2)
+                              : Colors.grey.withOpacity(0.5),
                           spreadRadius: 3,
                           blurRadius: 5,
                         ),
                       ],
                     ),
                     padding:
-                    const EdgeInsets.symmetric(horizontal: 20, vertical: 6),
+                        const EdgeInsets.symmetric(horizontal: 20, vertical: 6),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [

@@ -8,7 +8,8 @@ import 'package:signal_app/sign_in_page.dart';
 class ForgotPassword extends StatefulWidget {
   final Function(bool) onToggleDarkMode;
   final bool isDarkMode;
-  const ForgotPassword({super.key, required this.onToggleDarkMode, required this.isDarkMode});
+  const ForgotPassword(
+      {super.key, required this.onToggleDarkMode, required this.isDarkMode});
 
   @override
   ForgotPasswordState createState() => ForgotPasswordState();
@@ -64,7 +65,7 @@ class ForgotPasswordState extends State<ForgotPassword>
     });
 
     final response = await http.post(
-      Uri.parse('https://script.teendev.dev/signal/api/passowrd/request'),
+      Uri.parse('https://signal.payguru.com.ng/api/passowrd/request'),
       headers: {'Content-Type': 'application/json'},
       body: jsonEncode({'email': email}),
     );
@@ -144,7 +145,7 @@ class ForgotPasswordState extends State<ForgotPassword>
     });
 
     final response = await http.post(
-      Uri.parse('https://script.teendev.dev/signal/api/passowrd/reset'),
+      Uri.parse('https://signal.payguru.com.ng/api/passowrd/reset'),
       headers: {'Content-Type': 'application/json'},
       body: jsonEncode({
         'email': email,
@@ -164,7 +165,9 @@ class ForgotPasswordState extends State<ForgotPassword>
       Navigator.push(
         context,
         MaterialPageRoute(
-          builder: (context) => SignInPage(key: UniqueKey(), onToggleDarkMode: widget.onToggleDarkMode,
+          builder: (context) => SignInPage(
+              key: UniqueKey(),
+              onToggleDarkMode: widget.onToggleDarkMode,
               isDarkMode: widget.isDarkMode),
         ),
       );
@@ -216,14 +219,11 @@ class ForgotPasswordState extends State<ForgotPassword>
   Widget build(BuildContext context) {
     return Scaffold(
       body: // Reset Password Tab
-      SingleChildScrollView(
+          SingleChildScrollView(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            SizedBox(height: MediaQuery
-                .of(context)
-                .size
-                .height * 0.1),
+            SizedBox(height: MediaQuery.of(context).size.height * 0.1),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20.0),
               child: Row(
@@ -233,7 +233,8 @@ class ForgotPasswordState extends State<ForgotPassword>
                       Navigator.pop(context);
                     },
                     child: Image.asset(
-                      'images/tabler_arrow-back.png',height:50,
+                      'images/tabler_arrow-back.png',
+                      height: 50,
                     ),
                   ),
                   const Spacer(),
@@ -254,10 +255,7 @@ class ForgotPasswordState extends State<ForgotPassword>
                 ],
               ),
             ),
-            SizedBox(height: MediaQuery
-                .of(context)
-                .size
-                .height * 0.05),
+            SizedBox(height: MediaQuery.of(context).size.height * 0.05),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20.0),
               child: Text(
@@ -300,10 +298,7 @@ class ForgotPasswordState extends State<ForgotPassword>
                 cursorColor: Theme.of(context).colorScheme.onSurface,
               ),
             ),
-            SizedBox(height: MediaQuery
-                .of(context)
-                .size
-                .height * 0.02),
+            SizedBox(height: MediaQuery.of(context).size.height * 0.02),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20.0),
               child: Text(
@@ -346,25 +341,16 @@ class ForgotPasswordState extends State<ForgotPassword>
                 cursorColor: Theme.of(context).colorScheme.onSurface,
               ),
             ),
-            SizedBox(height: MediaQuery
-                .of(context)
-                .size
-                .height * 0.02),
+            SizedBox(height: MediaQuery.of(context).size.height * 0.02),
             Container(
-              height: (60 / MediaQuery
-                  .of(context)
-                  .size
-                  .height) *
-                  MediaQuery
-                      .of(context)
-                      .size
-                      .height,
+              height: (60 / MediaQuery.of(context).size.height) *
+                  MediaQuery.of(context).size.height,
               padding: const EdgeInsets.symmetric(horizontal: 20.0),
               child: ElevatedButton(
                 onPressed: isLoading ? null : _resetPasswordRequest,
                 style: ButtonStyle(
                   backgroundColor: WidgetStateProperty.resolveWith<Color>(
-                        (Set<WidgetState> states) {
+                    (Set<WidgetState> states) {
                       if (states.contains(WidgetState.pressed)) {
                         return Colors.white;
                       }
@@ -372,7 +358,7 @@ class ForgotPasswordState extends State<ForgotPassword>
                     },
                   ),
                   foregroundColor: WidgetStateProperty.resolveWith<Color>(
-                        (Set<WidgetState> states) {
+                    (Set<WidgetState> states) {
                       if (states.contains(WidgetState.pressed)) {
                         return Colors.black;
                       }
@@ -388,15 +374,12 @@ class ForgotPasswordState extends State<ForgotPassword>
                 ),
                 child: isLoading
                     ? const CircularProgressIndicator(
-                  color: Colors.white,
-                )
+                        color: Colors.white,
+                      )
                     : const Text('Request Token'),
               ),
             ),
-            SizedBox(height: MediaQuery
-                .of(context)
-                .size
-                .height * 0.02),
+            SizedBox(height: MediaQuery.of(context).size.height * 0.02),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20.0),
               child: Text(
@@ -450,10 +433,7 @@ class ForgotPasswordState extends State<ForgotPassword>
                 obscuringCharacter: "*",
               ),
             ),
-            SizedBox(height: MediaQuery
-                .of(context)
-                .size
-                .height * 0.02),
+            SizedBox(height: MediaQuery.of(context).size.height * 0.02),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20.0),
               child: Text(
@@ -507,26 +487,17 @@ class ForgotPasswordState extends State<ForgotPassword>
                 obscuringCharacter: "*",
               ),
             ),
-            SizedBox(height: MediaQuery
-                .of(context)
-                .size
-                .height * 0.05),
+            SizedBox(height: MediaQuery.of(context).size.height * 0.05),
             Container(
               width: double.infinity,
-              height: (60 / MediaQuery
-                  .of(context)
-                  .size
-                  .height) *
-                  MediaQuery
-                      .of(context)
-                      .size
-                      .height,
+              height: (60 / MediaQuery.of(context).size.height) *
+                  MediaQuery.of(context).size.height,
               padding: const EdgeInsets.symmetric(horizontal: 20.0),
               child: ElevatedButton(
                 onPressed: isLoading2 ? null : () => _resetPassword(),
                 style: ButtonStyle(
                   backgroundColor: WidgetStateProperty.resolveWith<Color>(
-                        (Set<WidgetState> states) {
+                    (Set<WidgetState> states) {
                       if (states.contains(WidgetState.pressed)) {
                         return Colors.white;
                       }
@@ -534,7 +505,7 @@ class ForgotPasswordState extends State<ForgotPassword>
                     },
                   ),
                   foregroundColor: WidgetStateProperty.resolveWith<Color>(
-                        (Set<WidgetState> states) {
+                    (Set<WidgetState> states) {
                       if (states.contains(WidgetState.pressed)) {
                         return Colors.black;
                       }
@@ -550,8 +521,8 @@ class ForgotPasswordState extends State<ForgotPassword>
                 ),
                 child: isLoading2
                     ? const CircularProgressIndicator(
-                  color: Colors.white,
-                )
+                        color: Colors.white,
+                      )
                     : const Text('Reset Password'),
               ),
             ),

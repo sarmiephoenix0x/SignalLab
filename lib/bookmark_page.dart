@@ -31,6 +31,9 @@ class BookmarkPageState extends State<BookmarkPage>
   String newsImg = 'images/iconamoon_news-thin_active.png';
   String coursesImg = 'images/fluent-mdl2_publish-course.png';
   final ScrollController _scrollController = ScrollController();
+  int currentPage = 1;
+  bool isLastPage = false;
+  bool isLoadingMore = false;
 
   @override
   void initState() {
@@ -39,6 +42,11 @@ class BookmarkPageState extends State<BookmarkPage>
     homeTab.addListener(_handleTabSelection);
     _fetchBookmarkedItems();
     _scrollController.addListener(() {
+      if (_scrollController.position.pixels ==
+              _scrollController.position.maxScrollExtent &&
+          !isLastPage) {
+        _fetchBookmarkedItems(loadMore: true);
+      }
       if (_scrollController.offset <= 0) {
         if (_isRefreshing) {
           // Logic to cancel refresh if needed
@@ -65,45 +73,79 @@ class BookmarkPageState extends State<BookmarkPage>
     });
   }
 
-  Future<void> _fetchBookmarkedItems() async {
+  Future<void> _fetchBookmarkedItems({bool loadMore = false}) async {
+    if (loadMore && isLoadingMore) return; // Prevent multiple calls
+
     try {
-      setState(() {
-        loading = true;
-      });
+      if (loadMore) {
+        setState(() {
+          isLoadingMore = true;
+        });
+      } else {
+        setState(() {
+          loading = true;
+        });
+      }
+
       final String? accessToken = await storage.read(key: 'accessToken');
       final response = await http.get(
-        Uri.parse('https://script.teendev.dev/signal/api/bookmark/get'),
+        Uri.parse(
+            'https://signal.payguru.com.ng/api/bookmark/get?page=$currentPage'),
         headers: {'Authorization': 'Bearer $accessToken'},
       );
 
       if (response.statusCode == 200) {
-        final List<dynamic> data = json.decode(response.body);
+        final Map<String, dynamic> responseData = json.decode(response.body);
+        final List<dynamic> data = responseData['data'];
+        final pagination = responseData['pagination'];
+
         setState(() {
-          bookmarkedNews = data
-              .where((item) => item['upvotes'] != null)
-              .cast<Map<String, dynamic>>()
-              .toList();
-          bookmarkedCourses = data
-              .where((item) => item['upvotes'] == null)
-              .cast<Map<String, dynamic>>()
-              .toList();
+          if (loadMore) {
+            // Append the new data to the existing list
+            bookmarkedNews.addAll(data
+                .where((item) => item['upvotes'] != null)
+                .cast<Map<String, dynamic>>()
+                .toList());
+            bookmarkedCourses.addAll(data
+                .where((item) => item['upvotes'] == null)
+                .cast<Map<String, dynamic>>()
+                .toList());
+          } else {
+            // Replace the list on initial load
+            bookmarkedNews = data
+                .where((item) => item['upvotes'] != null)
+                .cast<Map<String, dynamic>>()
+                .toList();
+            bookmarkedCourses = data
+                .where((item) => item['upvotes'] == null)
+                .cast<Map<String, dynamic>>()
+                .toList();
+          }
+
+          // Update pagination data
+          isLastPage = pagination['next_page_url'] == null;
+          currentPage++;
           loading = false;
+          isLoadingMore = false;
         });
       } else if (response.statusCode == 400) {
         setState(() {
           errorMessage = "You don't have any bookmarks at the moment";
           loading = false;
+          isLoadingMore = false;
         });
       } else if (response.statusCode == 401) {
         setState(() {
           errorMessage = "Unauthorized";
           loading = false;
+          isLoadingMore = false;
         });
       }
     } catch (e) {
       setState(() {
         errorMessage = "An error occurred";
         loading = false;
+        isLoadingMore = false;
       });
     }
   }
@@ -145,7 +187,8 @@ class BookmarkPageState extends State<BookmarkPage>
   Widget _buildBookmarkedNewsList() {
     if (loading) {
       return Center(
-          child: CircularProgressIndicator(color: Theme.of(context).colorScheme.onSurface));
+          child: CircularProgressIndicator(
+              color: Theme.of(context).colorScheme.onSurface));
     } else if (errorMessage != null) {
       return Center(
         child: Column(
@@ -181,8 +224,16 @@ class BookmarkPageState extends State<BookmarkPage>
         color: Theme.of(context).colorScheme.onSurface,
         child: ListView.builder(
           controller: _scrollController,
-          itemCount: bookmarkedNews.length,
+          itemCount: bookmarkedNews.length + (isLastPage ? 0 : 1),
           itemBuilder: (context, index) {
+            if (index == bookmarkedNews.length) {
+              return const Center(
+                child: Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: CircularProgressIndicator(),
+                ),
+              );
+            }
             return Padding(
               padding:
                   const EdgeInsets.only(left: 20.0, right: 20.0, top: 10.0),
@@ -198,7 +249,8 @@ class BookmarkPageState extends State<BookmarkPage>
   Widget _buildBookmarkedCoursesList() {
     if (loading) {
       return Center(
-          child: CircularProgressIndicator(color: Theme.of(context).colorScheme.onSurface));
+          child: CircularProgressIndicator(
+              color: Theme.of(context).colorScheme.onSurface));
     } else if (errorMessage != null) {
       return Center(
         child: Text(errorMessage!, style: const TextStyle(color: Colors.red)),
@@ -212,8 +264,7 @@ class BookmarkPageState extends State<BookmarkPage>
           itemCount: bookmarkedCourses.length,
           itemBuilder: (context, index) {
             return Padding(
-              padding:
-                  const EdgeInsets.only(left: 20.0, right: 20.0, top: 0.0),
+              padding: const EdgeInsets.only(left: 20.0, right: 20.0, top: 0.0),
               child: courseCard(
                   bookmarkedCourses[index]), // Implement your courseCard widget
             );
@@ -240,13 +291,15 @@ class BookmarkPageState extends State<BookmarkPage>
   Widget newsCard(Map<String, dynamic> newsItem) {
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
     return Padding(
-      padding: const EdgeInsets.only(bottom: 0.0), // Increased bottom padding for more spacing
+      padding: const EdgeInsets.only(
+          bottom: 0.0), // Increased bottom padding for more spacing
       child: InkWell(
         onTap: () {
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (context) => NewsDetails(newsId: newsItem['id'], tags: newsItem['tags']),
+              builder: (context) =>
+                  NewsDetails(newsId: newsItem['id'], tags: newsItem['tags']),
             ),
           );
         },
@@ -257,7 +310,8 @@ class BookmarkPageState extends State<BookmarkPage>
             borderRadius: BorderRadius.circular(12), // Smoother corners
             boxShadow: [
               BoxShadow(
-                color: Colors.grey.withOpacity(0.2), // Softer shadow for a clean look
+                color: Colors.grey
+                    .withOpacity(0.2), // Softer shadow for a clean look
                 spreadRadius: 2,
                 blurRadius: 8,
                 offset: const Offset(0, 2), // Position shadow for depth
@@ -265,14 +319,16 @@ class BookmarkPageState extends State<BookmarkPage>
             ],
           ),
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start, // Align content to start
+            crossAxisAlignment:
+                CrossAxisAlignment.start, // Align content to start
             children: [
               Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   // Image thumbnail
                   ClipRRect(
-                    borderRadius: BorderRadius.circular(8), // Slightly rounded image corners
+                    borderRadius: BorderRadius.circular(
+                        8), // Slightly rounded image corners
                     child: Container(
                       width: 120, // Fixed width for consistent look
                       height: 100, // Fixed height for aspect ratio
@@ -298,7 +354,8 @@ class BookmarkPageState extends State<BookmarkPage>
                           newsItem['created_at'],
                           style: TextStyle(
                             fontFamily: 'Inter',
-                            fontWeight: FontWeight.w500, // Semi-bold for emphasis
+                            fontWeight:
+                                FontWeight.w500, // Semi-bold for emphasis
                             fontSize: 12,
                             color: Colors.grey[600], // Lighter color for date
                           ),
@@ -337,10 +394,12 @@ class BookmarkPageState extends State<BookmarkPage>
       spacing: 8.0, // Space between tags
       children: tagList.map((tag) {
         return Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 6.0), // Padding around the tag
+          padding: const EdgeInsets.symmetric(
+              horizontal: 12.0, vertical: 6.0), // Padding around the tag
           decoration: BoxDecoration(
             color: Colors.blueAccent, // Modern blue color
-            borderRadius: BorderRadius.circular(30), // More rounded corners for a pill-like shape
+            borderRadius: BorderRadius.circular(
+                30), // More rounded corners for a pill-like shape
             boxShadow: [
               BoxShadow(
                 color: Colors.blueAccent.withOpacity(0.3),
@@ -356,14 +415,14 @@ class BookmarkPageState extends State<BookmarkPage>
               fontFamily: 'Inter',
               color: Colors.white, // White text on blue background
               fontWeight: FontWeight.w600, // Slightly bolder font for emphasis
-              letterSpacing: 0.5, // Slight letter spacing for better readability
+              letterSpacing:
+                  0.5, // Slight letter spacing for better readability
             ),
           ),
         );
       }).toList(),
     );
   }
-
 
   Widget courseCard(Map<String, dynamic> course) {
     return LayoutBuilder(
@@ -388,13 +447,14 @@ class BookmarkPageState extends State<BookmarkPage>
             shadowColor: Colors.grey.shade300, // Softer shadow color
             margin: const EdgeInsets.all(12.0),
             child: ClipRRect(
-              borderRadius: BorderRadius.circular(12.0), // Rounded edges for media
+              borderRadius:
+                  BorderRadius.circular(12.0), // Rounded edges for media
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   // Media Section (Video or Image)
                   if (course['videos'] == null)
-                  // Display the image
+                    // Display the image
                     SizedBox(
                       width: cardWidth,
                       height: MediaQuery.of(context).size.height * 0.25,
@@ -404,7 +464,7 @@ class BookmarkPageState extends State<BookmarkPage>
                       ),
                     )
                   else if (course['videos'] != null)
-                  // Video section with play/pause control based on visibility
+                    // Video section with play/pause control based on visibility
                     GestureDetector(
                       onTap: () {},
                       child: VisibilityDetector(
@@ -522,7 +582,10 @@ class BookmarkPageState extends State<BookmarkPage>
                   onTap: () {
                     Navigator.pop(context);
                   },
-                  child: Image.asset('images/tabler_arrow-back.png',height:50,),
+                  child: Image.asset(
+                    'images/tabler_arrow-back.png',
+                    height: 50,
+                  ),
                 ),
                 SizedBox(width: MediaQuery.of(context).size.width * 0.02),
                 Text(

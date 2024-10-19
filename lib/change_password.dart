@@ -15,7 +15,7 @@ class ChangePassword extends StatefulWidget {
 class ChangePasswordState extends State<ChangePassword>
     with SingleTickerProviderStateMixin {
   final TextEditingController currentPasswordController =
-  TextEditingController();
+      TextEditingController();
   final TextEditingController passwordController = TextEditingController();
   final TextEditingController password2Controller = TextEditingController();
 
@@ -86,7 +86,7 @@ class ChangePasswordState extends State<ChangePassword>
     });
     final String? accessToken = await storage.read(key: 'accessToken');
     final response = await http.post(
-      Uri.parse('https://script.teendev.dev/signal/api/change-password'),
+      Uri.parse('https://signal.payguru.com.ng/api/change-password'),
       headers: {
         'Authorization': 'Bearer $accessToken',
         'Content-Type': 'application/json',
@@ -154,14 +154,11 @@ class ChangePasswordState extends State<ChangePassword>
   Widget build(BuildContext context) {
     return Scaffold(
       body: // Reset Password Tab
-      SingleChildScrollView(
+          SingleChildScrollView(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            SizedBox(height: MediaQuery
-                .of(context)
-                .size
-                .height * 0.1),
+            SizedBox(height: MediaQuery.of(context).size.height * 0.1),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20.0),
               child: Row(
@@ -171,7 +168,8 @@ class ChangePasswordState extends State<ChangePassword>
                       Navigator.pop(context);
                     },
                     child: Image.asset(
-                      'images/tabler_arrow-back.png',height:50,
+                      'images/tabler_arrow-back.png',
+                      height: 50,
                     ),
                   ),
                   const Spacer(),
@@ -192,10 +190,7 @@ class ChangePasswordState extends State<ChangePassword>
                 ],
               ),
             ),
-            SizedBox(height: MediaQuery
-                .of(context)
-                .size
-                .height * 0.05),
+            SizedBox(height: MediaQuery.of(context).size.height * 0.05),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20.0),
               child: TextFormField(
@@ -227,7 +222,8 @@ class ChangePasswordState extends State<ChangePassword>
                           : Icons.visibility_off),
                       onPressed: () {
                         setState(() {
-                          _iscurrentPasswordVisible = !_iscurrentPasswordVisible;
+                          _iscurrentPasswordVisible =
+                              !_iscurrentPasswordVisible;
                         });
                       },
                     )),
@@ -236,10 +232,7 @@ class ChangePasswordState extends State<ChangePassword>
                 obscuringCharacter: "*",
               ),
             ),
-            SizedBox(height: MediaQuery
-                .of(context)
-                .size
-                .height * 0.02),
+            SizedBox(height: MediaQuery.of(context).size.height * 0.02),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20.0),
               child: TextFormField(
@@ -280,10 +273,7 @@ class ChangePasswordState extends State<ChangePassword>
                 obscuringCharacter: "*",
               ),
             ),
-            SizedBox(height: MediaQuery
-                .of(context)
-                .size
-                .height * 0.02),
+            SizedBox(height: MediaQuery.of(context).size.height * 0.02),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20.0),
               child: TextFormField(
@@ -324,26 +314,17 @@ class ChangePasswordState extends State<ChangePassword>
                 obscuringCharacter: "*",
               ),
             ),
-            SizedBox(height: MediaQuery
-                .of(context)
-                .size
-                .height * 0.05),
+            SizedBox(height: MediaQuery.of(context).size.height * 0.05),
             Container(
               width: double.infinity,
-              height: (60 / MediaQuery
-                  .of(context)
-                  .size
-                  .height) *
-                  MediaQuery
-                      .of(context)
-                      .size
-                      .height,
+              height: (60 / MediaQuery.of(context).size.height) *
+                  MediaQuery.of(context).size.height,
               padding: const EdgeInsets.symmetric(horizontal: 20.0),
               child: ElevatedButton(
                 onPressed: isLoading ? null : () => _changePassword(),
                 style: ButtonStyle(
                   backgroundColor: WidgetStateProperty.resolveWith<Color>(
-                        (Set<WidgetState> states) {
+                    (Set<WidgetState> states) {
                       if (states.contains(WidgetState.pressed)) {
                         return Colors.white;
                       }
@@ -351,7 +332,7 @@ class ChangePasswordState extends State<ChangePassword>
                     },
                   ),
                   foregroundColor: WidgetStateProperty.resolveWith<Color>(
-                        (Set<WidgetState> states) {
+                    (Set<WidgetState> states) {
                       if (states.contains(WidgetState.pressed)) {
                         return Colors.black;
                       }
@@ -367,8 +348,8 @@ class ChangePasswordState extends State<ChangePassword>
                 ),
                 child: isLoading
                     ? const CircularProgressIndicator(
-                  color: Colors.white,
-                )
+                        color: Colors.white,
+                      )
                     : const Text('Save'),
               ),
             ),

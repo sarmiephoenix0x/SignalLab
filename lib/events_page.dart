@@ -88,7 +88,7 @@ class _EventsPageState extends State<EventsPage> with TickerProviderStateMixin {
     }
     try {
       final String? accessToken = await storage.read(key: 'accessToken');
-      const url = 'https://script.teendev.dev/signal/api/events';
+      const url = 'https://signal.payguru.com.ng/api/events';
       final response = await http.get(
         Uri.parse(url),
         headers: {
@@ -974,7 +974,7 @@ class _EventsPageState extends State<EventsPage> with TickerProviderStateMixin {
       final String? accessToken = await storage.read(key: 'accessToken');
 
       final response = await http.post(
-        Uri.parse('https://script.teendev.dev/signal/api/vote'),
+        Uri.parse('https://signal.payguru.com.ng/api/vote'),
         headers: {
           'Authorization': 'Bearer $accessToken',
           'Content-Type': 'application/json',

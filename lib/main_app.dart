@@ -26,6 +26,8 @@ import 'edit_profile.dart';
 import 'dart:math'; // For Random
 import 'package:google_mobile_ads/google_mobile_ads.dart'; // For ads
 
+final RouteObserver<PageRoute> routeObserver = RouteObserver<PageRoute>();
+
 class MainApp extends StatefulWidget {
   final Function(bool) onToggleDarkMode;
   final bool isDarkMode;
@@ -38,7 +40,8 @@ class MainApp extends StatefulWidget {
   _MainAppState createState() => _MainAppState();
 }
 
-class _MainAppState extends State<MainApp> with TickerProviderStateMixin {
+class _MainAppState extends State<MainApp>
+    with TickerProviderStateMixin, RouteAware {
   DateTime? currentBackPressTime;
   int _currentBottomIndex = 0;
   TabController? homeTab;
@@ -108,6 +111,8 @@ class _MainAppState extends State<MainApp> with TickerProviderStateMixin {
   bool _isLoadingMoreNews = false;
   bool _hasMoreCourses = true;
   bool _hasMoreNews = true;
+  bool subscribedForCourse = false;
+  OverlayEntry? _overlayEntry;
 
   @override
   void initState() {
@@ -141,6 +146,23 @@ class _MainAppState extends State<MainApp> with TickerProviderStateMixin {
       }
     });
   }
+
+  // @override
+  // void didChangeDependencies() {
+  //   super.didChangeDependencies();
+  //   final ModalRoute? modalRoute = ModalRoute.of(context);
+  //   if (modalRoute is PageRoute) {
+  //     if (_currentBottomIndex == 3) {
+  //       if (subscribedForCourse == false) {
+  //         WidgetsBinding.instance.addPostFrameCallback((_) {
+  //           _showFilterOverlay();
+  //         });
+  //       }
+  //     }
+
+  //     routeObserver.subscribe(this, modalRoute);
+  //   }
+  // }
 
 // Initialize the BannerAd only once
   void _initializeAd(int index) {
@@ -210,62 +232,64 @@ class _MainAppState extends State<MainApp> with TickerProviderStateMixin {
   List<Map<String, dynamic>> latestNews = [];
 
   Future<void> fetchCourses({int page = 1, bool isRefresh = false}) async {
-    if (mounted) {
-      setState(() {
-        if (isRefresh) {
-          loadingCourse = true;
-        }
-        errorMessage = null;
-      });
-    }
-
-    try {
-      final String? accessToken = await storage.read(key: 'accessToken');
-      final response = await http.get(
-        Uri.parse('https://script.teendev.dev/signal/api/courses?page=$page'),
-        headers: {
-          'Authorization': 'Bearer $accessToken',
-          'Content-Type': 'application/json',
-        },
-      );
-
-      if (response.statusCode == 200) {
-        final Map<String, dynamic> responseData = json.decode(response.body);
-        final List<Map<String, dynamic>> fetchedCourses =
-            List<Map<String, dynamic>>.from(responseData['data']);
-
-        if (mounted) {
-          setState(() {
-            if (isRefresh) {
-              courses.clear();
-            }
-            courses.addAll(fetchedCourses);
-            totalCoursePages = responseData['pagination']['total_pages'];
-            currentCoursePage = page;
-            _hasMoreCourses =
-                responseData['pagination']['next_page_url'] != null;
-            loadingCourse = false;
-          });
-        }
-        print("Courses Loaded");
-      } else {
-        final message = json.decode(response.body)['message'];
-        if (mounted) {
-          setState(() {
-            loadingCourse = false;
-            errorMessage = message;
-          });
-        }
-      }
-    } catch (e) {
+    if (subscribedForCourse == true) {
       if (mounted) {
         setState(() {
-          loadingCourse = false;
-          errorMessage =
-              'Failed to load data. Please check your network connection.';
+          if (isRefresh) {
+            loadingCourse = true;
+          }
+          errorMessage = null;
         });
       }
-      print('Exception: $e');
+
+      try {
+        final String? accessToken = await storage.read(key: 'accessToken');
+        final response = await http.get(
+          Uri.parse('https://signal.payguru.com.ng/api/courses?page=$page'),
+          headers: {
+            'Authorization': 'Bearer $accessToken',
+            'Content-Type': 'application/json',
+          },
+        );
+
+        if (response.statusCode == 200) {
+          final Map<String, dynamic> responseData = json.decode(response.body);
+          final List<Map<String, dynamic>> fetchedCourses =
+              List<Map<String, dynamic>>.from(responseData['data']);
+
+          if (mounted) {
+            setState(() {
+              if (isRefresh) {
+                courses.clear();
+              }
+              courses.addAll(fetchedCourses);
+              totalCoursePages = responseData['pagination']['total_pages'];
+              currentCoursePage = page;
+              _hasMoreCourses =
+                  responseData['pagination']['next_page_url'] != null;
+              loadingCourse = false;
+            });
+          }
+          print("Courses Loaded");
+        } else {
+          final message = json.decode(response.body)['message'];
+          if (mounted) {
+            setState(() {
+              loadingCourse = false;
+              errorMessage = message;
+            });
+          }
+        }
+      } catch (e) {
+        if (mounted) {
+          setState(() {
+            loadingCourse = false;
+            errorMessage =
+                'Failed to load data. Please check your network connection.';
+          });
+        }
+        print('Exception: $e');
+      }
     }
   }
 
@@ -301,7 +325,7 @@ class _MainAppState extends State<MainApp> with TickerProviderStateMixin {
     try {
       final String? accessToken = await storage.read(key: 'accessToken');
       final response = await http.get(
-        Uri.parse('https://script.teendev.dev/signal/api/news?page=$page'),
+        Uri.parse('https://signal.payguru.com.ng/api/news?page=$page'),
         headers: {
           'Authorization': 'Bearer $accessToken',
           'Content-Type': 'application/json',
@@ -384,7 +408,7 @@ class _MainAppState extends State<MainApp> with TickerProviderStateMixin {
     try {
       final String? accessToken = await storage.read(key: 'accessToken');
       final response = await http.get(
-        Uri.parse('https://script.teendev.dev/signal/api/latest/news'),
+        Uri.parse('https://signal.payguru.com.ng/api/latest/news'),
         headers: {
           'Authorization': 'Bearer $accessToken',
           'Content-Type': 'application/json',
@@ -424,7 +448,7 @@ class _MainAppState extends State<MainApp> with TickerProviderStateMixin {
     final String? accessToken = await storage.read(key: 'accessToken');
     final response = await http.get(
       Uri.parse(
-          'https://script.teendev.dev/signal/api/signal?type=$type&page=$page'),
+          'https://signal.payguru.com.ng/api/signal?type=$type&page=$page'),
       headers: {'Authorization': 'Bearer $accessToken'},
     );
 
@@ -528,7 +552,7 @@ class _MainAppState extends State<MainApp> with TickerProviderStateMixin {
 
     try {
       final response = await http.post(
-        Uri.parse('https://script.teendev.dev/signal/api/logout'),
+        Uri.parse('https://signal.payguru.com.ng/api/logout'),
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer $accessToken',
@@ -994,7 +1018,7 @@ class _MainAppState extends State<MainApp> with TickerProviderStateMixin {
 
     try {
       final String? accessToken = await storage.read(key: 'accessToken');
-      const url = 'https://script.teendev.dev/signal/api/details';
+      const url = 'https://signal.payguru.com.ng/api/details';
       final response = await http.get(
         Uri.parse(url),
         headers: {
@@ -1049,7 +1073,7 @@ class _MainAppState extends State<MainApp> with TickerProviderStateMixin {
       searchLoading = true;
     });
     final String? accessToken = await storage.read(key: 'accessToken');
-    final url = 'https://script.teendev.dev/signal/api/search?query=$query';
+    final url = 'https://signal.payguru.com.ng/api/search?query=$query';
     final headers = {
       'Authorization': 'Bearer $accessToken',
       'Content-Type': 'application/json',
@@ -1087,6 +1111,156 @@ class _MainAppState extends State<MainApp> with TickerProviderStateMixin {
     }
   }
 
+  void _showFilterOverlay() {
+    final overlay = Overlay.of(context);
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+    _overlayEntry = OverlayEntry(
+      builder: (context) => SafeArea(
+        child: GestureDetector(
+          onTap: () {
+            if (mounted) {
+              setState(() {
+                _currentBottomIndex = 0;
+              });
+            }
+            _removeOverlay();
+          }, // Close the overlay on tap outside
+          child: Material(
+            color: Colors.black.withOpacity(0.5),
+            // Semi-transparent background
+            child: Center(
+              child: GestureDetector(
+                onTap: () {
+                  // Do nothing on tap inside this widget
+                },
+                child: Container(
+                  margin: const EdgeInsets.symmetric(
+                      horizontal: 30), // Margin to limit width
+                  padding: const EdgeInsets.only(
+                      left: 12.0, right: 12.0, top: 20.0, bottom: 20.0),
+                  decoration: BoxDecoration(
+                    color: isDarkMode ? Colors.grey[900] : Colors.white,
+                    borderRadius: BorderRadius.circular(15),
+                    boxShadow: [
+                      BoxShadow(
+                        color: isDarkMode
+                            ? Colors.grey.withOpacity(0.2)
+                            : Colors.grey.withOpacity(0.5),
+                        spreadRadius: 3,
+                        blurRadius: 5,
+                      ),
+                    ],
+                  ),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    // Makes container adjust height based on content
+                    children: [
+                      Text(
+                        'FOR SUSCRIBERS ONLY',
+                        style: TextStyle(
+                          decoration: TextDecoration.none,
+                          fontFamily: 'Inconsolata',
+                          fontSize: 25,
+                          fontWeight: FontWeight.bold,
+                          color: Theme.of(context).colorScheme.onSurface,
+                        ),
+                      ),
+                      SizedBox(
+                          height: MediaQuery.of(context).size.height * 0.02),
+                      Text(
+                        'To access this feature, you need to subscribe to one of our plans',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          decoration: TextDecoration.none,
+                          fontFamily: 'Inconsolata',
+                          fontSize: 20,
+                          color: Theme.of(context).colorScheme.onSurface,
+                        ),
+                      ),
+                      SizedBox(
+                          height: MediaQuery.of(context).size.height * 0.02),
+                      Image.asset(
+                        'images/LockedImg.png',
+                        height: 120,
+                      ),
+                      SizedBox(
+                          height: MediaQuery.of(context).size.height * 0.05),
+                      Container(
+                        width: double.infinity,
+                        height: (60 / MediaQuery.of(context).size.height) *
+                            MediaQuery.of(context).size.height,
+                        padding: const EdgeInsets.symmetric(horizontal: 30.0),
+                        child: ElevatedButton(
+                          onPressed: () {
+                            _removeOverlay(loadPackage: true);
+                          },
+                          style: ButtonStyle(
+                            backgroundColor:
+                                WidgetStateProperty.resolveWith<Color>(
+                              (Set<WidgetState> states) {
+                                if (states.contains(WidgetState.pressed)) {
+                                  return Colors.white;
+                                }
+                                return Colors.black;
+                              },
+                            ),
+                            foregroundColor:
+                                WidgetStateProperty.resolveWith<Color>(
+                              (Set<WidgetState> states) {
+                                if (states.contains(WidgetState.pressed)) {
+                                  return Colors.black;
+                                }
+                                return Colors.white;
+                              },
+                            ),
+                            elevation: WidgetStateProperty.all<double>(4.0),
+                            shape:
+                                WidgetStateProperty.all<RoundedRectangleBorder>(
+                              const RoundedRectangleBorder(
+                                borderRadius:
+                                    BorderRadius.all(Radius.circular(15)),
+                              ),
+                            ),
+                          ),
+                          child: const Text(
+                            'SUBSCRIBE',
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontFamily: 'Inconsolata',
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+
+    overlay.insert(_overlayEntry!);
+  }
+
+  void _removeOverlay({bool loadPackage = false}) {
+    _overlayEntry?.remove();
+    _overlayEntry = null;
+    if (loadPackage == true) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => PackagesPage(key: UniqueKey()),
+        ),
+      );
+      setState(() {
+        _currentBottomIndex = 0;
+      });
+    }
+  }
+
   @override
   void dispose() {
     super.dispose();
@@ -1106,18 +1280,25 @@ class _MainAppState extends State<MainApp> with TickerProviderStateMixin {
       canPop: false,
       onPopInvokedWithResult: (didPop, dynamic result) {
         if (!didPop) {
-          DateTime now = DateTime.now();
-          if (currentBackPressTime == null ||
-              now.difference(currentBackPressTime!) >
-                  const Duration(seconds: 2)) {
-            currentBackPressTime = now;
-            _showCustomSnackBar(
-              context,
-              'Press back again to exit',
-              isError: true,
-            );
+          if (_overlayEntry != null) {
+            setState(() {
+              _currentBottomIndex = 0;
+            });
+            _removeOverlay();
           } else {
-            SystemChannels.platform.invokeMethod('SystemNavigator.pop');
+            DateTime now = DateTime.now();
+            if (currentBackPressTime == null ||
+                now.difference(currentBackPressTime!) >
+                    const Duration(seconds: 2)) {
+              currentBackPressTime = now;
+              _showCustomSnackBar(
+                context,
+                'Press back again to exit',
+                isError: true,
+              );
+            } else {
+              SystemChannels.platform.invokeMethod('SystemNavigator.pop');
+            }
           }
         }
       },
@@ -2307,6 +2488,124 @@ class _MainAppState extends State<MainApp> with TickerProviderStateMixin {
                                           ],
                                         ),
                                       )
+                                    else if (subscribedForCourse == false)
+                                      Padding(
+                                        padding: const EdgeInsets.only(
+                                            left: 20.0, right: 20.0, top: 0.0),
+                                        child: Column(
+                                          mainAxisSize: MainAxisSize.min,
+                                          // Makes container adjust height based on content
+                                          children: [
+                                            Text(
+                                              'FOR SUSCRIBERS ONLY',
+                                              style: TextStyle(
+                                                decoration: TextDecoration.none,
+                                                fontFamily: 'Inconsolata',
+                                                fontSize: 25,
+                                                fontWeight: FontWeight.bold,
+                                                color: Theme.of(context)
+                                                    .colorScheme
+                                                    .onSurface,
+                                              ),
+                                            ),
+                                            SizedBox(
+                                                height: MediaQuery.of(context)
+                                                        .size
+                                                        .height *
+                                                    0.02),
+                                            Text(
+                                              'To access this feature, you need to subscribe to one of our plans',
+                                              textAlign: TextAlign.center,
+                                              style: TextStyle(
+                                                decoration: TextDecoration.none,
+                                                fontFamily: 'Inconsolata',
+                                                fontSize: 20,
+                                                color: Theme.of(context)
+                                                    .colorScheme
+                                                    .onSurface,
+                                              ),
+                                            ),
+                                            SizedBox(
+                                                height: MediaQuery.of(context)
+                                                        .size
+                                                        .height *
+                                                    0.02),
+                                            Image.asset(
+                                              'images/LockedImg.png',
+                                              height: 120,
+                                            ),
+                                            SizedBox(
+                                                height: MediaQuery.of(context)
+                                                        .size
+                                                        .height *
+                                                    0.05),
+                                            Container(
+                                              width: double.infinity,
+                                              height: (60 /
+                                                      MediaQuery.of(context)
+                                                          .size
+                                                          .height) *
+                                                  MediaQuery.of(context)
+                                                      .size
+                                                      .height,
+                                              padding:
+                                                  const EdgeInsets.symmetric(
+                                                      horizontal: 30.0),
+                                              child: ElevatedButton(
+                                                onPressed: () {
+                                                  _removeOverlay(
+                                                      loadPackage: true);
+                                                },
+                                                style: ButtonStyle(
+                                                  backgroundColor:
+                                                      WidgetStateProperty
+                                                          .resolveWith<Color>(
+                                                    (Set<WidgetState> states) {
+                                                      if (states.contains(
+                                                          WidgetState
+                                                              .pressed)) {
+                                                        return Colors.white;
+                                                      }
+                                                      return Colors.black;
+                                                    },
+                                                  ),
+                                                  foregroundColor:
+                                                      WidgetStateProperty
+                                                          .resolveWith<Color>(
+                                                    (Set<WidgetState> states) {
+                                                      if (states.contains(
+                                                          WidgetState
+                                                              .pressed)) {
+                                                        return Colors.black;
+                                                      }
+                                                      return Colors.white;
+                                                    },
+                                                  ),
+                                                  elevation: WidgetStateProperty
+                                                      .all<double>(4.0),
+                                                  shape: WidgetStateProperty.all<
+                                                      RoundedRectangleBorder>(
+                                                    const RoundedRectangleBorder(
+                                                      borderRadius:
+                                                          BorderRadius.all(
+                                                              Radius.circular(
+                                                                  15)),
+                                                    ),
+                                                  ),
+                                                ),
+                                                child: const Text(
+                                                  'SUBSCRIBE',
+                                                  style: TextStyle(
+                                                    fontSize: 18,
+                                                    fontFamily: 'Inconsolata',
+                                                    fontWeight: FontWeight.bold,
+                                                  ),
+                                                ),
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      )
                                     else
                                       ListView.builder(
                                         controller: _courseScrollController,
@@ -2976,7 +3275,7 @@ class _MainAppState extends State<MainApp> with TickerProviderStateMixin {
                                                       horizontal: 20.0,
                                                       vertical: 10.0),
                                                   child: SizedBox(
-                                                    height: (180.0 /
+                                                    height: (160.0 /
                                                             MediaQuery.of(
                                                                     context)
                                                                 .size
@@ -3090,6 +3389,11 @@ class _MainAppState extends State<MainApp> with TickerProviderStateMixin {
               ),
             );
           } else if (bottomIndex == 3) {
+            if (subscribedForCourse == false) {
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                _showFilterOverlay();
+              });
+            }
             tabBarViewChildren.add(
               Expanded(
                 child: Stack(

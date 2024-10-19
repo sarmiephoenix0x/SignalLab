@@ -242,6 +242,7 @@ flutter:
   - images/bookmark.png
   - images/tabler_brightness-filled.png
   - images/CardImg.png
+  - images/LockedImg.png
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware
 

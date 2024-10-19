@@ -62,7 +62,7 @@ class _ViewCoinState extends State<ViewCoin> with TickerProviderStateMixin {
 
     try {
       final String? accessToken = await storage.read(key: 'accessToken');
-      const url = 'https://script.teendev.dev/signal/api/events';
+      const url = 'https://signal.payguru.com.ng/api/events';
       final response = await http.get(
         Uri.parse(url),
         headers: {
@@ -1365,10 +1365,7 @@ class _ViewCoinState extends State<ViewCoin> with TickerProviderStateMixin {
   }
 
   Widget cryptoCard(Map<String, dynamic> event) {
-    final screenHeight = MediaQuery
-        .of(context)
-        .size
-        .height;
+    final screenHeight = MediaQuery.of(context).size.height;
 
     int upvotes = event['upvotes'] is int
         ? event['upvotes']
@@ -1384,7 +1381,7 @@ class _ViewCoinState extends State<ViewCoin> with TickerProviderStateMixin {
       final String? accessToken = await storage.read(key: 'accessToken');
 
       final response = await http.post(
-        Uri.parse('https://script.teendev.dev/signal/api/vote'),
+        Uri.parse('https://signal.payguru.com.ng/api/vote'),
         headers: {
           'Authorization': 'Bearer $accessToken',
           'Content-Type': 'application/json',
@@ -1411,7 +1408,7 @@ class _ViewCoinState extends State<ViewCoin> with TickerProviderStateMixin {
         int updatedDownvotes = int.parse(event['downvotes']);
         int updatedTotalVotes = updatedUpvotes + updatedDownvotes;
         upvotePercentage =
-        updatedTotalVotes > 0 ? updatedUpvotes / updatedTotalVotes : 0.0;
+            updatedTotalVotes > 0 ? updatedUpvotes / updatedTotalVotes : 0.0;
 
         // Show success message
         _showCustomSnackBar(
@@ -1429,12 +1426,12 @@ class _ViewCoinState extends State<ViewCoin> with TickerProviderStateMixin {
         );
       }
     }
+
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
     return Padding(
       padding: const EdgeInsets.only(left: 20.0, right: 20.0, bottom: 20.0),
       child: InkWell(
-        onTap: () {
-        },
+        onTap: () {},
         child: Container(
           padding: const EdgeInsets.all(12.0),
           decoration: BoxDecoration(
@@ -1442,7 +1439,9 @@ class _ViewCoinState extends State<ViewCoin> with TickerProviderStateMixin {
             borderRadius: BorderRadius.circular(15),
             boxShadow: [
               BoxShadow(
-                color: isDarkMode ? Colors.grey.withOpacity(0.2) : Colors.grey.withOpacity(0.5),
+                color: isDarkMode
+                    ? Colors.grey.withOpacity(0.2)
+                    : Colors.grey.withOpacity(0.5),
                 spreadRadius: 3,
                 blurRadius: 5,
               ),
@@ -1456,22 +1455,10 @@ class _ViewCoinState extends State<ViewCoin> with TickerProviderStateMixin {
                   ClipRRect(
                     borderRadius: BorderRadius.circular(35),
                     child: Container(
-                      width: (48 / MediaQuery
-                          .of(context)
-                          .size
-                          .width) *
-                          MediaQuery
-                              .of(context)
-                              .size
-                              .width,
-                      height: (48 / MediaQuery
-                          .of(context)
-                          .size
-                          .height) *
-                          MediaQuery
-                              .of(context)
-                              .size
-                              .height,
+                      width: (48 / MediaQuery.of(context).size.width) *
+                          MediaQuery.of(context).size.width,
+                      height: (48 / MediaQuery.of(context).size.height) *
+                          MediaQuery.of(context).size.height,
                       color: Colors.grey,
                       child: Image.network(
                         event['image'],
@@ -1479,10 +1466,7 @@ class _ViewCoinState extends State<ViewCoin> with TickerProviderStateMixin {
                       ),
                     ),
                   ),
-                  SizedBox(width: MediaQuery
-                      .of(context)
-                      .size
-                      .width * 0.03),
+                  SizedBox(width: MediaQuery.of(context).size.width * 0.03),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -1508,10 +1492,7 @@ class _ViewCoinState extends State<ViewCoin> with TickerProviderStateMixin {
                           ),
                         ),
                         SizedBox(
-                          height: MediaQuery
-                              .of(context)
-                              .size
-                              .height * 0.02,
+                          height: MediaQuery.of(context).size.height * 0.02,
                         ),
                         Text(
                           event['sub_text'],
@@ -1540,10 +1521,7 @@ class _ViewCoinState extends State<ViewCoin> with TickerProviderStateMixin {
                         Stack(
                           children: [
                             Container(
-                              width: MediaQuery
-                                  .of(context)
-                                  .size
-                                  .width *
+                              width: MediaQuery.of(context).size.width *
                                   0.2 *
                                   upvotePercentage,
                               height: 5,
@@ -1553,14 +1531,11 @@ class _ViewCoinState extends State<ViewCoin> with TickerProviderStateMixin {
                               ),
                             ),
                             Container(
-                              width: MediaQuery
-                                  .of(context)
-                                  .size
-                                  .width * 0.2,
+                              width: MediaQuery.of(context).size.width * 0.2,
                               height: 5,
                               decoration: BoxDecoration(
                                 border:
-                                Border.all(width: 0.5, color: Colors.black),
+                                    Border.all(width: 0.5, color: Colors.black),
                                 borderRadius: BorderRadius.circular(0),
                               ),
                             ),
@@ -1570,10 +1545,7 @@ class _ViewCoinState extends State<ViewCoin> with TickerProviderStateMixin {
                     ),
                   ),
                   SizedBox(
-                    height: MediaQuery
-                        .of(context)
-                        .size
-                        .height * 0.15,
+                    height: MediaQuery.of(context).size.height * 0.15,
                     child: Column(
                       children: [
                         GestureDetector(

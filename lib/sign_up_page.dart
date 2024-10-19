@@ -10,10 +10,8 @@ import 'package:intl_phone_field/intl_phone_field.dart';
 class SignUpPage extends StatefulWidget {
   final Function(bool) onToggleDarkMode;
   final bool isDarkMode;
-  const SignUpPage({
-    super.key,
-    required this.onToggleDarkMode, required this.isDarkMode
-  });
+  const SignUpPage(
+      {super.key, required this.onToggleDarkMode, required this.isDarkMode});
 
   @override
   // ignore: library_private_types_in_public_api
@@ -136,7 +134,7 @@ class _SignUpPageState extends State<SignUpPage> with WidgetsBindingObserver {
     });
 
     final response = await http.post(
-      Uri.parse('https://script.teendev.dev/signal/api/register'),
+      Uri.parse('https://signal.payguru.com.ng/api/register'),
       headers: {'Content-Type': 'application/json'},
       body: jsonEncode({
         'name': name,
@@ -173,7 +171,9 @@ class _SignUpPageState extends State<SignUpPage> with WidgetsBindingObserver {
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(
-          builder: (context) => MainApp(key: UniqueKey(), onToggleDarkMode: widget.onToggleDarkMode,
+          builder: (context) => MainApp(
+              key: UniqueKey(),
+              onToggleDarkMode: widget.onToggleDarkMode,
               isDarkMode: widget.isDarkMode),
         ),
       );
@@ -270,7 +270,8 @@ class _SignUpPageState extends State<SignUpPage> with WidgetsBindingObserver {
                               Navigator.pop(context);
                             },
                             child: Image.asset(
-                              'images/tabler_arrow-back.png',height:50,
+                              'images/tabler_arrow-back.png',
+                              height: 50,
                             ),
                           ),
                           const Spacer(),
@@ -438,7 +439,8 @@ class _SignUpPageState extends State<SignUpPage> with WidgetsBindingObserver {
                                 focusedBorder: OutlineInputBorder(
                                   borderRadius: BorderRadius.circular(15),
                                   borderSide: BorderSide(
-                                    color: Theme.of(context).colorScheme.onSurface,
+                                    color:
+                                        Theme.of(context).colorScheme.onSurface,
                                   ),
                                 ),
                                 counterText: '',

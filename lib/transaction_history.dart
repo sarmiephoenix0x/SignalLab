@@ -38,7 +38,7 @@ class TransactionHistoryState extends State<TransactionHistory> {
 
   Future<List<Map<String, dynamic>>> fetchTransactions() async {
     final String? accessToken = await storage.read(key: 'accessToken');
-    const url = 'https://script.teendev.dev/signal/api/transactions';
+    const url = 'https://signal.payguru.com.ng/api/transactions';
     final response = await http.get(Uri.parse(url), headers: {
       'Authorization': 'Bearer $accessToken',
     });
@@ -199,7 +199,8 @@ class TransactionHistoryState extends State<TransactionHistory> {
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
                   return Center(
-                      child: CircularProgressIndicator(color: Theme.of(context).colorScheme.onSurface));
+                      child: CircularProgressIndicator(
+                          color: Theme.of(context).colorScheme.onSurface));
                 } else if (snapshot.hasError) {
                   return Center(
                     child: Column(
@@ -262,7 +263,7 @@ class TransactionHistoryState extends State<TransactionHistory> {
 
                 List<Map<String, dynamic>> transactions = snapshot.data!;
                 Map<String, List<Map<String, dynamic>>> groupedTransactions =
-                {};
+                    {};
 
                 for (var transaction in transactions) {
                   String formattedDate = formatDate(transaction['created_at']);
@@ -281,10 +282,7 @@ class TransactionHistoryState extends State<TransactionHistory> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         SizedBox(
-                          height: MediaQuery
-                              .of(context)
-                              .size
-                              .height * 0.1,
+                          height: MediaQuery.of(context).size.height * 0.1,
                         ),
                         Row(
                           children: [
@@ -292,8 +290,10 @@ class TransactionHistoryState extends State<TransactionHistory> {
                               onTap: () {
                                 Navigator.pop(context);
                               },
-                              child:
-                              Image.asset('images/tabler_arrow-back.png',height:50,),
+                              child: Image.asset(
+                                'images/tabler_arrow-back.png',
+                                height: 50,
+                              ),
                             ),
                             const Spacer(),
                             Text(
@@ -306,18 +306,12 @@ class TransactionHistoryState extends State<TransactionHistory> {
                               ),
                             ),
                             SizedBox(
-                                width: MediaQuery
-                                    .of(context)
-                                    .size
-                                    .width * 0.1),
+                                width: MediaQuery.of(context).size.width * 0.1),
                             const Spacer(),
                           ],
                         ),
                         SizedBox(
-                          height: MediaQuery
-                              .of(context)
-                              .size
-                              .height * 0.05,
+                          height: MediaQuery.of(context).size.height * 0.05,
                         ),
                         ...groupedTransactions.entries.map((entry) {
                           return Column(
@@ -329,21 +323,19 @@ class TransactionHistoryState extends State<TransactionHistory> {
                                   fontFamily: 'Inter',
                                   fontWeight: FontWeight.bold,
                                   fontSize: 22.0,
-                                  color: Theme.of(context).colorScheme.onSurface,
+                                  color:
+                                      Theme.of(context).colorScheme.onSurface,
                                 ),
                               ),
                               SizedBox(
                                 height:
-                                MediaQuery
-                                    .of(context)
-                                    .size
-                                    .height * 0.02,
+                                    MediaQuery.of(context).size.height * 0.02,
                               ),
                               Column(
                                 children: entry.value.map((transaction) {
                                   return Padding(
                                     padding:
-                                    const EdgeInsets.only(bottom: 15.0),
+                                        const EdgeInsets.only(bottom: 15.0),
                                     child: transactionWidget(
                                       'images/iconamoon_transaction.png',
                                       transaction['description'],
@@ -370,15 +362,9 @@ class TransactionHistoryState extends State<TransactionHistory> {
   Widget transactionWidget(String img, String description, String time) {
     return Row(
       children: [
-        SizedBox(width: MediaQuery
-            .of(context)
-            .size
-            .width * 0.02),
-        Image.asset(img, color:Theme.of(context).colorScheme.onSurface),
-        SizedBox(width: MediaQuery
-            .of(context)
-            .size
-            .width * 0.02),
+        SizedBox(width: MediaQuery.of(context).size.width * 0.02),
+        Image.asset(img, color: Theme.of(context).colorScheme.onSurface),
+        SizedBox(width: MediaQuery.of(context).size.width * 0.02),
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -393,10 +379,7 @@ class TransactionHistoryState extends State<TransactionHistory> {
                   color: Theme.of(context).colorScheme.onSurface,
                 ),
               ),
-              SizedBox(height: MediaQuery
-                  .of(context)
-                  .size
-                  .height * 0.02),
+              SizedBox(height: MediaQuery.of(context).size.height * 0.02),
               Text(
                 time,
                 style: TextStyle(

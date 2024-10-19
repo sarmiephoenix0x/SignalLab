@@ -236,7 +236,7 @@ class _SentimentPageState extends State<SentimentPage>
     });
     try {
       final String? accessToken = await storage.read(key: 'accessToken');
-      const url = 'https://script.teendev.dev/signal/api/sentiments';
+      const url = 'https://signal.payguru.com.ng/api/sentiments';
       final response = await http.get(
         Uri.parse(url),
         headers: {
@@ -863,7 +863,7 @@ class _SentimentPageState extends State<SentimentPage>
       final String? accessToken = await storage.read(key: 'accessToken');
 
       final response = await http.post(
-        Uri.parse('https://script.teendev.dev/signal/api/vote'),
+        Uri.parse('https://signal.payguru.com.ng/api/vote'),
         headers: {
           'Authorization': 'Bearer $accessToken',
           'Content-Type': 'application/json',

@@ -117,7 +117,7 @@ class _SentimentViewCoinState extends State<SentimentViewCoin>
 
     try {
       final String? accessToken = await storage.read(key: 'accessToken');
-      final url = 'https://script.teendev.dev/signal/api/sentiment?id=$id';
+      final url = 'https://signal.payguru.com.ng/api/sentiment?id=$id';
 
       final response = await http.get(
         Uri.parse(url),
@@ -323,7 +323,7 @@ class _SentimentViewCoinState extends State<SentimentViewCoin>
       isLoading2 = true;
     });
     final response = await http.post(
-      Uri.parse('https://script.teendev.dev/signal/api/vote'),
+      Uri.parse('https://signal.payguru.com.ng/api/vote'),
       headers: {
         'Authorization': 'Bearer $accessToken',
         'Content-Type': 'application/json',

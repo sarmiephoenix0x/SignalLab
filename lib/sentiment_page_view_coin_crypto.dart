@@ -12,10 +12,11 @@ class SentimentViewCoinCrypto extends StatefulWidget {
   final String sentimentTitle;
   final String sentimentImg;
 
-  const SentimentViewCoinCrypto({super.key,
-    required this.sentimentId,
-    required this.sentimentTitle,
-    required this.sentimentImg});
+  const SentimentViewCoinCrypto(
+      {super.key,
+      required this.sentimentId,
+      required this.sentimentTitle,
+      required this.sentimentImg});
 
   @override
   // ignore: library_private_types_in_public_api
@@ -127,7 +128,7 @@ class _SentimentViewCoinCryptoState extends State<SentimentViewCoinCrypto>
 
     try {
       final String? accessToken = await storage.read(key: 'accessToken');
-      final url = 'https://script.teendev.dev/signal/api/sentiment?id=$id';
+      final url = 'https://signal.payguru.com.ng/api/sentiment?id=$id';
 
       final response = await http.get(
         Uri.parse(url),
@@ -138,7 +139,7 @@ class _SentimentViewCoinCryptoState extends State<SentimentViewCoinCrypto>
         setState(() {
           final responseData = json.decode(response.body);
           sentiments =
-          responseData is List<dynamic> ? responseData : [responseData];
+              responseData is List<dynamic> ? responseData : [responseData];
           loading = false;
         });
       } else if (response.statusCode == 401) {
@@ -165,7 +166,7 @@ class _SentimentViewCoinCryptoState extends State<SentimentViewCoinCrypto>
       setState(() {
         loading = false;
         errorMessage =
-        'Failed to load data. Please check your network connection.';
+            'Failed to load data. Please check your network connection.';
       });
       print('Exception: $e');
     }
@@ -303,7 +304,7 @@ class _SentimentViewCoinCryptoState extends State<SentimentViewCoinCrypto>
       isLoading2 = true;
     });
     final response = await http.post(
-      Uri.parse('https://script.teendev.dev/signal/api/vote'),
+      Uri.parse('https://signal.payguru.com.ng/api/vote'),
       headers: {
         'Authorization': 'Bearer $accessToken',
         'Content-Type': 'application/json',
@@ -384,122 +385,114 @@ class _SentimentViewCoinCryptoState extends State<SentimentViewCoinCrypto>
         return Scaffold(
           body: loading
               ? const Center(
-              child: CircularProgressIndicator(color: Colors.black))
+                  child: CircularProgressIndicator(color: Colors.black))
               : Center(
-            child: RefreshIndicator(
-              onRefresh: _refreshData,
-              color: Colors.black,
-              child: Stack(
-                children: [
-                  SingleChildScrollView(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+                  child: RefreshIndicator(
+                    onRefresh: _refreshData,
+                    color: Colors.black,
+                    child: Stack(
                       children: [
-                        SizedBox(
-                            height:
-                            MediaQuery
-                                .of(context)
-                                .size
-                                .height * 0.1),
-                        Padding(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 20.0),
-                          child: Row(
+                        SingleChildScrollView(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              InkWell(
-                                onTap: () {
-                                  Navigator.pop(context);
-                                },
-                                child: Image.asset(
-                                    'images/tabler_arrow-back.png',height:50,),
-                              ),
-                              const Spacer(),
-                              Expanded(
-                                flex: 10,
-                                child: Text(
-                                  widget.sentimentTitle,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: const TextStyle(
-                                    fontFamily: 'Inconsolata',
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 22,
-                                    color: Colors.black,
-                                  ),
-                                ),
-                              ),
-                              const Spacer(),
-                            ],
-                          ),
-                        ),
-                        SizedBox(
-                            height: MediaQuery
-                                .of(context)
-                                .size
-                                .height *
-                                0.05),
-                        if (loading)
-                          const Center(
-                            child: CircularProgressIndicator(
-                                color: Colors.black),
-                          )
-                        else
-                          if (errorMessage != null)
-                            Center(
-                              child: Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Text(
-                                    errorMessage!,
-                                    textAlign: TextAlign.center,
-                                    style: const TextStyle(
-                                      fontFamily: 'Inconsolata',
-                                      color: Colors.red,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 16),
-                                  ElevatedButton(
-                                    onPressed: _refreshData,
-                                    child: const Text(
-                                      'Retry',
-                                      style: TextStyle(
-                                        fontFamily: 'Inconsolata',
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 18,
-                                        color: Colors.black,
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            )
-                          else
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Padding(
-                                  padding: const EdgeInsets.symmetric(
-                                      horizontal: 20.0),
-                                  child: Row(
-                                    children: [
-                                      Image.asset(
-                                        "images/logos_bitcoin.png",
+                              SizedBox(
+                                  height:
+                                      MediaQuery.of(context).size.height * 0.1),
+                              Padding(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 20.0),
+                                child: Row(
+                                  children: [
+                                    InkWell(
+                                      onTap: () {
+                                        Navigator.pop(context);
+                                      },
+                                      child: Image.asset(
+                                        'images/tabler_arrow-back.png',
                                         height: 50,
                                       ),
-                                      SizedBox(
-                                          width:
-                                          MediaQuery
-                                              .of(context)
-                                              .size
-                                              .width *
-                                              0.02),
-                                      Column(
-                                          children: [
+                                    ),
+                                    const Spacer(),
+                                    Expanded(
+                                      flex: 10,
+                                      child: Text(
+                                        widget.sentimentTitle,
+                                        overflow: TextOverflow.ellipsis,
+                                        style: const TextStyle(
+                                          fontFamily: 'Inconsolata',
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 22,
+                                          color: Colors.black,
+                                        ),
+                                      ),
+                                    ),
+                                    const Spacer(),
+                                  ],
+                                ),
+                              ),
+                              SizedBox(
+                                  height: MediaQuery.of(context).size.height *
+                                      0.05),
+                              if (loading)
+                                const Center(
+                                  child: CircularProgressIndicator(
+                                      color: Colors.black),
+                                )
+                              else if (errorMessage != null)
+                                Center(
+                                  child: Column(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Text(
+                                        errorMessage!,
+                                        textAlign: TextAlign.center,
+                                        style: const TextStyle(
+                                          fontFamily: 'Inconsolata',
+                                          color: Colors.red,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 16),
+                                      ElevatedButton(
+                                        onPressed: _refreshData,
+                                        child: const Text(
+                                          'Retry',
+                                          style: TextStyle(
+                                            fontFamily: 'Inconsolata',
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 18,
+                                            color: Colors.black,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                )
+                              else
+                                Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Padding(
+                                      padding: const EdgeInsets.symmetric(
+                                          horizontal: 20.0),
+                                      child: Row(
+                                        children: [
+                                          Image.asset(
+                                            "images/logos_bitcoin.png",
+                                            height: 50,
+                                          ),
+                                          SizedBox(
+                                              width: MediaQuery.of(context)
+                                                      .size
+                                                      .width *
+                                                  0.02),
+                                          Column(children: [
                                             Row(
                                               children: [
                                                 Text(
                                                   "${widget.sentimentTitle}",
-                                                  overflow: TextOverflow
-                                                      .ellipsis,
+                                                  overflow:
+                                                      TextOverflow.ellipsis,
                                                   style: const TextStyle(
                                                     fontFamily: 'Inconsolata',
                                                     fontWeight: FontWeight.bold,
@@ -509,8 +502,8 @@ class _SentimentViewCoinCryptoState extends State<SentimentViewCoinCrypto>
                                                 ),
                                                 Text(
                                                   ". Bitcoin",
-                                                  overflow: TextOverflow
-                                                      .ellipsis,
+                                                  overflow:
+                                                      TextOverflow.ellipsis,
                                                   style: const TextStyle(
                                                     fontFamily: 'Inconsolata',
                                                     fontWeight: FontWeight.bold,
@@ -520,48 +513,37 @@ class _SentimentViewCoinCryptoState extends State<SentimentViewCoinCrypto>
                                                 ),
                                               ],
                                             ),
-                                          ]
+                                          ]),
+                                          const Spacer(),
+                                        ],
                                       ),
-
-                                      const Spacer(),
-                                    ],
-                                  ),
+                                    ),
+                                    SizedBox(
+                                        height:
+                                            MediaQuery.of(context).size.height *
+                                                0.02),
+                                    _tabBar(),
+                                    SizedBox(
+                                        height:
+                                            MediaQuery.of(context).size.height *
+                                                0.02),
+                                    // WebView content
+                                    SizedBox(
+                                      height:
+                                          MediaQuery.of(context).size.height *
+                                              0.7, // Specify the height
+                                      child: WebViewWidget(
+                                          controller: _controller),
+                                    ),
+                                  ],
                                 ),
-                                SizedBox(
-                                    height:
-                                    MediaQuery
-                                        .of(context)
-                                        .size
-                                        .height *
-                                        0.02),
-                                _tabBar(),
-                                SizedBox(
-                                    height:
-                                    MediaQuery
-                                        .of(context)
-                                        .size
-                                        .height *
-                                        0.02),
-                                // WebView content
-                                SizedBox(
-                                  height:
-                                  MediaQuery
-                                      .of(context)
-                                      .size
-                                      .height *
-                                      0.7, // Specify the height
-                                  child: WebViewWidget(
-                                      controller: _controller),
-                                ),
-                              ],
-                            ),
+                            ],
+                          ),
+                        ),
                       ],
                     ),
                   ),
-                ],
-              ),
-            ),
-          ),
+                ),
         );
       },
     );
@@ -578,7 +560,7 @@ class _SentimentViewCoinCryptoState extends State<SentimentViewCoinCrypto>
           ),
           indicatorSize: TabBarIndicatorSize.label,
           indicatorPadding:
-          const EdgeInsets.only(left: 2.1, right: 2.1, bottom: 6.6, top: 5),
+              const EdgeInsets.only(left: 2.1, right: 2.1, bottom: 6.6, top: 5),
           dividerHeight: 0,
           tabAlignment: TabAlignment.start,
           controller: tabController!,
@@ -612,7 +594,6 @@ class _SentimentViewCoinCryptoState extends State<SentimentViewCoinCrypto>
   Widget _buildCurvedTab(String label, String img) {
     return Tab(
       child: Container(
-
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
         child: Row(
           children: [
@@ -621,10 +602,7 @@ class _SentimentViewCoinCryptoState extends State<SentimentViewCoinCrypto>
                 img,
                 height: 24,
               ),
-            SizedBox(width: MediaQuery
-                .of(context)
-                .size
-                .width * 0.01),
+            SizedBox(width: MediaQuery.of(context).size.width * 0.01),
             Text(
               label,
               style: const TextStyle(

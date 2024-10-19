@@ -41,7 +41,7 @@ class _EventsDetailsState extends State<EventsDetails> {
 
   Future<Map<String, dynamic>> _fetchEventDetails(int id) async {
     final String? accessToken = await storage.read(key: 'accessToken');
-    String url = 'https://script.teendev.dev/signal/api/event?id=$id';
+    String url = 'https://signal.payguru.com.ng/api/event?id=$id';
 
     try {
       final response = await http.get(
@@ -207,7 +207,6 @@ class _EventsDetailsState extends State<EventsDetails> {
     );
   }
 
-
   @override
   Widget build(BuildContext context) {
     return OrientationBuilder(
@@ -219,8 +218,7 @@ class _EventsDetailsState extends State<EventsDetails> {
             child: FutureBuilder<Map<String, dynamic>>(
                 future: _eventDetails,
                 builder: (context, snapshot) {
-                  if (snapshot.connectionState ==
-                      ConnectionState.waiting) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
                     return Center(
                         child: CircularProgressIndicator(
                             color: Theme.of(context).colorScheme.onSurface));
@@ -292,14 +290,10 @@ class _EventsDetailsState extends State<EventsDetails> {
                           children: [
                             SizedBox(
                                 height:
-                                MediaQuery
-                                    .of(context)
-                                    .size
-                                    .height *
-                                    0.1),
+                                    MediaQuery.of(context).size.height * 0.1),
                             Padding(
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 20.0),
+                              padding:
+                                  const EdgeInsets.symmetric(horizontal: 20.0),
                               child: Row(
                                 children: [
                                   InkWell(
@@ -307,13 +301,12 @@ class _EventsDetailsState extends State<EventsDetails> {
                                       Navigator.pop(context);
                                     },
                                     child: Image.asset(
-                                        'images/tabler_arrow-back.png',height:50,),
+                                      'images/tabler_arrow-back.png',
+                                      height: 50,
+                                    ),
                                   ),
                                   SizedBox(
-                                      width: MediaQuery
-                                          .of(context)
-                                          .size
-                                          .width *
+                                      width: MediaQuery.of(context).size.width *
                                           0.02),
                                   Text(
                                     'Event details',
@@ -321,7 +314,9 @@ class _EventsDetailsState extends State<EventsDetails> {
                                       fontFamily: 'Inter',
                                       fontWeight: FontWeight.bold,
                                       fontSize: 22.0,
-                                      color: Theme.of(context).colorScheme.onSurface,
+                                      color: Theme.of(context)
+                                          .colorScheme
+                                          .onSurface,
                                     ),
                                   ),
                                   const Spacer(),
@@ -331,42 +326,32 @@ class _EventsDetailsState extends State<EventsDetails> {
                             ),
                             SizedBox(
                                 height:
-                                MediaQuery
-                                    .of(context)
-                                    .size
-                                    .height *
-                                    0.05),
+                                    MediaQuery.of(context).size.height * 0.05),
                             Padding(
                               padding: const EdgeInsets.only(
                                   left: 20.0, right: 20.0, bottom: 20.0),
                               child: Column(
-                                crossAxisAlignment:
-                                CrossAxisAlignment.start,
+                                crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Row(
                                     crossAxisAlignment:
-                                    CrossAxisAlignment.start,
+                                        CrossAxisAlignment.start,
                                     children: [
                                       ClipRRect(
-                                        borderRadius:
-                                        BorderRadius.circular(35),
+                                        borderRadius: BorderRadius.circular(35),
                                         child: Container(
                                             width: (50 /
-                                                MediaQuery
-                                                    .of(context)
-                                                    .size
-                                                    .width) *
-                                                MediaQuery
-                                                    .of(context)
+                                                    MediaQuery.of(context)
+                                                        .size
+                                                        .width) *
+                                                MediaQuery.of(context)
                                                     .size
                                                     .width,
                                             height: (50 /
-                                                MediaQuery
-                                                    .of(context)
-                                                    .size
-                                                    .height) *
-                                                MediaQuery
-                                                    .of(context)
+                                                    MediaQuery.of(context)
+                                                        .size
+                                                        .height) *
+                                                MediaQuery.of(context)
                                                     .size
                                                     .height,
                                             color: Colors.grey,
@@ -376,27 +361,26 @@ class _EventsDetailsState extends State<EventsDetails> {
                                             )),
                                       ),
                                       SizedBox(
-                                          width: MediaQuery
-                                              .of(context)
-                                              .size
-                                              .width *
+                                          width: MediaQuery.of(context)
+                                                  .size
+                                                  .width *
                                               0.03),
                                       Expanded(
                                         flex: 10,
                                         child: Column(
                                           crossAxisAlignment:
-                                          CrossAxisAlignment.start,
+                                              CrossAxisAlignment.start,
                                           children: [
                                             Text(
                                               event['title'],
-                                              overflow:
-                                              TextOverflow.ellipsis,
+                                              overflow: TextOverflow.ellipsis,
                                               style: TextStyle(
                                                 fontFamily: 'Inconsolata',
-                                                fontWeight:
-                                                FontWeight.bold,
+                                                fontWeight: FontWeight.bold,
                                                 fontSize: 22,
-                                                color: Theme.of(context).colorScheme.onSurface,
+                                                color: Theme.of(context)
+                                                    .colorScheme
+                                                    .onSurface,
                                               ),
                                             ),
                                             Text(
@@ -404,8 +388,7 @@ class _EventsDetailsState extends State<EventsDetails> {
                                               style: const TextStyle(
                                                 fontSize: 12,
                                                 fontFamily: 'Inconsolata',
-                                                fontWeight:
-                                                FontWeight.bold,
+                                                fontWeight: FontWeight.bold,
                                                 color: Colors.grey,
                                               ),
                                             ),
@@ -418,15 +401,11 @@ class _EventsDetailsState extends State<EventsDetails> {
                                           Navigator.push(
                                             context,
                                             MaterialPageRoute(
-                                              builder: (context) =>
-                                                  ViewCoin(
-                                                      key: UniqueKey(),
-                                                      eventId:
-                                                      event['id'],
-                                                      eventTitle:
-                                                      event['title'],
-                                                      eventImg:
-                                                      event['image']),
+                                              builder: (context) => ViewCoin(
+                                                  key: UniqueKey(),
+                                                  eventId: event['id'],
+                                                  eventTitle: event['title'],
+                                                  eventImg: event['image']),
                                             ),
                                           );
                                         },
@@ -434,14 +413,14 @@ class _EventsDetailsState extends State<EventsDetails> {
                                           decoration: BoxDecoration(
                                             border: Border.all(
                                                 width: 1,
-                                                color: Theme.of(context).colorScheme.onSurface),
+                                                color: Theme.of(context)
+                                                    .colorScheme
+                                                    .onSurface),
                                             borderRadius:
-                                            BorderRadius.circular(15),
+                                                BorderRadius.circular(15),
                                           ),
-                                          padding:
-                                          const EdgeInsets.symmetric(
-                                              horizontal: 12,
-                                              vertical: 6),
+                                          padding: const EdgeInsets.symmetric(
+                                              horizontal: 12, vertical: 6),
                                           child: const Text(
                                             "View coin",
                                             style: TextStyle(
@@ -455,16 +434,12 @@ class _EventsDetailsState extends State<EventsDetails> {
                                     ],
                                   ),
                                   SizedBox(
-                                      height: MediaQuery
-                                          .of(context)
-                                          .size
-                                          .height *
-                                          0.03),
+                                      height:
+                                          MediaQuery.of(context).size.height *
+                                              0.03),
                                   const Padding(
                                     padding: EdgeInsets.only(
-                                        left: 20.0,
-                                        right: 20.0,
-                                        bottom: 20.0),
+                                        left: 20.0, right: 20.0, bottom: 20.0),
                                     child: Text(
                                       'Q3 2024',
                                       style: TextStyle(
@@ -477,18 +452,18 @@ class _EventsDetailsState extends State<EventsDetails> {
                                   ),
                                   Padding(
                                     padding: const EdgeInsets.only(
-                                        left: 20.0,
-                                        right: 20.0,
-                                        bottom: 20.0),
+                                        left: 20.0, right: 20.0, bottom: 20.0),
                                     child: Text(
                                       event['sub_text'],
                                       maxLines:
-                                      2, // Limits sub_text to two lines
+                                          2, // Limits sub_text to two lines
                                       overflow: TextOverflow.ellipsis,
                                       style: TextStyle(
                                         fontFamily: 'Inconsolata',
                                         fontSize: 16,
-                                        color: Theme.of(context).colorScheme.onSurface,
+                                        color: Theme.of(context)
+                                            .colorScheme
+                                            .onSurface,
                                       ),
                                     ),
                                   ),
@@ -527,17 +502,13 @@ class _EventsDetailsState extends State<EventsDetails> {
                                   // ),
                                   Padding(
                                     padding: const EdgeInsets.only(
-                                        left: 20.0,
-                                        right: 20.0,
-                                        bottom: 20.0),
+                                        left: 20.0, right: 20.0, bottom: 20.0),
                                     child: Container(
                                       decoration: BoxDecoration(
                                         color: Colors.black,
                                         border: Border.all(
-                                            width: 1,
-                                            color: Colors.black),
-                                        borderRadius:
-                                        BorderRadius.circular(10),
+                                            width: 1, color: Colors.black),
+                                        borderRadius: BorderRadius.circular(10),
                                       ),
                                       padding: const EdgeInsets.symmetric(
                                           horizontal: 12, vertical: 6),
@@ -552,44 +523,40 @@ class _EventsDetailsState extends State<EventsDetails> {
                                     ),
                                   ),
                                   SizedBox(
-                                      height: MediaQuery
-                                          .of(context)
-                                          .size
-                                          .height *
-                                          0.03),
+                                      height:
+                                          MediaQuery.of(context).size.height *
+                                              0.03),
                                   Padding(
                                     padding: EdgeInsets.only(
-                                        left: 20.0,
-                                        right: 20.0,
-                                        bottom: 20.0),
+                                        left: 20.0, right: 20.0, bottom: 20.0),
                                     child: Text(
                                       'Bitcoin (BTC) will mark the first step towards a minimum-viable community-run government',
                                       style: TextStyle(
                                         fontSize: 15,
                                         fontFamily: 'Inconsolata',
-                                        color: Theme.of(context).colorScheme.onSurface,
+                                        color: Theme.of(context)
+                                            .colorScheme
+                                            .onSurface,
                                       ),
                                     ),
                                   ),
                                   Padding(
                                     padding: const EdgeInsets.only(
-                                        left: 20.0,
-                                        right: 20.0,
-                                        bottom: 20.0),
+                                        left: 20.0, right: 20.0, bottom: 20.0),
                                     child: Row(
                                       children: [
                                         Container(
                                           decoration: BoxDecoration(
                                             border: Border.all(
                                                 width: 1,
-                                                color: Theme.of(context).colorScheme.onSurface),
+                                                color: Theme.of(context)
+                                                    .colorScheme
+                                                    .onSurface),
                                             borderRadius:
-                                            BorderRadius.circular(15),
+                                                BorderRadius.circular(15),
                                           ),
-                                          padding:
-                                          const EdgeInsets.symmetric(
-                                              horizontal: 12,
-                                              vertical: 6),
+                                          padding: const EdgeInsets.symmetric(
+                                              horizontal: 12, vertical: 6),
                                           child: const Text(
                                             "Proof",
                                             style: TextStyle(
@@ -600,23 +567,22 @@ class _EventsDetailsState extends State<EventsDetails> {
                                           ),
                                         ),
                                         SizedBox(
-                                            width: MediaQuery
-                                                .of(context)
-                                                .size
-                                                .width *
+                                            width: MediaQuery.of(context)
+                                                    .size
+                                                    .width *
                                                 0.02),
                                         Container(
                                           decoration: BoxDecoration(
                                             border: Border.all(
                                                 width: 1,
-                                                color: Theme.of(context).colorScheme.onSurface),
+                                                color: Theme.of(context)
+                                                    .colorScheme
+                                                    .onSurface),
                                             borderRadius:
-                                            BorderRadius.circular(15),
+                                                BorderRadius.circular(15),
                                           ),
-                                          padding:
-                                          const EdgeInsets.symmetric(
-                                              horizontal: 12,
-                                              vertical: 6),
+                                          padding: const EdgeInsets.symmetric(
+                                              horizontal: 12, vertical: 6),
                                           child: const Text(
                                             "Source",
                                             style: TextStyle(
@@ -631,19 +597,15 @@ class _EventsDetailsState extends State<EventsDetails> {
                                   ),
                                   Padding(
                                     padding: const EdgeInsets.only(
-                                        left: 20.0,
-                                        right: 20.0,
-                                        bottom: 20.0),
+                                        left: 20.0, right: 20.0, bottom: 20.0),
                                     child: Container(
                                       padding: const EdgeInsets.all(12.0),
                                       decoration: BoxDecoration(
                                         color: Colors.white,
-                                        borderRadius:
-                                        BorderRadius.circular(15),
+                                        borderRadius: BorderRadius.circular(15),
                                         boxShadow: [
                                           BoxShadow(
-                                            color: Colors.grey
-                                                .withOpacity(0.5),
+                                            color: Colors.grey.withOpacity(0.5),
                                             spreadRadius: 3,
                                             blurRadius: 5,
                                           ),
@@ -661,46 +623,37 @@ class _EventsDetailsState extends State<EventsDetails> {
                                             ),
                                           ),
                                           SizedBox(
-                                              height:
-                                              MediaQuery
-                                                  .of(context)
-                                                  .size
-                                                  .height *
+                                              height: MediaQuery.of(context)
+                                                      .size
+                                                      .height *
                                                   0.03),
                                           Row(
                                             mainAxisAlignment:
-                                            MainAxisAlignment.center,
+                                                MainAxisAlignment.center,
                                             children: [
                                               Column(
                                                 children: [
                                                   Container(
                                                     width: (120 /
-                                                        MediaQuery
-                                                            .of(
-                                                            context)
-                                                            .size
-                                                            .width) *
-                                                        MediaQuery
-                                                            .of(
-                                                            context)
+                                                            MediaQuery.of(
+                                                                    context)
+                                                                .size
+                                                                .width) *
+                                                        MediaQuery.of(context)
                                                             .size
                                                             .width,
                                                     padding:
-                                                    const EdgeInsets
-                                                        .all(12.0),
-                                                    decoration:
-                                                    BoxDecoration(
+                                                        const EdgeInsets.all(
+                                                            12.0),
+                                                    decoration: BoxDecoration(
                                                       color: Colors.white,
                                                       borderRadius:
-                                                      BorderRadius
-                                                          .circular(
-                                                          0),
+                                                          BorderRadius.circular(
+                                                              0),
                                                       boxShadow: [
                                                         BoxShadow(
-                                                          color: Colors
-                                                              .grey
-                                                              .withOpacity(
-                                                              0.5),
+                                                          color: Colors.grey
+                                                              .withOpacity(0.5),
                                                           spreadRadius: 3,
                                                           blurRadius: 5,
                                                         ),
@@ -710,91 +663,74 @@ class _EventsDetailsState extends State<EventsDetails> {
                                                       children: [
                                                         const Text(
                                                           'Confidence',
-                                                          style:
-                                                          TextStyle(
+                                                          style: TextStyle(
                                                             fontFamily:
-                                                            'Inconsolata',
+                                                                'Inconsolata',
                                                             fontWeight:
-                                                            FontWeight
-                                                                .bold,
+                                                                FontWeight.bold,
                                                             fontSize: 16,
-                                                            color: Colors
-                                                                .black,
+                                                            color: Colors.black,
                                                           ),
                                                         ),
                                                         SizedBox(
-                                                            height: MediaQuery
-                                                                .of(
-                                                                context)
-                                                                .size
-                                                                .height *
+                                                            height: MediaQuery.of(
+                                                                        context)
+                                                                    .size
+                                                                    .height *
                                                                 0.03),
                                                         const Text(
                                                           '88%',
-                                                          style:
-                                                          TextStyle(
+                                                          style: TextStyle(
                                                             fontFamily:
-                                                            'Inconsolata',
+                                                                'Inconsolata',
                                                             fontWeight:
-                                                            FontWeight
-                                                                .bold,
+                                                                FontWeight.bold,
                                                             fontSize: 30,
-                                                            color: Colors
-                                                                .black,
+                                                            color: Colors.black,
                                                           ),
                                                         ),
                                                       ],
                                                     ),
                                                   ),
                                                   SizedBox(
-                                                      height: MediaQuery
-                                                          .of(
-                                                          context)
-                                                          .size
-                                                          .height *
-                                                          0.03),
+                                                      height:
+                                                          MediaQuery.of(context)
+                                                                  .size
+                                                                  .height *
+                                                              0.03),
                                                   Image.asset(
                                                     'images/Thumbs-up.png',
                                                   ),
                                                 ],
                                               ),
                                               SizedBox(
-                                                  width: MediaQuery
-                                                      .of(
-                                                      context)
-                                                      .size
-                                                      .width *
+                                                  width: MediaQuery.of(context)
+                                                          .size
+                                                          .width *
                                                       0.03),
                                               Column(
                                                 children: [
                                                   Container(
                                                     width: (120 /
-                                                        MediaQuery
-                                                            .of(
-                                                            context)
-                                                            .size
-                                                            .width) *
-                                                        MediaQuery
-                                                            .of(
-                                                            context)
+                                                            MediaQuery.of(
+                                                                    context)
+                                                                .size
+                                                                .width) *
+                                                        MediaQuery.of(context)
                                                             .size
                                                             .width,
                                                     padding:
-                                                    const EdgeInsets
-                                                        .all(12.0),
-                                                    decoration:
-                                                    BoxDecoration(
+                                                        const EdgeInsets.all(
+                                                            12.0),
+                                                    decoration: BoxDecoration(
                                                       color: Colors.white,
                                                       borderRadius:
-                                                      BorderRadius
-                                                          .circular(
-                                                          0),
+                                                          BorderRadius.circular(
+                                                              0),
                                                       boxShadow: [
                                                         BoxShadow(
-                                                          color: Colors
-                                                              .grey
-                                                              .withOpacity(
-                                                              0.5),
+                                                          color: Colors.grey
+                                                              .withOpacity(0.5),
                                                           spreadRadius: 3,
                                                           blurRadius: 5,
                                                         ),
@@ -804,49 +740,41 @@ class _EventsDetailsState extends State<EventsDetails> {
                                                       children: [
                                                         const Text(
                                                           'Votes',
-                                                          style:
-                                                          TextStyle(
+                                                          style: TextStyle(
                                                             fontFamily:
-                                                            'Inconsolata',
+                                                                'Inconsolata',
                                                             fontWeight:
-                                                            FontWeight
-                                                                .bold,
+                                                                FontWeight.bold,
                                                             fontSize: 16,
-                                                            color: Colors
-                                                                .black,
+                                                            color: Colors.black,
                                                           ),
                                                         ),
                                                         SizedBox(
-                                                            height: MediaQuery
-                                                                .of(
-                                                                context)
-                                                                .size
-                                                                .height *
+                                                            height: MediaQuery.of(
+                                                                        context)
+                                                                    .size
+                                                                    .height *
                                                                 0.03),
                                                         const Text(
                                                           '76',
-                                                          style:
-                                                          TextStyle(
+                                                          style: TextStyle(
                                                             fontFamily:
-                                                            'Inconsolata',
+                                                                'Inconsolata',
                                                             fontWeight:
-                                                            FontWeight
-                                                                .bold,
+                                                                FontWeight.bold,
                                                             fontSize: 30,
-                                                            color: Colors
-                                                                .black,
+                                                            color: Colors.black,
                                                           ),
                                                         ),
                                                       ],
                                                     ),
                                                   ),
                                                   SizedBox(
-                                                      height: MediaQuery
-                                                          .of(
-                                                          context)
-                                                          .size
-                                                          .height *
-                                                          0.03),
+                                                      height:
+                                                          MediaQuery.of(context)
+                                                                  .size
+                                                                  .height *
+                                                              0.03),
                                                   Image.asset(
                                                     'images/Thumbs-down.png',
                                                   ),
@@ -860,23 +788,16 @@ class _EventsDetailsState extends State<EventsDetails> {
                                   ),
                                   Padding(
                                     padding: const EdgeInsets.only(
-                                        left: 20.0,
-                                        right: 20.0,
-                                        bottom: 20.0),
+                                        left: 20.0, right: 20.0, bottom: 20.0),
                                     child: Container(
-                                      width: MediaQuery
-                                          .of(context)
-                                          .size
-                                          .width,
+                                      width: MediaQuery.of(context).size.width,
                                       padding: const EdgeInsets.all(12.0),
                                       decoration: BoxDecoration(
                                         color: Colors.white,
-                                        borderRadius:
-                                        BorderRadius.circular(15),
+                                        borderRadius: BorderRadius.circular(15),
                                         boxShadow: [
                                           BoxShadow(
-                                            color: Colors.grey
-                                                .withOpacity(0.5),
+                                            color: Colors.grey.withOpacity(0.5),
                                             spreadRadius: 3,
                                             blurRadius: 5,
                                           ),
@@ -907,5 +828,4 @@ class _EventsDetailsState extends State<EventsDetails> {
       },
     );
   }
-
 }
