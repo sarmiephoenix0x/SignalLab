@@ -5,6 +5,8 @@ import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
+import 'package:google_mobile_ads/google_mobile_ads.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class NewsDetails extends StatefulWidget {
   final int newsId;
@@ -27,6 +29,10 @@ class NewsDetailsState extends State<NewsDetails> {
   bool _isRefreshing = false;
   bool isLiked = false;
   bool isBookmarked = false;
+  InterstitialAd? _interstitialAd;
+  int pageOpenCount = 0; // Count of how many times the page is opened
+  bool isAdLoaded = false;
+  Completer<void> _adLoadCompleter = Completer<void>();
 
   void _showPopupMenu(BuildContext context) async {
     final RenderBox renderBox =
@@ -158,6 +164,8 @@ class NewsDetailsState extends State<NewsDetails> {
   @override
   void initState() {
     super.initState();
+    _loadInterstitialAd();
+    _loadPageOpenCount();
     _newsFuture = fetchNewsDetails(widget.newsId);
     _scrollController.addListener(() {
       if (_scrollController.offset <= 0) {
@@ -169,6 +177,108 @@ class NewsDetailsState extends State<NewsDetails> {
         }
       }
     });
+  }
+
+  Future<void> _loadPageOpenCount() async {
+    final prefs = await SharedPreferences.getInstance();
+
+    // Wait for the ad to be loaded
+    await _loadInterstitialAd();
+
+    setState(() {
+      pageOpenCount = prefs.getInt('pageOpenCount') ?? 0;
+      print(pageOpenCount);
+      pageOpenCount++; // Increment each time the page is opened
+      prefs.setInt('pageOpenCount', pageOpenCount);
+
+      // Check if we should show an ad (randomly after 3 or more opens)
+      if (pageOpenCount >= 3 && _shouldShowAd()) {
+        _showInterstitialAd();
+        print("Show ad ooooo");
+      }
+    });
+  }
+
+  bool _shouldShowAd() {
+    // Add some randomness or a threshold to avoid showing ads too frequently
+    return pageOpenCount % 3 == 0 || pageOpenCount % 4 == 0;
+  }
+
+  Future<void> _loadInterstitialAd() async {
+    print('Attempting to load interstitial ad...');
+
+    // Reset the Completer each time you load an ad
+    _adLoadCompleter = Completer<void>();
+
+    InterstitialAd.load(
+      adUnitId: 'ca-app-pub-3940256099942544/1033173712', // Test ad unit ID
+      request: AdRequest(),
+      adLoadCallback: InterstitialAdLoadCallback(
+        onAdLoaded: (InterstitialAd ad) {
+          print('Interstitial Ad Loaded');
+          _interstitialAd = ad;
+          isAdLoaded = true;
+
+          // Complete the Completer to signal that the ad is loaded
+          _adLoadCompleter.complete();
+        },
+        onAdFailedToLoad: (LoadAdError error) {
+          print('Failed to load interstitial ad: $error');
+          isAdLoaded = false;
+
+          // Complete the Completer even if the ad fails to load
+          _adLoadCompleter.complete();
+          _retryLoadingAd(); // Retry loading after failure
+        },
+      ),
+    );
+
+    // Wait for the ad to be fully loaded (or failed) before continuing
+    await _adLoadCompleter.future;
+  }
+
+  void _retryLoadingAd() {
+    print('Retry loading interstitial ad in 5 seconds...');
+    Future.delayed(Duration(seconds: 5), () {
+      _loadInterstitialAd();
+    });
+  }
+
+  void _showInterstitialAd() {
+    if (_interstitialAd == null) {
+      print('Interstitial Ad is null');
+      return;
+    }
+
+    if (!isAdLoaded) {
+      print('Interstitial Ad is not loaded yet');
+      return;
+    }
+
+    // Attach the FullScreenContentCallback before showing the ad
+    _interstitialAd!.fullScreenContentCallback = FullScreenContentCallback(
+      onAdDismissedFullScreenContent: (InterstitialAd ad) {
+        ad.dispose(); // Dispose the ad after it's shown
+        _loadInterstitialAd(); // Load a new ad
+        print('Load New InterstitialAd after dismissing');
+      },
+      onAdFailedToShowFullScreenContent: (InterstitialAd ad, AdError error) {
+        print('Failed to show interstitial ad: $error');
+        ad.dispose();
+        _loadInterstitialAd(); // Reload if failed to show
+      },
+    );
+
+    print('Show InterstitialAd');
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _interstitialAd!.show();
+    });
+  }
+
+  @override
+  void dispose() {
+    _interstitialAd?.dispose();
+    super.dispose();
   }
 
   Future<Map<String, dynamic>?> fetchNewsDetails(int id) async {

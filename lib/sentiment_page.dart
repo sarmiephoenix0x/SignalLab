@@ -35,6 +35,9 @@ class _SentimentPageState extends State<SentimentPage>
   final ScrollController _scrollController = ScrollController();
   bool _isRefreshing = false;
   String? errorMessage;
+  int currentPage = 1; // Track current page for pagination
+  bool isLastPage = false; // Track if the last page has been reached
+  bool isLoadingMore = false; // Track if more data is loading
 
   @override
   void initState() {
@@ -43,6 +46,12 @@ class _SentimentPageState extends State<SentimentPage>
     tabController!.addListener(_handleTabSelection);
     fetchSentiments();
     _scrollController.addListener(() {
+      if (_scrollController.position.pixels >=
+          _scrollController.position.maxScrollExtent - 200) {
+        if (!isLoadingMore && !isLastPage) {
+          fetchSentiments(loadMore: true); // Load more when near the bottom
+        }
+      }
       if (_scrollController.offset <= 0) {
         if (_isRefreshing) {
           // Logic to cancel refresh if needed
@@ -56,6 +65,7 @@ class _SentimentPageState extends State<SentimentPage>
 
   @override
   void dispose() {
+    _scrollController.dispose();
     tabController?.dispose();
     super.dispose();
   }
@@ -235,16 +245,21 @@ class _SentimentPageState extends State<SentimentPage>
     _overlayEntry = null;
   }
 
-  Future<void> fetchSentiments() async {
-    if (mounted) {
-      setState(() {
-        loading = true;
-        errorMessage = null;
-      });
+  Future<void> fetchSentiments({bool loadMore = false}) async {
+    if (loadMore && isLoadingMore) return; // Prevent multiple loadMore calls
+    if (!loadMore) {
+      if (mounted) {
+        setState(() {
+          loading = true;
+          errorMessage = null;
+        });
+      }
     }
+
     try {
       final String? accessToken = await storage.read(key: 'accessToken');
-      const url = 'https://signal.payguru.com.ng/api/sentiments';
+      final url =
+          'https://signal.payguru.com.ng/api/sentiments?page=$currentPage'; // Add pagination parameter
       final response = await http.get(
         Uri.parse(url),
         headers: {
@@ -253,26 +268,43 @@ class _SentimentPageState extends State<SentimentPage>
       );
 
       if (response.statusCode == 200) {
+        final Map<String, dynamic> responseData =
+            json.decode(response.body); // Parse as Map
+        final List<dynamic> sentimentsData =
+            responseData['data']; // Extract the 'data' list
+        final pagination =
+            responseData['pagination']; // Extract pagination details
+
         if (mounted) {
           setState(() {
-            sentiments = json.decode(response.body);
+            if (loadMore) {
+              sentiments
+                  .addAll(sentimentsData); // Append new sentiments to the list
+            } else {
+              sentiments = sentimentsData; // Set the initial load of sentiments
+            }
+
+            // Update pagination data
+            isLastPage = pagination['next_page_url'] == null;
+            currentPage++;
             loading = false;
+            isLoadingMore = false;
           });
         }
       } else {
         if (mounted) {
           setState(() {
-            loading = false; // Failed to load data
-            errorMessage = 'Failed to load sentiments';
+            loading = false;
+            isLoadingMore = false;
+            errorMessage = 'Failed to load sentiments'; // Failed to load data
           });
         }
-        // Handle the error accordingly
-        print('Failed to load sentiments');
       }
     } catch (e) {
       if (mounted) {
         setState(() {
           loading = false;
+          isLoadingMore = false;
           errorMessage =
               'Failed to load data. Please check your network connection.';
         });
@@ -554,13 +586,24 @@ class _SentimentPageState extends State<SentimentPage>
                               )
                             else
                               RefreshIndicator(
-                                onRefresh: _refreshData,
+                                onRefresh:
+                                    _refreshData, // Function to refresh sentiments
                                 color: Theme.of(context).colorScheme.onSurface,
                                 child: ListView.builder(
-                                  controller: _scrollController,
-                                  itemCount: sentiments.length,
+                                  controller:
+                                      _scrollController, // Ensure _scrollController is properly set up
+                                  itemCount: sentiments.length +
+                                      (isLastPage
+                                          ? 0
+                                          : 1), // Add 1 for the loading indicator if not the last page
                                   itemBuilder: (context, index) {
-                                    return forexCard(sentiments[index]);
+                                    if (index == sentiments.length) {
+                                      // Show a loading indicator at the bottom when loading more
+                                      return Center(
+                                          child: CircularProgressIndicator());
+                                    }
+                                    return forexCard(
+                                        sentiments[index]); // Your card widget
                                   },
                                 ),
                               ),
@@ -602,13 +645,24 @@ class _SentimentPageState extends State<SentimentPage>
                               )
                             else
                               RefreshIndicator(
-                                onRefresh: _refreshData,
+                                onRefresh:
+                                    _refreshData, // Function to refresh sentiments
                                 color: Theme.of(context).colorScheme.onSurface,
                                 child: ListView.builder(
-                                  controller: _scrollController,
-                                  itemCount: sentiments.length,
+                                  controller:
+                                      _scrollController, // Ensure _scrollController is properly set up
+                                  itemCount: sentiments.length +
+                                      (isLastPage
+                                          ? 0
+                                          : 1), // Add 1 for the loading indicator if not the last page
                                   itemBuilder: (context, index) {
-                                    return forexCard(sentiments[index]);
+                                    if (index == sentiments.length) {
+                                      // Show a loading indicator at the bottom when loading more
+                                      return Center(
+                                          child: CircularProgressIndicator());
+                                    }
+                                    return forexCard(
+                                        sentiments[index]); // Your card widget
                                   },
                                 ),
                               ),
@@ -652,13 +706,24 @@ class _SentimentPageState extends State<SentimentPage>
                               )
                             else
                               RefreshIndicator(
-                                onRefresh: _refreshData,
+                                onRefresh:
+                                    _refreshData, // Function to refresh sentiments
                                 color: Theme.of(context).colorScheme.onSurface,
                                 child: ListView.builder(
-                                  controller: _scrollController,
-                                  itemCount: sentiments.length,
+                                  controller:
+                                      _scrollController, // Ensure _scrollController is properly set up
+                                  itemCount: sentiments.length +
+                                      (isLastPage
+                                          ? 0
+                                          : 1), // Add 1 for the loading indicator if not the last page
                                   itemBuilder: (context, index) {
-                                    return forexCard(sentiments[index]);
+                                    if (index == sentiments.length) {
+                                      // Show a loading indicator at the bottom when loading more
+                                      return Center(
+                                          child: CircularProgressIndicator());
+                                    }
+                                    return forexCard(
+                                        sentiments[index]); // Your card widget
                                   },
                                 ),
                               ),

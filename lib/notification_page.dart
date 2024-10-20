@@ -18,11 +18,17 @@ class NotificationPageState extends State<NotificationPage> {
   final storage = const FlutterSecureStorage();
   final ScrollController _scrollController = ScrollController();
   bool _isRefreshing = false;
+  int _currentPage = 1;
+  bool _isLoadingMore = false;
+  bool _hasMoreData = true;
+  int _totalPages = 1;
+  late Future<void> _initialLoadFuture;
+  List<Map<String, dynamic>> _notifications = [];
 
   @override
   void initState() {
     super.initState();
-    _notificationsFuture = fetchNotifications();
+    _initialLoadFuture = _fetchInitialNotifications();
     _scrollController.addListener(() {
       if (_scrollController.offset <= 0) {
         if (_isRefreshing) {
@@ -35,15 +41,28 @@ class NotificationPageState extends State<NotificationPage> {
     });
   }
 
-  Future<List<Map<String, dynamic>>> fetchNotifications() async {
+  Future<void> _fetchInitialNotifications() async {
+    _currentPage = 1; // Reset page count
+    _notifications =
+        await fetchNotifications(page: _currentPage); // Fetch the first page
+    _totalPages =
+        3; // Example total pages, replace this with your API's total pages
+    setState(() {}); // Update the UI after the first fetch
+  }
+
+  Future<List<Map<String, dynamic>>> fetchNotifications({int page = 1}) async {
     final String? accessToken = await storage.read(key: 'accessToken');
-    const url = 'https://signal.payguru.com.ng/api/notifications';
+    final url = 'https://signal.payguru.com.ng/api/notifications?page=$page';
     final response = await http.get(Uri.parse(url), headers: {
       'Authorization': 'Bearer $accessToken',
     });
 
     if (response.statusCode == 200) {
-      List<dynamic> jsonData = json.decode(response.body);
+      final responseBody = json.decode(response.body);
+      List<dynamic> jsonData = responseBody['data'];
+      _currentPage = responseBody['pagination']['current_page'];
+      _totalPages = responseBody['pagination']['total_pages'];
+
       return jsonData.map((notification) {
         return {
           "id": notification["id"],
@@ -56,6 +75,23 @@ class NotificationPageState extends State<NotificationPage> {
     } else {
       throw Exception('Failed to load notifications');
     }
+  }
+
+  Future<void> _loadMoreNotifications() async {
+    if (_currentPage >= _totalPages || _isLoadingMore)
+      return; // Avoid loading if no more pages
+    setState(() {
+      _isLoadingMore = true;
+    });
+
+    _currentPage++;
+    List<Map<String, dynamic>> moreNotifications =
+        await fetchNotifications(page: _currentPage);
+
+    setState(() {
+      _notifications.addAll(moreNotifications); // Append new notifications
+      _isLoadingMore = false;
+    });
   }
 
   DateTime parseRelativeDate(String relativeDate) {
@@ -132,7 +168,7 @@ class NotificationPageState extends State<NotificationPage> {
   }
 
   Future<void> _performDataFetch() async {
-    _notificationsFuture = fetchNotifications();
+    await _fetchInitialNotifications();
   }
 
   void _showNoInternetDialog(BuildContext context) {
@@ -147,7 +183,10 @@ class NotificationPageState extends State<NotificationPage> {
           ),
           actions: <Widget>[
             TextButton(
-              child: const Text('Retry', style: TextStyle(color: Colors.blue)),
+              child: Text('Retry',
+                  style: TextStyle(
+                    color: Theme.of(context).colorScheme.onSurface,
+                  )),
               onPressed: () {
                 Navigator.of(context).pop();
                 _refreshData();
@@ -226,8 +265,8 @@ class NotificationPageState extends State<NotificationPage> {
         body: RefreshIndicator(
           onRefresh: _refreshData,
           color: Colors.black,
-          child: FutureBuilder<List<Map<String, dynamic>>>(
-            future: _notificationsFuture,
+          child: FutureBuilder<void>(
+            future: _initialLoadFuture,
             builder: (context, snapshot) {
               if (snapshot.connectionState == ConnectionState.waiting) {
                 return Center(
@@ -249,20 +288,22 @@ class NotificationPageState extends State<NotificationPage> {
                       const SizedBox(height: 16),
                       ElevatedButton(
                         onPressed: _refreshData,
-                        child: const Text(
+                        child: Text(
                           'Retry',
                           style: TextStyle(
                             fontFamily: 'Inconsolata',
                             fontWeight: FontWeight.bold,
                             fontSize: 18,
-                            color: Colors.black,
+                            color: Theme.of(context).colorScheme.onSurface,
                           ),
                         ),
                       ),
                     ],
                   ),
                 );
-              } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+              }
+
+              if (_notifications.isEmpty) {
                 return Center(
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
@@ -278,13 +319,13 @@ class NotificationPageState extends State<NotificationPage> {
                       const SizedBox(height: 16),
                       ElevatedButton(
                         onPressed: _refreshData,
-                        child: const Text(
+                        child: Text(
                           'Retry',
                           style: TextStyle(
                             fontFamily: 'Inconsolata',
                             fontWeight: FontWeight.bold,
                             fontSize: 18,
-                            color: Colors.black,
+                            color: Theme.of(context).colorScheme.onSurface,
                           ),
                         ),
                       ),
@@ -293,10 +334,10 @@ class NotificationPageState extends State<NotificationPage> {
                 );
               }
 
-              List<Map<String, dynamic>> notifications = snapshot.data!;
+              // Group notifications by date
               Map<String, List<Map<String, dynamic>>> groupedNotifications = {};
 
-              for (var notification in notifications) {
+              for (var notification in _notifications) {
                 String formattedDate = formatDate(notification['created_at']);
                 if (groupedNotifications.containsKey(formattedDate)) {
                   groupedNotifications[formattedDate]!.add(notification);
@@ -305,51 +346,39 @@ class NotificationPageState extends State<NotificationPage> {
                 }
               }
 
-              return SingleChildScrollView(
-                controller: _scrollController,
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      SizedBox(
-                        height: MediaQuery.of(context).size.height * 0.1,
-                      ),
-                      Row(
-                        children: [
-                          InkWell(
-                            onTap: () {
-                              Navigator.pop(context);
-                            },
-                            child: Image.asset(
-                              'images/tabler_arrow-back.png',
-                              height: 50,
-                            ),
-                          ),
-                          const Spacer(),
-                          Text(
-                            'Notification',
-                            style: TextStyle(
-                              fontFamily: 'Inter',
-                              fontWeight: FontWeight.bold,
-                              fontSize: 22.0,
-                              color: Theme.of(context).colorScheme.onSurface,
-                            ),
-                          ),
-                          SizedBox(
-                              width: MediaQuery.of(context).size.width * 0.1),
-                          const Spacer(),
-                        ],
-                      ),
-                      SizedBox(
-                        height: MediaQuery.of(context).size.height * 0.05,
-                      ),
-                      ...groupedNotifications.entries.map((entry) {
-                        return Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
+              return NotificationListener<ScrollNotification>(
+                onNotification: (ScrollNotification scrollInfo) {
+                  if (scrollInfo.metrics.pixels ==
+                          scrollInfo.metrics.maxScrollExtent &&
+                      !_isLoadingMore) {
+                    _loadMoreNotifications(); // Load more when scrolled to bottom
+                  }
+                  return false;
+                },
+                child: SingleChildScrollView(
+                  controller: _scrollController,
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        SizedBox(
+                          height: MediaQuery.of(context).size.height * 0.1,
+                        ),
+                        Row(
                           children: [
+                            InkWell(
+                              onTap: () {
+                                Navigator.pop(context);
+                              },
+                              child: Image.asset(
+                                'images/tabler_arrow-back.png',
+                                height: 50,
+                              ),
+                            ),
+                            const Spacer(),
                             Text(
-                              entry.key,
+                              'Notification',
                               style: TextStyle(
                                 fontFamily: 'Inter',
                                 fontWeight: FontWeight.bold,
@@ -358,24 +387,54 @@ class NotificationPageState extends State<NotificationPage> {
                               ),
                             ),
                             SizedBox(
-                              height: MediaQuery.of(context).size.height * 0.02,
-                            ),
-                            Column(
-                              children: entry.value.map((notification) {
-                                return Padding(
-                                  padding: const EdgeInsets.only(bottom: 15.0),
-                                  child: notificationWidget(
-                                    'images/iconamoon_news-thin_active.png',
-                                    notification['message'],
-                                    notification['created_at'],
-                                  ),
-                                );
-                              }).toList(),
-                            ),
+                                width: MediaQuery.of(context).size.width * 0.1),
+                            const Spacer(),
                           ],
-                        );
-                      }).toList(),
-                    ],
+                        ),
+                        SizedBox(
+                          height: MediaQuery.of(context).size.height * 0.05,
+                        ),
+                        ...groupedNotifications.entries.map((entry) {
+                          return Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                entry.key,
+                                style: TextStyle(
+                                  fontFamily: 'Inter',
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 22.0,
+                                  color:
+                                      Theme.of(context).colorScheme.onSurface,
+                                ),
+                              ),
+                              SizedBox(
+                                height:
+                                    MediaQuery.of(context).size.height * 0.02,
+                              ),
+                              Column(
+                                children: entry.value.map((notification) {
+                                  return Padding(
+                                    padding:
+                                        const EdgeInsets.only(bottom: 15.0),
+                                    child: notificationWidget(
+                                      'images/iconamoon_news-thin_active.png',
+                                      notification['message'],
+                                      notification['created_at'],
+                                    ),
+                                  );
+                                }).toList(),
+                              ),
+                              if (_isLoadingMore)
+                                const Padding(
+                                  padding: EdgeInsets.all(16.0),
+                                  child: CircularProgressIndicator(),
+                                ),
+                            ],
+                          );
+                        }).toList(),
+                      ],
+                    ),
                   ),
                 ),
               );

@@ -11,6 +11,7 @@ import 'package:signal_app/bookmark_page.dart';
 import 'package:signal_app/card_details.dart';
 import 'package:signal_app/events_page.dart';
 import 'package:signal_app/intro_page.dart';
+import 'package:signal_app/menu_page.dart';
 import 'package:signal_app/news_details.dart';
 import 'package:signal_app/notification_page.dart';
 import 'package:signal_app/packages_page.dart';
@@ -20,6 +21,7 @@ import 'package:signal_app/settings.dart';
 import 'package:signal_app/trading_web_view.dart';
 import 'package:signal_app/transaction_history.dart';
 import 'package:signal_app/video_player_widget.dart';
+import 'package:signal_app/view_analysis.dart';
 import 'package:visibility_detector/visibility_detector.dart';
 
 import 'edit_profile.dart';
@@ -244,6 +246,7 @@ class _MainAppState extends State<MainApp>
 
       try {
         final String? accessToken = await storage.read(key: 'accessToken');
+        print(accessToken);
         final response = await http.get(
           Uri.parse('https://signal.payguru.com.ng/api/courses?page=$page'),
           headers: {
@@ -324,6 +327,7 @@ class _MainAppState extends State<MainApp>
 
     try {
       final String? accessToken = await storage.read(key: 'accessToken');
+      // print(accessToken);
       final response = await http.get(
         Uri.parse('https://signal.payguru.com.ng/api/news?page=$page'),
         headers: {
@@ -1360,317 +1364,317 @@ class _MainAppState extends State<MainApp>
                     : [], // Return an empty list when not searching
               )
             : null,
-        drawer: ClipRRect(
-          borderRadius: const BorderRadius.only(
-            topRight: Radius.circular(30.0),
-            bottomRight: Radius.circular(30.0),
-          ),
-          child: SafeArea(
-            child: Padding(
-              padding: const EdgeInsets.only(bottom: 60.0),
-              child: Drawer(
-                child: Container(
-                  color: Colors.black, // Set your desired background color here
-                  child: ListView(
-                    padding: EdgeInsets.zero,
-                    children: <Widget>[
-                      DrawerHeader(
-                        decoration: const BoxDecoration(
-                          color: Colors
-                              .black, // Set your desired header color here
-                        ),
-                        padding:
-                            const EdgeInsets.fromLTRB(16.0, 36.0, 16.0, 8.0),
-                        child: Row(children: [
-                          if (profileImg == null)
-                            ClipRRect(
-                              borderRadius: BorderRadius.circular(55),
-                              child: Container(
-                                width:
-                                    (35 / MediaQuery.of(context).size.width) *
-                                        MediaQuery.of(context).size.width,
-                                height:
-                                    (35 / MediaQuery.of(context).size.height) *
-                                        MediaQuery.of(context).size.height,
-                                color: Colors.grey,
-                                child: Image.asset(
-                                  'images/Pexels Photo by 3Motional Studio.png',
-                                  fit: BoxFit.cover,
-                                ),
-                              ),
-                            )
-                          else if (profileImg != null)
-                            ClipRRect(
-                              borderRadius: BorderRadius.circular(55),
-                              child: Container(
-                                width:
-                                    (35 / MediaQuery.of(context).size.width) *
-                                        MediaQuery.of(context).size.width,
-                                height:
-                                    (35 / MediaQuery.of(context).size.height) *
-                                        MediaQuery.of(context).size.height,
-                                color: Colors.grey,
-                                child: Image.network(
-                                  profileImg!,
-                                  fit: BoxFit.cover,
-                                ),
-                              ),
-                            ),
-                          SizedBox(
-                              width: MediaQuery.of(context).size.width * 0.03),
-                          if (userName != null)
-                            Text(
-                              userName!,
-                              style: const TextStyle(
-                                fontFamily: 'GolosText',
-                                fontSize: 16.0,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.white,
-                              ),
-                            )
-                          else
-                            const CircularProgressIndicator(
-                                color: Colors.black),
-                        ]),
-                      ),
-                      ListTile(
-                        leading: Image.asset(
-                          'images/ic_round-add-card.png',
-                        ),
-                        title: const Text(
-                          'Payment Method',
-                          style: TextStyle(
-                            fontFamily: 'GolosText',
-                            fontSize: 16.0,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white,
-                          ),
-                        ),
-                        onTap: () {
-                          Navigator.pop(context); // Close the drawer
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => PaymentMethod(
-                                  key: UniqueKey(),
-                                  onToggleDarkMode: widget.onToggleDarkMode,
-                                  isDarkMode: widget.isDarkMode),
-                            ),
-                          );
-                        },
-                      ),
-                      ListTile(
-                        leading: Image.asset(
-                          'images/carbon_event.png',
-                        ),
-                        title: const Text(
-                          'Events',
-                          style: TextStyle(
-                            fontFamily: 'GolosText',
-                            fontSize: 16.0,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white,
-                          ),
-                        ),
-                        onTap: () {
-                          Navigator.pop(context); // Close the drawer
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) =>
-                                  EventsPage(key: UniqueKey()),
-                            ),
-                          );
-                        },
-                      ),
-                      ListTile(
-                        leading: Image.asset(
-                          'images/fluent-mdl2_sentiment-analysis.png',
-                        ),
-                        title: const Text(
-                          'Sentiment',
-                          style: TextStyle(
-                            fontFamily: 'GolosText',
-                            fontSize: 16.0,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white,
-                          ),
-                        ),
-                        onTap: () {
-                          Navigator.pop(context); // Close the drawer
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) =>
-                                  SentimentPage(key: UniqueKey()),
-                            ),
-                          );
-                        },
-                      ),
-                      ListTile(
-                        leading: Image.asset(
-                          'images/Packages-dollarsign.png',
-                        ),
-                        title: const Text(
-                          'Packages',
-                          style: TextStyle(
-                            fontFamily: 'GolosText',
-                            fontSize: 16.0,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white,
-                          ),
-                        ),
-                        onTap: () {
-                          Navigator.pop(context); // Close the drawer
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) =>
-                                  PackagesPage(key: UniqueKey()),
-                            ),
-                          );
-                        },
-                      ),
-                      ListTile(
-                        leading: Image.asset(
-                          'images/Referrals.png',
-                        ),
-                        title: const Text(
-                          'Referrals',
-                          style: TextStyle(
-                            fontFamily: 'GolosText',
-                            fontSize: 16.0,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white,
-                          ),
-                        ),
-                        onTap: () {
-                          Navigator.pop(context); // Close the drawer
-                          // Navigate to home or any action you want
-                        },
-                      ),
-                      ListTile(
-                        leading: Image.asset(
-                          'images/solar_settings-outline.png',
-                          height: 25,
-                        ),
-                        title: const Text(
-                          'Settings',
-                          style: TextStyle(
-                            fontFamily: 'GolosText',
-                            fontSize: 16.0,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white,
-                          ),
-                        ),
-                        onTap: () {
-                          Navigator.pop(context); // Close the drawer
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => AccountSettings(
-                                  key: UniqueKey(),
-                                  onToggleDarkMode: widget.onToggleDarkMode,
-                                  isDarkMode: widget.isDarkMode),
-                            ),
-                          );
-                        },
-                      ),
-                      ListTile(
-                        leading: Image.asset(
-                          'images/grommet-icons_transaction.png',
-                        ),
-                        title: const Text(
-                          'Transaction History',
-                          style: TextStyle(
-                            fontFamily: 'GolosText',
-                            fontSize: 16.0,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white,
-                          ),
-                        ),
-                        onTap: () {
-                          Navigator.pop(context); // Close the drawer
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) =>
-                                  TransactionHistory(key: UniqueKey()),
-                            ),
-                          );
-                        },
-                      ),
-                      ListTile(
-                        leading: Image.asset(
-                          'images/fluent_person-support-16-regular.png',
-                          height: 25,
-                        ),
-                        title: const Text(
-                          'Customer Support',
-                          style: TextStyle(
-                            fontFamily: 'GolosText',
-                            fontSize: 16.0,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white,
-                          ),
-                        ),
-                        onTap: () {
-                          Navigator.pop(context); // Close the drawer
-                        },
-                      ),
-                      ListTile(
-                        leading: Image.asset(
-                          'images/bookmark.png',
-                          height: 25,
-                        ),
-                        title: const Text(
-                          'Bookmarks',
-                          style: TextStyle(
-                            fontFamily: 'GolosText',
-                            fontSize: 16.0,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white,
-                          ),
-                        ),
-                        onTap: () {
-                          Navigator.pop(context); // Close the drawer
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) =>
-                                  BookmarkPage(key: UniqueKey()),
-                            ),
-                          );
-                        },
-                      ),
-                      ListTile(
-                        contentPadding:
-                            const EdgeInsets.only(top: 16, left: 16),
-                        leading: Image.asset(
-                          'images/material-symbols-light_logout-sharp.png',
-                          height: 25,
-                        ),
-                        title: const Text(
-                          'Log out',
-                          style: TextStyle(
-                            fontFamily: 'GolosText',
-                            fontSize: 16.0,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white,
-                          ),
-                        ),
-                        onTap: () {
-                          Navigator.pop(context);
-                          _showLogoutConfirmationDialog();
-                        },
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-          ),
-        ),
+        // drawer: ClipRRect(
+        //   borderRadius: const BorderRadius.only(
+        //     topRight: Radius.circular(30.0),
+        //     bottomRight: Radius.circular(30.0),
+        //   ),
+        //   child: SafeArea(
+        //     child: Padding(
+        //       padding: const EdgeInsets.only(bottom: 60.0),
+        //       child: Drawer(
+        //         child: Container(
+        //           color: Colors.black, // Set your desired background color here
+        //           child: ListView(
+        //             padding: EdgeInsets.zero,
+        //             children: <Widget>[
+        //               DrawerHeader(
+        //                 decoration: const BoxDecoration(
+        //                   color: Colors
+        //                       .black, // Set your desired header color here
+        //                 ),
+        //                 padding:
+        //                     const EdgeInsets.fromLTRB(16.0, 36.0, 16.0, 8.0),
+        //                 child: Row(children: [
+        //                   if (profileImg == null)
+        //                     ClipRRect(
+        //                       borderRadius: BorderRadius.circular(55),
+        //                       child: Container(
+        //                         width:
+        //                             (35 / MediaQuery.of(context).size.width) *
+        //                                 MediaQuery.of(context).size.width,
+        //                         height:
+        //                             (35 / MediaQuery.of(context).size.height) *
+        //                                 MediaQuery.of(context).size.height,
+        //                         color: Colors.grey,
+        //                         child: Image.asset(
+        //                           'images/Pexels Photo by 3Motional Studio.png',
+        //                           fit: BoxFit.cover,
+        //                         ),
+        //                       ),
+        //                     )
+        //                   else if (profileImg != null)
+        //                     ClipRRect(
+        //                       borderRadius: BorderRadius.circular(55),
+        //                       child: Container(
+        //                         width:
+        //                             (35 / MediaQuery.of(context).size.width) *
+        //                                 MediaQuery.of(context).size.width,
+        //                         height:
+        //                             (35 / MediaQuery.of(context).size.height) *
+        //                                 MediaQuery.of(context).size.height,
+        //                         color: Colors.grey,
+        //                         child: Image.network(
+        //                           profileImg!,
+        //                           fit: BoxFit.cover,
+        //                         ),
+        //                       ),
+        //                     ),
+        //                   SizedBox(
+        //                       width: MediaQuery.of(context).size.width * 0.03),
+        //                   if (userName != null)
+        //                     Text(
+        //                       userName!,
+        //                       style: const TextStyle(
+        //                         fontFamily: 'GolosText',
+        //                         fontSize: 16.0,
+        //                         fontWeight: FontWeight.bold,
+        //                         color: Colors.white,
+        //                       ),
+        //                     )
+        //                   else
+        //                     const CircularProgressIndicator(
+        //                         color: Colors.black),
+        //                 ]),
+        //               ),
+        //               ListTile(
+        //                 leading: Image.asset(
+        //                   'images/ic_round-add-card.png',
+        //                 ),
+        //                 title: const Text(
+        //                   'Payment Method',
+        //                   style: TextStyle(
+        //                     fontFamily: 'GolosText',
+        //                     fontSize: 16.0,
+        //                     fontWeight: FontWeight.bold,
+        //                     color: Colors.white,
+        //                   ),
+        //                 ),
+        //                 onTap: () {
+        //                   Navigator.pop(context); // Close the drawer
+        //                   Navigator.push(
+        //                     context,
+        //                     MaterialPageRoute(
+        //                       builder: (context) => PaymentMethod(
+        //                           key: UniqueKey(),
+        //                           onToggleDarkMode: widget.onToggleDarkMode,
+        //                           isDarkMode: widget.isDarkMode),
+        //                     ),
+        //                   );
+        //                 },
+        //               ),
+        //               ListTile(
+        //                 leading: Image.asset(
+        //                   'images/carbon_event.png',
+        //                 ),
+        //                 title: const Text(
+        //                   'Events',
+        //                   style: TextStyle(
+        //                     fontFamily: 'GolosText',
+        //                     fontSize: 16.0,
+        //                     fontWeight: FontWeight.bold,
+        //                     color: Colors.white,
+        //                   ),
+        //                 ),
+        //                 onTap: () {
+        //                   Navigator.pop(context); // Close the drawer
+        //                   Navigator.push(
+        //                     context,
+        //                     MaterialPageRoute(
+        //                       builder: (context) =>
+        //                           EventsPage(key: UniqueKey()),
+        //                     ),
+        //                   );
+        //                 },
+        //               ),
+        //               ListTile(
+        //                 leading: Image.asset(
+        //                   'images/fluent-mdl2_sentiment-analysis.png',
+        //                 ),
+        //                 title: const Text(
+        //                   'Sentiment',
+        //                   style: TextStyle(
+        //                     fontFamily: 'GolosText',
+        //                     fontSize: 16.0,
+        //                     fontWeight: FontWeight.bold,
+        //                     color: Colors.white,
+        //                   ),
+        //                 ),
+        //                 onTap: () {
+        //                   Navigator.pop(context); // Close the drawer
+        //                   Navigator.push(
+        //                     context,
+        //                     MaterialPageRoute(
+        //                       builder: (context) =>
+        //                           SentimentPage(key: UniqueKey()),
+        //                     ),
+        //                   );
+        //                 },
+        //               ),
+        //               ListTile(
+        //                 leading: Image.asset(
+        //                   'images/Packages-dollarsign.png',
+        //                 ),
+        //                 title: const Text(
+        //                   'Packages',
+        //                   style: TextStyle(
+        //                     fontFamily: 'GolosText',
+        //                     fontSize: 16.0,
+        //                     fontWeight: FontWeight.bold,
+        //                     color: Colors.white,
+        //                   ),
+        //                 ),
+        //                 onTap: () {
+        //                   Navigator.pop(context); // Close the drawer
+        //                   Navigator.push(
+        //                     context,
+        //                     MaterialPageRoute(
+        //                       builder: (context) =>
+        //                           PackagesPage(key: UniqueKey()),
+        //                     ),
+        //                   );
+        //                 },
+        //               ),
+        //               ListTile(
+        //                 leading: Image.asset(
+        //                   'images/Referrals.png',
+        //                 ),
+        //                 title: const Text(
+        //                   'Referrals',
+        //                   style: TextStyle(
+        //                     fontFamily: 'GolosText',
+        //                     fontSize: 16.0,
+        //                     fontWeight: FontWeight.bold,
+        //                     color: Colors.white,
+        //                   ),
+        //                 ),
+        //                 onTap: () {
+        //                   Navigator.pop(context); // Close the drawer
+        //                   // Navigate to home or any action you want
+        //                 },
+        //               ),
+        //               ListTile(
+        //                 leading: Image.asset(
+        //                   'images/solar_settings-outline.png',
+        //                   height: 25,
+        //                 ),
+        //                 title: const Text(
+        //                   'Settings',
+        //                   style: TextStyle(
+        //                     fontFamily: 'GolosText',
+        //                     fontSize: 16.0,
+        //                     fontWeight: FontWeight.bold,
+        //                     color: Colors.white,
+        //                   ),
+        //                 ),
+        //                 onTap: () {
+        //                   Navigator.pop(context); // Close the drawer
+        //                   Navigator.push(
+        //                     context,
+        //                     MaterialPageRoute(
+        //                       builder: (context) => AccountSettings(
+        //                           key: UniqueKey(),
+        //                           onToggleDarkMode: widget.onToggleDarkMode,
+        //                           isDarkMode: widget.isDarkMode),
+        //                     ),
+        //                   );
+        //                 },
+        //               ),
+        //               ListTile(
+        //                 leading: Image.asset(
+        //                   'images/grommet-icons_transaction.png',
+        //                 ),
+        //                 title: const Text(
+        //                   'Transaction History',
+        //                   style: TextStyle(
+        //                     fontFamily: 'GolosText',
+        //                     fontSize: 16.0,
+        //                     fontWeight: FontWeight.bold,
+        //                     color: Colors.white,
+        //                   ),
+        //                 ),
+        //                 onTap: () {
+        //                   Navigator.pop(context); // Close the drawer
+        //                   Navigator.push(
+        //                     context,
+        //                     MaterialPageRoute(
+        //                       builder: (context) =>
+        //                           TransactionHistory(key: UniqueKey()),
+        //                     ),
+        //                   );
+        //                 },
+        //               ),
+        //               ListTile(
+        //                 leading: Image.asset(
+        //                   'images/fluent_person-support-16-regular.png',
+        //                   height: 25,
+        //                 ),
+        //                 title: const Text(
+        //                   'Customer Support',
+        //                   style: TextStyle(
+        //                     fontFamily: 'GolosText',
+        //                     fontSize: 16.0,
+        //                     fontWeight: FontWeight.bold,
+        //                     color: Colors.white,
+        //                   ),
+        //                 ),
+        //                 onTap: () {
+        //                   Navigator.pop(context); // Close the drawer
+        //                 },
+        //               ),
+        //               ListTile(
+        //                 leading: Image.asset(
+        //                   'images/bookmark.png',
+        //                   height: 25,
+        //                 ),
+        //                 title: const Text(
+        //                   'Bookmarks',
+        //                   style: TextStyle(
+        //                     fontFamily: 'GolosText',
+        //                     fontSize: 16.0,
+        //                     fontWeight: FontWeight.bold,
+        //                     color: Colors.white,
+        //                   ),
+        //                 ),
+        //                 onTap: () {
+        //                   Navigator.pop(context); // Close the drawer
+        //                   Navigator.push(
+        //                     context,
+        //                     MaterialPageRoute(
+        //                       builder: (context) =>
+        //                           BookmarkPage(key: UniqueKey()),
+        //                     ),
+        //                   );
+        //                 },
+        //               ),
+        //               ListTile(
+        //                 contentPadding:
+        //                     const EdgeInsets.only(top: 16, left: 16),
+        //                 leading: Image.asset(
+        //                   'images/material-symbols-light_logout-sharp.png',
+        //                   height: 25,
+        //                 ),
+        //                 title: const Text(
+        //                   'Log out',
+        //                   style: TextStyle(
+        //                     fontFamily: 'GolosText',
+        //                     fontSize: 16.0,
+        //                     fontWeight: FontWeight.bold,
+        //                     color: Colors.white,
+        //                   ),
+        //                 ),
+        //                 onTap: () {
+        //                   Navigator.pop(context);
+        //                   _showLogoutConfirmationDialog();
+        //                 },
+        //               ),
+        //             ],
+        //           ),
+        //         ),
+        //       ),
+        //     ),
+        //   ),
+        // ),
         body: _isSearching
             ? (searchLoading
                 ? Center(
@@ -1898,7 +1902,19 @@ class _MainAppState extends State<MainApp>
                                   children: [
                                     InkWell(
                                       onTap: () {
-                                        _scaffoldKey.currentState?.openDrawer();
+                                        // _scaffoldKey.currentState?.openDrawer();
+                                        Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder: (context) => MenuPage(
+                                                key: UniqueKey(),
+                                                onToggleDarkMode:
+                                                    widget.onToggleDarkMode,
+                                                isDarkMode: widget.isDarkMode,
+                                                userName: userName,
+                                                profileImg: profileImg),
+                                          ),
+                                        );
                                       },
                                       child: Image.asset(
                                         'images/tabler_menu_button.png',
@@ -2863,6 +2879,10 @@ class _MainAppState extends State<MainApp>
                                             jsonDecode(signal['targets']);
 
                                         return signals(
+                                          id: signal['id'],
+                                          type: signal['type'],
+                                          authorId: signal['author_id'],
+                                          authorName: signal['author_name'],
                                           img: signal['coin_image'],
                                           name: signal['coin'],
                                           entryPrice: signal['entry_price'],
@@ -2912,7 +2932,7 @@ class _MainAppState extends State<MainApp>
                                             onPressed: () {
                                               setState(() {
                                                 // Trigger the future again by refreshing the state
-                                                _signalsFuture1 =
+                                                _signalsFuture2 =
                                                     _fetchInitialSignals(
                                                         'forex');
                                               });
@@ -2998,6 +3018,10 @@ class _MainAppState extends State<MainApp>
                                             jsonDecode(signal['targets']);
 
                                         return signals(
+                                          id: signal['id'],
+                                          type: signal['type'],
+                                          authorId: signal['author_id'],
+                                          authorName: signal['author_name'],
                                           img: signal['coin_image'],
                                           name: signal['coin'],
                                           entryPrice: signal['entry_price'],
@@ -3047,7 +3071,7 @@ class _MainAppState extends State<MainApp>
                                             onPressed: () {
                                               setState(() {
                                                 // Trigger the future again by refreshing the state
-                                                _signalsFuture1 =
+                                                _signalsFuture3 =
                                                     _fetchInitialSignals(
                                                         'stocks');
                                               });
@@ -3133,6 +3157,10 @@ class _MainAppState extends State<MainApp>
                                             jsonDecode(signal['targets']);
 
                                         return signals(
+                                          id: signal['id'],
+                                          type: signal['type'],
+                                          authorId: signal['author_id'],
+                                          authorName: signal['author_name'],
                                           img: signal['coin_image'],
                                           name: signal['coin'],
                                           entryPrice: signal['entry_price'],
@@ -4399,6 +4427,10 @@ class _MainAppState extends State<MainApp>
   }
 
   Widget signals({
+    required int id,
+    required String type,
+    required String authorId,
+    required String authorName,
     required String img,
     required String name,
     required String entryPrice,
@@ -4796,71 +4828,95 @@ class _MainAppState extends State<MainApp>
                         children: [
                           Expanded(
                             flex: 10,
-                            child: Container(
-                              decoration: BoxDecoration(
-                                color: isDarkMode
-                                    ? Colors.grey[900]
-                                    : Colors.white,
-                                borderRadius: BorderRadius.circular(10),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: isDarkMode
-                                        ? Colors.grey.withOpacity(0.2)
-                                        : Colors.grey.withOpacity(0.5),
-                                    spreadRadius: 3,
-                                    blurRadius: 5,
-                                  ),
-                                ],
-                              ),
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 0, vertical: 6),
-                              child: Column(
-                                children: [
-                                  Row(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.center,
-                                    children: [
-                                      Text(
-                                        'View Analysis',
-                                        style: TextStyle(
-                                          fontSize: 15,
-                                          fontWeight: FontWeight.bold,
-                                          fontFamily: 'Inconsolata',
-                                          color: isDarkMode
-                                              ? Colors.white
-                                              : Colors.black,
-                                        ),
-                                      ),
-                                      GestureDetector(
-                                        onTap: () {
-                                          analysisNotifier.value =
-                                              !analysisNotifier.value;
-                                        },
-                                        child: Image.asset(
-                                          analysisExpanded
-                                              ? 'images/material-symbols_arrow-drop-down-upwards.png'
-                                              : 'images/material-symbols_arrow-drop-down.png',
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                  if (analysisExpanded && insight != null)
-                                    Padding(
-                                      padding: const EdgeInsets.symmetric(
-                                          horizontal: 20.0, vertical: 10.0),
-                                      child: Text(
-                                        insight,
-                                        style: TextStyle(
-                                          fontSize: 15,
-                                          fontFamily: 'Inconsolata',
-                                          color: isDarkMode
-                                              ? Colors.white
-                                              : Colors.black,
-                                        ),
-                                      ),
+                            child: InkWell(
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => ViewAnalysis(
+                                      key: UniqueKey(),
+                                      signalId: id,
+                                      authorId: authorId,
+                                      authorName: authorName,
+                                      coinName: name,
+                                      coinImg: img,
+                                      pair: pair,
+                                      trend: trend,
+                                      type: type,
+                                      currentPrice: currentPrice,
+                                      insight: insight,
+                                      createdAt: createdAt,
                                     ),
-                                ],
+                                  ),
+                                );
+                              },
+                              child: Container(
+                                decoration: BoxDecoration(
+                                  color: isDarkMode
+                                      ? Colors.grey[900]
+                                      : Colors.white,
+                                  borderRadius: BorderRadius.circular(10),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: isDarkMode
+                                          ? Colors.grey.withOpacity(0.2)
+                                          : Colors.grey.withOpacity(0.5),
+                                      spreadRadius: 3,
+                                      blurRadius: 5,
+                                    ),
+                                  ],
+                                ),
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 0, vertical: 6),
+                                child: Column(
+                                  children: [
+                                    Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.center,
+                                      children: [
+                                        Text(
+                                          'View Analysis',
+                                          style: TextStyle(
+                                            fontSize: 15,
+                                            fontWeight: FontWeight.bold,
+                                            fontFamily: 'Inconsolata',
+                                            color: isDarkMode
+                                                ? Colors.white
+                                                : Colors.black,
+                                          ),
+                                        ),
+                                        // GestureDetector(
+                                        //   onTap: () {
+                                        //     analysisNotifier.value =
+                                        //         !analysisNotifier.value;
+                                        //   },
+                                        //   child: Image.asset(
+                                        //     analysisExpanded
+                                        //         ? 'images/material-symbols_arrow-drop-down-upwards.png'
+                                        //         : 'images/material-symbols_arrow-drop-down.png',
+                                        //   ),
+                                        // ),
+                                      ],
+                                    ),
+                                    // if (analysisExpanded && insight != null)
+                                    //   Padding(
+                                    //     padding: const EdgeInsets.symmetric(
+                                    //         horizontal: 20.0, vertical: 10.0),
+                                    //     child: Text(
+                                    //       insight,
+                                    //       style: TextStyle(
+                                    //         fontSize: 15,
+                                    //         fontFamily: 'Inconsolata',
+                                    //         color: isDarkMode
+                                    //             ? Colors.white
+                                    //             : Colors.black,
+                                    //       ),
+                                    //     ),
+                                    //   ),
+                                  ],
+                                ),
                               ),
                             ),
                           ),

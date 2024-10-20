@@ -28,6 +28,9 @@ class _EventsPageState extends State<EventsPage> with TickerProviderStateMixin {
   bool _isRefreshing = false;
   String? errorMessage;
   OverlayEntry? _overlayEntry;
+  int currentPage = 1;
+  bool isLastPage = false;
+  bool isLoadingMore = false;
 
   @override
   void initState() {
@@ -36,6 +39,13 @@ class _EventsPageState extends State<EventsPage> with TickerProviderStateMixin {
     tabController!.addListener(_handleTabSelection);
     fetchEvents();
     _scrollController.addListener(() {
+      if (_scrollController.position.pixels >=
+            _scrollController.position.maxScrollExtent - 200) {
+          if (!isLoadingMore && !isLastPage) {
+            fetchEvents(
+                loadMore: true); // Load more when reaching near the bottom
+          }
+        }
       if (_scrollController.offset <= 0) {
         if (_isRefreshing) {
           // Logic to cancel refresh if needed
@@ -49,6 +59,7 @@ class _EventsPageState extends State<EventsPage> with TickerProviderStateMixin {
 
   @override
   void dispose() {
+    _scrollController.dispose();
     tabController?.dispose();
     super.dispose();
   }
@@ -79,16 +90,21 @@ class _EventsPageState extends State<EventsPage> with TickerProviderStateMixin {
     });
   }
 
-  Future<void> fetchEvents() async {
-    if (mounted) {
-      setState(() {
-        loading = true;
-        errorMessage = null;
-      });
+  Future<void> fetchEvents({bool loadMore = false}) async {
+    if (loadMore && isLoadingMore) return; // Prevent multiple loadMore calls
+    if (!loadMore) {
+      if (mounted) {
+        setState(() {
+          loading = true;
+          errorMessage = null;
+        });
+      }
     }
+
     try {
       final String? accessToken = await storage.read(key: 'accessToken');
-      const url = 'https://signal.payguru.com.ng/api/events';
+      final url =
+          'https://signal.payguru.com.ng/api/events?page=$currentPage'; // Add pagination parameter
       final response = await http.get(
         Uri.parse(url),
         headers: {
@@ -97,26 +113,44 @@ class _EventsPageState extends State<EventsPage> with TickerProviderStateMixin {
       );
 
       if (response.statusCode == 200) {
+        final Map<String, dynamic> responseData =
+            json.decode(response.body); // Parse as Map
+        final List<dynamic> eventsData =
+            responseData['data']; // Extract the 'data' list
+        final pagination =
+            responseData['pagination']; // Extract pagination details
+
         if (mounted) {
           setState(() {
-            events = json.decode(response.body);
+            if (loadMore) {
+              // Append new events to the existing list
+              events.addAll(eventsData);
+            } else {
+              // Replace the list on the initial load
+              events = eventsData;
+            }
+
+            // Update pagination data
+            isLastPage = pagination['next_page_url'] == null;
+            currentPage++;
             loading = false;
+            isLoadingMore = false;
           });
         }
       } else {
         if (mounted) {
           setState(() {
             loading = false;
+            isLoadingMore = false;
             errorMessage = 'Failed to load events'; // Failed to load data
           });
         }
-        // Handle the error accordingly
-        print('Failed to load events');
       }
     } catch (e) {
       if (mounted) {
         setState(() {
           loading = false;
+          isLoadingMore = false;
           errorMessage =
               'Failed to load data. Please check your network connection.';
         });
@@ -515,12 +549,22 @@ class _EventsPageState extends State<EventsPage> with TickerProviderStateMixin {
                             )
                           else
                             RefreshIndicator(
-                              onRefresh: _refreshData,
+                              onRefresh:
+                                  _refreshData, // Function to refresh the events
                               color: Theme.of(context).colorScheme.onSurface,
                               child: ListView.builder(
-                                controller: _scrollController,
-                                itemCount: events.length,
+                                controller:
+                                    _scrollController, // Ensure _scrollController is properly set up
+                                itemCount: events.length +
+                                    (isLastPage
+                                        ? 0
+                                        : 1), // Add 1 for the loading indicator if not the last page
                                 itemBuilder: (context, index) {
+                                  if (index == events.length) {
+                                    // Show a loading indicator at the bottom of the list when loading more
+                                    return const Center(
+                                        child: CircularProgressIndicator());
+                                  }
                                   return cryptoCard(events[index]);
                                 },
                               ),
@@ -564,12 +608,22 @@ class _EventsPageState extends State<EventsPage> with TickerProviderStateMixin {
                             )
                           else
                             RefreshIndicator(
-                              onRefresh: _refreshData,
+                              onRefresh:
+                                  _refreshData, // Function to refresh the events
                               color: Theme.of(context).colorScheme.onSurface,
                               child: ListView.builder(
-                                controller: _scrollController,
-                                itemCount: events.length,
+                                controller:
+                                    _scrollController, // Ensure _scrollController is properly set up
+                                itemCount: events.length +
+                                    (isLastPage
+                                        ? 0
+                                        : 1), // Add 1 for the loading indicator if not the last page
                                 itemBuilder: (context, index) {
+                                  if (index == events.length) {
+                                    // Show a loading indicator at the bottom of the list when loading more
+                                    return const Center(
+                                        child: CircularProgressIndicator());
+                                  }
                                   return cryptoCard(events[index]);
                                 },
                               ),
@@ -662,12 +716,22 @@ class _EventsPageState extends State<EventsPage> with TickerProviderStateMixin {
                             )
                           else
                             RefreshIndicator(
-                              onRefresh: _refreshData,
+                              onRefresh:
+                                  _refreshData, // Function to refresh the events
                               color: Theme.of(context).colorScheme.onSurface,
                               child: ListView.builder(
-                                controller: _scrollController,
-                                itemCount: events.length,
+                                controller:
+                                    _scrollController, // Ensure _scrollController is properly set up
+                                itemCount: events.length +
+                                    (isLastPage
+                                        ? 0
+                                        : 1), // Add 1 for the loading indicator if not the last page
                                 itemBuilder: (context, index) {
+                                  if (index == events.length) {
+                                    // Show a loading indicator at the bottom of the list when loading more
+                                    return const Center(
+                                        child: CircularProgressIndicator());
+                                  }
                                   return cryptoCard(events[index]);
                                 },
                               ),
@@ -711,12 +775,22 @@ class _EventsPageState extends State<EventsPage> with TickerProviderStateMixin {
                             )
                           else
                             RefreshIndicator(
-                              onRefresh: _refreshData,
+                              onRefresh:
+                                  _refreshData, // Function to refresh the events
                               color: Theme.of(context).colorScheme.onSurface,
                               child: ListView.builder(
-                                controller: _scrollController,
-                                itemCount: events.length,
+                                controller:
+                                    _scrollController, // Ensure _scrollController is properly set up
+                                itemCount: events.length +
+                                    (isLastPage
+                                        ? 0
+                                        : 1), // Add 1 for the loading indicator if not the last page
                                 itemBuilder: (context, index) {
+                                  if (index == events.length) {
+                                    // Show a loading indicator at the bottom of the list when loading more
+                                    return const Center(
+                                        child: CircularProgressIndicator());
+                                  }
                                   return cryptoCard(events[index]);
                                 },
                               ),
@@ -760,12 +834,22 @@ class _EventsPageState extends State<EventsPage> with TickerProviderStateMixin {
                             )
                           else
                             RefreshIndicator(
-                              onRefresh: _refreshData,
+                              onRefresh:
+                                  _refreshData, // Function to refresh the events
                               color: Theme.of(context).colorScheme.onSurface,
                               child: ListView.builder(
-                                controller: _scrollController,
-                                itemCount: events.length,
+                                controller:
+                                    _scrollController, // Ensure _scrollController is properly set up
+                                itemCount: events.length +
+                                    (isLastPage
+                                        ? 0
+                                        : 1), // Add 1 for the loading indicator if not the last page
                                 itemBuilder: (context, index) {
+                                  if (index == events.length) {
+                                    // Show a loading indicator at the bottom of the list when loading more
+                                    return const Center(
+                                        child: CircularProgressIndicator());
+                                  }
                                   return cryptoCard(events[index]);
                                 },
                               ),
@@ -809,12 +893,22 @@ class _EventsPageState extends State<EventsPage> with TickerProviderStateMixin {
                             )
                           else
                             RefreshIndicator(
-                              onRefresh: _refreshData,
+                              onRefresh:
+                                  _refreshData, // Function to refresh the events
                               color: Theme.of(context).colorScheme.onSurface,
                               child: ListView.builder(
-                                controller: _scrollController,
-                                itemCount: events.length,
+                                controller:
+                                    _scrollController, // Ensure _scrollController is properly set up
+                                itemCount: events.length +
+                                    (isLastPage
+                                        ? 0
+                                        : 1), // Add 1 for the loading indicator if not the last page
                                 itemBuilder: (context, index) {
+                                  if (index == events.length) {
+                                    // Show a loading indicator at the bottom of the list when loading more
+                                    return const Center(
+                                        child: CircularProgressIndicator());
+                                  }
                                   return cryptoCard(events[index]);
                                 },
                               ),
@@ -858,12 +952,22 @@ class _EventsPageState extends State<EventsPage> with TickerProviderStateMixin {
                             )
                           else
                             RefreshIndicator(
-                              onRefresh: _refreshData,
+                              onRefresh:
+                                  _refreshData, // Function to refresh the events
                               color: Theme.of(context).colorScheme.onSurface,
                               child: ListView.builder(
-                                controller: _scrollController,
-                                itemCount: events.length,
+                                controller:
+                                    _scrollController, // Ensure _scrollController is properly set up
+                                itemCount: events.length +
+                                    (isLastPage
+                                        ? 0
+                                        : 1), // Add 1 for the loading indicator if not the last page
                                 itemBuilder: (context, index) {
+                                  if (index == events.length) {
+                                    // Show a loading indicator at the bottom of the list when loading more
+                                    return const Center(
+                                        child: CircularProgressIndicator());
+                                  }
                                   return cryptoCard(events[index]);
                                 },
                               ),

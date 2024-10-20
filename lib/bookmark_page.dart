@@ -58,6 +58,12 @@ class BookmarkPageState extends State<BookmarkPage>
     });
   }
 
+  @override
+void dispose() {
+  _scrollController.dispose();
+  super.dispose();
+}
+
   void _handleTabSelection() {
     setState(() {
       switch (homeTab.index) {
@@ -95,9 +101,16 @@ class BookmarkPageState extends State<BookmarkPage>
       );
 
       if (response.statusCode == 200) {
-        final Map<String, dynamic> responseData = json.decode(response.body);
-        final List<dynamic> data = responseData['data'];
-        final pagination = responseData['pagination'];
+        final Map<String, dynamic> responseData =
+            json.decode(response.body); // Parse as Map
+        final Map<String, dynamic> dataMap =
+            responseData['data']; // Extract 'data' map
+        final List<Map<String, dynamic>> data = dataMap.values
+            .toList()
+            .cast<Map<String, dynamic>>(); // Convert map to list
+
+        final pagination =
+            responseData['pagination']; // Extract pagination details
 
         setState(() {
           if (loadMore) {
@@ -229,7 +242,7 @@ class BookmarkPageState extends State<BookmarkPage>
             if (index == bookmarkedNews.length) {
               return const Center(
                 child: Padding(
-                  padding: const EdgeInsets.all(8.0),
+                  padding: EdgeInsets.all(8.0),
                   child: CircularProgressIndicator(),
                 ),
               );
