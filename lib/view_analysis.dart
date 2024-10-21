@@ -150,6 +150,7 @@ class ViewAnalysisState extends State<ViewAnalysis> {
                                       children: [
                                         Text(
                                           widget.createdAt,
+                                          overflow: TextOverflow.ellipsis,
                                           style: const TextStyle(
                                             fontSize: 15,
                                             fontFamily: 'Inconsolata',
@@ -201,6 +202,7 @@ class ViewAnalysisState extends State<ViewAnalysis> {
                                           },
                                           child: Text(
                                             "By ${widget.authorName}",
+                                            overflow: TextOverflow.ellipsis,
                                             style: const TextStyle(
                                               fontSize: 15,
                                               fontFamily: 'Inconsolata',

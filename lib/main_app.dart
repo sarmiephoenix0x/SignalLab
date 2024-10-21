@@ -4146,56 +4146,63 @@ class _MainAppState extends State<MainApp>
             Row(
               children: [
                 ClipRRect(
-                  borderRadius: BorderRadius.circular(55),
+                  borderRadius: BorderRadius.circular(30),
                   child: Container(
-                    width: (40 / MediaQuery.of(context).size.width) *
-                        MediaQuery.of(context).size.width,
-                    height: (40 / MediaQuery.of(context).size.height) *
-                        MediaQuery.of(context).size.height,
+                    width: 40,
+                    height: 40,
                     color: Colors.grey,
                     child: Image.network(
                       newsItem['user_profile_image'],
                       fit: BoxFit.cover,
                       errorBuilder: (context, error, stackTrace) {
-                        return const Icon(Icons
-                            .error); // Show an error icon if image fails to load
+                        return const Icon(Icons.error);
                       },
                     ),
                   ),
                 ),
-                SizedBox(
-                  width: MediaQuery.of(context).size.width * 0.02,
-                ),
+                const SizedBox(width: 8),
                 Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        newsItem['user'] ?? '',
-                        overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
-                          fontSize: 16,
-                          fontFamily: 'Inter',
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ],
+                  child: Text(
+                    newsItem['user'] ?? 'Unknown User',
+                    style: const TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ),
-                const Spacer(),
               ],
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: 12),
             // Title
             Text(
               newsItem['title'],
               overflow: TextOverflow.ellipsis,
-              maxLines: 2,
+              maxLines: 1,
               style: TextStyle(
-                fontSize: 16,
-                fontFamily: 'Inter',
+                fontSize: 18,
                 fontWeight: FontWeight.bold,
                 color: isDarkMode ? Colors.white : Colors.black87,
+              ),
+            ),
+            const SizedBox(height: 8),
+            // Article snippet
+            Text(
+              newsItem['article'].split('. ').first +
+                  '...', // Display the first sentence as a snippet
+              overflow: TextOverflow.ellipsis,
+              maxLines: 3,
+              style: TextStyle(
+                fontSize: 14,
+                color: isDarkMode ? Colors.white70 : Colors.black54,
+              ),
+            ),
+            const SizedBox(height: 8),
+            // Created time
+            Text(
+              newsItem['created_at'] ?? '',
+              style: TextStyle(
+                fontSize: 12,
+                color: isDarkMode ? Colors.white54 : Colors.black38,
               ),
             ),
           ],
