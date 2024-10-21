@@ -2,7 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:connectivity_plus/connectivity_plus.dart';
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' hide CarouselController;
 import 'package:flutter/services.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
@@ -27,6 +27,7 @@ import 'package:visibility_detector/visibility_detector.dart';
 import 'edit_profile.dart';
 import 'dart:math'; // For Random
 import 'package:google_mobile_ads/google_mobile_ads.dart'; // For ads
+import 'package:carousel_slider/carousel_slider.dart';
 
 final RouteObserver<PageRoute> routeObserver = RouteObserver<PageRoute>();
 
@@ -67,9 +68,6 @@ class _MainAppState extends State<MainApp>
   String? profileImg;
   int? totalSignal;
   int _currentSignalPage = 1;
-  bool _isLoadingMoreSignal = false;
-  bool _hasMoreSignal = true;
-  List<dynamic> _signalsList = [];
   late Future<void> _signalsFuture1;
   late Future<void> _signalsFuture2;
   late Future<void> _signalsFuture3;
@@ -115,6 +113,17 @@ class _MainAppState extends State<MainApp>
   bool _hasMoreNews = true;
   bool subscribedForCourse = true;
   OverlayEntry? _overlayEntry;
+  List<dynamic> _signalsList1 = [];
+  List<dynamic> _signalsList2 = [];
+  List<dynamic> _signalsList3 = [];
+  bool _isLoadingMoreSignal = false;
+  bool _isLoadingMoreSignal1 = false;
+  bool _isLoadingMoreSignal2 = false;
+  bool _isLoadingMoreSignal3 = false;
+  bool _hasMoreSignal1 = true;
+  bool _hasMoreSignal2 = true;
+  bool _hasMoreSignal3 = true;
+  final CarouselController _controller = CarouselController();
 
   @override
   void initState() {
@@ -478,33 +487,63 @@ class _MainAppState extends State<MainApp>
     try {
       final result = await fetchSignals(type, page: _currentSignalPage);
       setState(() {
-        _signalsList = result['signals'];
-        _hasMoreSignal = result['pagination']['next_page_url'] != null;
+        if (type == 'crypto') {
+          _signalsList1 = result['signals'];
+          _hasMoreSignal1 = result['pagination']['next_page_url'] != null;
+        } else if (type == 'forex') {
+          _signalsList2 = result['signals'];
+          _hasMoreSignal2 = result['pagination']['next_page_url'] != null;
+        } else if (type == 'stocks') {
+          _signalsList3 = result['signals'];
+          _hasMoreSignal3 = result['pagination']['next_page_url'] != null;
+        }
       });
     } catch (e) {
-      print('Error fetching signals: $e');
+      print('Error fetching signals for $type: $e');
     }
   }
 
   Future<void> _fetchMoreSignals(String type) async {
-    if (_isLoadingMoreSignal || !_hasMoreSignal) return;
+    if ((type == 'crypto' && _isLoadingMoreSignal1) ||
+        (type == 'forex' && _isLoadingMoreSignal2) ||
+        (type == 'stocks' && _isLoadingMoreSignal3)) return;
 
     setState(() {
-      _isLoadingMoreSignal = true;
+      if (type == 'crypto') {
+        _isLoadingMoreSignal1 = true;
+      } else if (type == 'forex') {
+        _isLoadingMoreSignal2 = true;
+      } else if (type == 'stocks') {
+        _isLoadingMoreSignal3 = true;
+      }
     });
 
     try {
       _currentSignalPage++;
       final result = await fetchSignals(type, page: _currentSignalPage);
       setState(() {
-        _signalsList.addAll(result['signals']);
-        _hasMoreSignal = result['pagination']['next_page_url'] != null;
+        if (type == 'crypto') {
+          _signalsList1.addAll(result['signals']);
+          _hasMoreSignal1 = result['pagination']['next_page_url'] != null;
+        } else if (type == 'forex') {
+          _signalsList2.addAll(result['signals']);
+          _hasMoreSignal2 = result['pagination']['next_page_url'] != null;
+        } else if (type == 'stocks') {
+          _signalsList3.addAll(result['signals']);
+          _hasMoreSignal3 = result['pagination']['next_page_url'] != null;
+        }
       });
     } catch (e) {
-      print('Error fetching more signals: $e');
+      print('Error fetching more signals for $type: $e');
     } finally {
       setState(() {
-        _isLoadingMoreSignal = false;
+        if (type == 'crypto') {
+          _isLoadingMoreSignal1 = false;
+        } else if (type == 'forex') {
+          _isLoadingMoreSignal2 = false;
+        } else if (type == 'stocks') {
+          _isLoadingMoreSignal3 = false;
+        }
       });
     }
   }
@@ -2805,7 +2844,7 @@ class _MainAppState extends State<MainApp>
                                         _fetchInitialSignals('crypto'),
                                     child: ListView.builder(
                                       controller: _signalScrollController,
-                                      itemCount: _signalsList.length + 1,
+                                      itemCount: _signalsList1.length + 1,
                                       itemBuilder: (context, index) {
                                         if (index == 0) {
                                           return Padding(
@@ -2854,7 +2893,7 @@ class _MainAppState extends State<MainApp>
                                             ),
                                           );
                                         } else if (index ==
-                                            _signalsList.length) {
+                                            _signalsList1.length) {
                                           // Show loading indicator at the bottom
                                           return _isLoadingMoreSignal
                                               ? Padding(
@@ -2873,7 +2912,7 @@ class _MainAppState extends State<MainApp>
                                                   .shrink(); // No more signals to load
                                         }
 
-                                        final signal = _signalsList[index - 1];
+                                        final signal = _signalsList1[index - 1];
 
                                         Map<String, dynamic> targetsMap =
                                             jsonDecode(signal['targets']);
@@ -2962,7 +3001,7 @@ class _MainAppState extends State<MainApp>
                                         _fetchInitialSignals('forex'),
                                     child: ListView.builder(
                                       controller: _signalScrollController,
-                                      itemCount: _signalsList.length + 1,
+                                      itemCount: _signalsList2.length + 1,
                                       itemBuilder: (context, index) {
                                         if (index == 0) {
                                           return Padding(
@@ -3012,7 +3051,7 @@ class _MainAppState extends State<MainApp>
                                           );
                                         }
 
-                                        final signal = _signalsList[index - 1];
+                                        final signal = _signalsList2[index - 1];
 
                                         Map<String, dynamic> targetsMap =
                                             jsonDecode(signal['targets']);
@@ -3101,7 +3140,7 @@ class _MainAppState extends State<MainApp>
                                         _fetchInitialSignals('stocks'),
                                     child: ListView.builder(
                                       controller: _signalScrollController,
-                                      itemCount: _signalsList.length + 1,
+                                      itemCount: _signalsList3.length + 1,
                                       itemBuilder: (context, index) {
                                         if (index == 0) {
                                           return Padding(
@@ -3151,7 +3190,7 @@ class _MainAppState extends State<MainApp>
                                           );
                                         }
 
-                                        final signal = _signalsList[index - 1];
+                                        final signal = _signalsList3[index - 1];
 
                                         Map<String, dynamic> targetsMap =
                                             jsonDecode(signal['targets']);
@@ -3311,26 +3350,94 @@ class _MainAppState extends State<MainApp>
                                                         MediaQuery.of(context)
                                                             .size
                                                             .height,
-                                                    child: PageView.builder(
-                                                      itemCount: latestNews
-                                                          .length, // Number of latest news items
-                                                      itemBuilder:
-                                                          (context, index) {
+                                                    child: CarouselSlider(
+                                                      options: CarouselOptions(
+                                                        autoPlay: true,
+                                                        enlargeCenterPage:
+                                                            false,
+                                                        height: MediaQuery.of(
+                                                                context)
+                                                            .size
+                                                            .height,
+                                                        viewportFraction: 1.0,
+                                                        enableInfiniteScroll:
+                                                            true,
+                                                        initialPage: 0,
+                                                        onPageChanged:
+                                                            (index, reason) {
+                                                          setState(() {
+                                                            _currentPage =
+                                                                index;
+                                                          });
+                                                        },
+                                                      ),
+                                                      carouselController:
+                                                          _controller,
+                                                      items: latestNews
+                                                          .map((newsItem) {
                                                         return latestNewsCard(
-                                                          latestNews[
-                                                              index], // Display each news card
-                                                        );
-                                                      },
-                                                      onPageChanged: (index) {
-                                                        setState(() {
-                                                          _currentPage =
-                                                              index; // Update the current page index
-                                                        });
-                                                      },
+                                                            newsItem); // Display each news card
+                                                      }).toList(),
                                                     ),
                                                   ),
                                                 ),
                                               ),
+                                              // Container(
+                                              //   padding:
+                                              //       const EdgeInsets.all(16.0),
+                                              //   decoration: BoxDecoration(
+                                              //     color: isDarkMode
+                                              //         ? Colors.grey[900]
+                                              //         : Colors.white,
+                                              //     borderRadius:
+                                              //         BorderRadius.circular(
+                                              //             12), // Smoother corners
+                                              //     boxShadow: [
+                                              //       BoxShadow(
+                                              //         color: Colors.grey
+                                              //             .withOpacity(0.2),
+                                              //         // Softer shadow for a clean look
+                                              //         spreadRadius: 2,
+                                              //         blurRadius: 8,
+                                              //         offset: const Offset(0,
+                                              //             2), // Position shadow for depth
+                                              //       ),
+                                              //     ],
+                                              //   ),
+                                              //   child: Padding(
+                                              //     padding: const EdgeInsets
+                                              //         .symmetric(
+                                              //         horizontal: 20.0,
+                                              //         vertical: 10.0),
+                                              //     child: SizedBox(
+                                              //       height: (160.0 /
+                                              //               MediaQuery.of(
+                                              //                       context)
+                                              //                   .size
+                                              //                   .height) *
+                                              //           MediaQuery.of(context)
+                                              //               .size
+                                              //               .height,
+                                              //       child: PageView.builder(
+                                              //         itemCount: latestNews
+                                              //             .length, // Number of latest news items
+                                              //         itemBuilder:
+                                              //             (context, index) {
+                                              //           return latestNewsCard(
+                                              //             latestNews[
+                                              //                 index], // Display each news card
+                                              //           );
+                                              //         },
+                                              //         onPageChanged: (index) {
+                                              //           setState(() {
+                                              //             _currentPage =
+                                              //                 index; // Update the current page index
+                                              //           });
+                                              //         },
+                                              //       ),
+                                              //     ),
+                                              //   ),
+                                              // ),
                                               Positioned(
                                                 left: 0,
                                                 right: 0,

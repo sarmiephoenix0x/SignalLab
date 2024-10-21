@@ -41,12 +41,12 @@ class _ViewCoinState extends State<ViewCoin> with TickerProviderStateMixin {
     fetchEvents();
     _scrollController.addListener(() {
       if (_scrollController.position.pixels >=
-            _scrollController.position.maxScrollExtent - 200) {
-          if (!isLoadingMore && !isLastPage) {
-            fetchEvents(
-                loadMore: true); // Load more when reaching near the bottom
-          }
+          _scrollController.position.maxScrollExtent - 200) {
+        if (!isLoadingMore && !isLastPage) {
+          fetchEvents(
+              loadMore: true); // Load more when reaching near the bottom
         }
+      }
       if (_scrollController.offset <= 0) {
         if (_isRefreshing) {
           // Logic to cancel refresh if needed
@@ -65,7 +65,10 @@ class _ViewCoinState extends State<ViewCoin> with TickerProviderStateMixin {
   }
 
   Future<void> fetchEvents({bool loadMore = false}) async {
-    if (loadMore && isLoadingMore) return; // Prevent multiple loadMore calls
+    // Prevent multiple loadMore calls or fetching if it's the last page
+    if (loadMore && (isLoadingMore || isLastPage)) return;
+
+    // Update UI loading state
     if (!loadMore) {
       if (mounted) {
         setState(() {
@@ -79,6 +82,8 @@ class _ViewCoinState extends State<ViewCoin> with TickerProviderStateMixin {
       final String? accessToken = await storage.read(key: 'accessToken');
       final url =
           'https://signal.payguru.com.ng/api/events?page=$currentPage'; // Add pagination parameter
+
+      // Make API call
       final response = await http.get(
         Uri.parse(url),
         headers: {
@@ -86,47 +91,76 @@ class _ViewCoinState extends State<ViewCoin> with TickerProviderStateMixin {
         },
       );
 
+      // Handle successful response
       if (response.statusCode == 200) {
         final Map<String, dynamic> responseData =
-            json.decode(response.body); // Parse as Map
-        final List<dynamic> eventsData =
-            responseData['data']; // Extract the 'data' list
-        final pagination =
-            responseData['pagination']; // Extract pagination details
+            json.decode(response.body); // Parse response
 
+        if (responseData.containsKey('data') &&
+            responseData['data'].isNotEmpty) {
+          final List<dynamic> eventsData =
+              responseData['data']; // Extract 'data' list
+          final pagination =
+              responseData['pagination']; // Extract pagination details
+
+          if (mounted) {
+            setState(() {
+              // Append or set events data
+              if (loadMore) {
+                events.addAll(eventsData); // Append new data
+              } else {
+                events = eventsData; // Set initial load
+              }
+
+              // Update pagination and loading state
+              isLastPage =
+                  pagination['next_page_url'] == null || eventsData.isEmpty;
+              if (!isLastPage)
+                currentPage++; // Increment page only if there's a next page
+              loading = false;
+              isLoadingMore = false;
+            });
+          }
+        } else {
+          // Handle unexpected cases where no events are found but no error message is present
+          if (mounted) {
+            setState(() {
+              loading = false;
+              isLoadingMore = false;
+              errorMessage = 'No more events available';
+            });
+          }
+        }
+      } else if (response.statusCode == 404) {
+        // Handle 404 status (no more events available)
         if (mounted) {
           setState(() {
-            if (loadMore) {
-              // Append new events to the existing list
-              events.addAll(eventsData);
-            } else {
-              // Replace the list on the initial load
-              events = eventsData;
-            }
-
-            // Update pagination data
-            isLastPage = pagination['next_page_url'] == null;
-            currentPage++;
+            isLastPage = true; // No more data to load
             loading = false;
             isLoadingMore = false;
           });
         }
       } else {
+        // Handle non-200 response status codes
+        final String errorResponse =
+            response.body; // Capture response error message
         if (mounted) {
           setState(() {
             loading = false;
             isLoadingMore = false;
-            errorMessage = 'Failed to load events'; // Failed to load data
+            errorMessage =
+                'Error: $errorResponse'; // Display detailed error response
           });
         }
       }
     } catch (e) {
+      // Handle network or JSON parsing errors
       if (mounted) {
         setState(() {
           loading = false;
           isLoadingMore = false;
           errorMessage =
-              'Failed to load data. Please check your network connection.';
+              'Exception caught: ${e.toString()}'; // Provide detailed exception
         });
       }
       print('Exception caught: $e');
@@ -1326,26 +1360,26 @@ class _ViewCoinState extends State<ViewCoin> with TickerProviderStateMixin {
                         )
                       else
                         RefreshIndicator(
-                              onRefresh:
-                                  _refreshData, // Function to refresh the events
-                              color: Theme.of(context).colorScheme.onSurface,
-                              child: ListView.builder(
-                                controller:
-                                    _scrollController, // Ensure _scrollController is properly set up
-                                itemCount: events.length +
-                                    (isLastPage
-                                        ? 0
-                                        : 1), // Add 1 for the loading indicator if not the last page
-                                itemBuilder: (context, index) {
-                                  if (index == events.length) {
-                                    // Show a loading indicator at the bottom of the list when loading more
-                                    return const Center(
-                                        child: CircularProgressIndicator());
-                                  }
-                                  return cryptoCard(events[index]);
-                                },
-                              ),
-                            ),
+                          onRefresh:
+                              _refreshData, // Function to refresh the events
+                          color: Theme.of(context).colorScheme.onSurface,
+                          child: ListView.builder(
+                            controller:
+                                _scrollController, // Ensure _scrollController is properly set up
+                            itemCount: events.length +
+                                (isLastPage
+                                    ? 0
+                                    : 1), // Add 1 for the loading indicator if not the last page
+                            itemBuilder: (context, index) {
+                              if (index == events.length) {
+                                // Show a loading indicator at the bottom of the list when loading more
+                                return const Center(
+                                    child: CircularProgressIndicator());
+                              }
+                              return cryptoCard(events[index]);
+                            },
+                          ),
+                        ),
                     ],
                   ),
                 ),

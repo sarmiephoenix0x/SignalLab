@@ -39,6 +39,11 @@ class _SentimentPageState extends State<SentimentPage>
   bool isLastPage = false; // Track if the last page has been reached
   bool isLoadingMore = false; // Track if more data is loading
 
+  bool _isSearching = false;
+  TextEditingController _searchController = TextEditingController();
+  List searchResults = [];
+  bool searchLoading = false;
+
   @override
   void initState() {
     super.initState();
@@ -246,7 +251,10 @@ class _SentimentPageState extends State<SentimentPage>
   }
 
   Future<void> fetchSentiments({bool loadMore = false}) async {
-    if (loadMore && isLoadingMore) return; // Prevent multiple loadMore calls
+    // Prevent multiple loadMore calls or fetching if it's the last page
+    if (loadMore && (isLoadingMore || isLastPage)) return;
+
+    // Update UI loading state
     if (!loadMore) {
       if (mounted) {
         setState(() {
@@ -260,6 +268,8 @@ class _SentimentPageState extends State<SentimentPage>
       final String? accessToken = await storage.read(key: 'accessToken');
       final url =
           'https://signal.payguru.com.ng/api/sentiments?page=$currentPage'; // Add pagination parameter
+
+      // Make API call
       final response = await http.get(
         Uri.parse(url),
         headers: {
@@ -267,46 +277,76 @@ class _SentimentPageState extends State<SentimentPage>
         },
       );
 
+      // Handle successful response
       if (response.statusCode == 200) {
         final Map<String, dynamic> responseData =
-            json.decode(response.body); // Parse as Map
-        final List<dynamic> sentimentsData =
-            responseData['data']; // Extract the 'data' list
-        final pagination =
-            responseData['pagination']; // Extract pagination details
+            json.decode(response.body); // Parse response
 
+        if (responseData.containsKey('data') &&
+            responseData['data'].isNotEmpty) {
+          final List<dynamic> sentimentsData =
+              responseData['data']; // Extract 'data' list
+          final pagination =
+              responseData['pagination']; // Extract pagination details
+
+          if (mounted) {
+            setState(() {
+              // Append or set sentiments data
+              if (loadMore) {
+                sentiments.addAll(sentimentsData); // Append new data
+              } else {
+                sentiments = sentimentsData; // Set initial load
+              }
+
+              // Update pagination and loading state
+              isLastPage =
+                  pagination['next_page_url'] == null || sentimentsData.isEmpty;
+              if (!isLastPage)
+                currentPage++; // Increment page only if there's a next page
+              loading = false;
+              isLoadingMore = false;
+            });
+          }
+        } else {
+          // Handle unexpected cases where no sentiments are found but no error message is present
+          if (mounted) {
+            setState(() {
+              loading = false;
+              isLoadingMore = false;
+              errorMessage = 'No more sentiments available';
+            });
+          }
+        }
+      } else if (response.statusCode == 404) {
+        // Handle 404 status (no more sentiments available)
         if (mounted) {
           setState(() {
-            if (loadMore) {
-              sentiments
-                  .addAll(sentimentsData); // Append new sentiments to the list
-            } else {
-              sentiments = sentimentsData; // Set the initial load of sentiments
-            }
-
-            // Update pagination data
-            isLastPage = pagination['next_page_url'] == null;
-            currentPage++;
+            isLastPage = true; // No more data to load
             loading = false;
             isLoadingMore = false;
           });
         }
       } else {
+        // Handle non-200 response status codes
+        final String errorResponse =
+            response.body; // Capture response error message
         if (mounted) {
           setState(() {
             loading = false;
             isLoadingMore = false;
-            errorMessage = 'Failed to load sentiments'; // Failed to load data
+            errorMessage =
+                'Error: $errorResponse'; // Display detailed error response
           });
         }
       }
     } catch (e) {
+      // Handle network or JSON parsing errors
       if (mounted) {
         setState(() {
           loading = false;
           isLoadingMore = false;
           errorMessage =
-              'Failed to load data. Please check your network connection.';
+              'Exception caught: ${e.toString()}'; // Provide detailed exception
         });
       }
       print('Exception caught: $e');
@@ -437,6 +477,50 @@ class _SentimentPageState extends State<SentimentPage>
     );
   }
 
+
+  Future<void> _performSearch(String query) async {
+    setState(() {
+      searchLoading = true;
+    });
+    final String? accessToken = await storage.read(key: 'accessToken');
+    final url = 'https://signal.payguru.com.ng/api/search?query=$query';
+    final headers = {
+      'Authorization': 'Bearer $accessToken',
+      'Content-Type': 'application/json',
+    };
+
+    // Perform GET request
+    final response = await http.get(Uri.parse(url), headers: headers);
+
+    if (response.statusCode == 200) {
+      setState(() {
+        searchResults = jsonDecode(response.body);
+        searchLoading = false;
+      });
+    } else if (response.statusCode == 404) {
+      setState(() {
+        searchResults = [];
+        searchLoading = false;
+      });
+      _showCustomSnackBar(
+        context,
+        'No results found for the query.',
+        isError: true,
+      );
+    } else if (response.statusCode == 422 || response.statusCode == 401) {
+      setState(() {
+        searchResults = [];
+        searchLoading = false;
+      });
+      final errorMessage = jsonDecode(response.body)['message'];
+      _showCustomSnackBar(
+        context,
+        errorMessage,
+        isError: true,
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return OrientationBuilder(
@@ -469,6 +553,70 @@ class _SentimentPageState extends State<SentimentPage>
                     children: [
                       SizedBox(
                           height: MediaQuery.of(context).size.height * 0.1),
+                      if (_isSearching)
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                        child: Row(
+                          children: [
+                            Expanded(
+                              flex: 10,
+                              child: TextField(
+                                controller: _searchController,
+                                autofocus: true,
+                                style: const TextStyle(
+                                  color: Colors
+                                      .white, // White text for search input
+                                  fontSize:
+                                      18, // Adjust size for better visibility
+                                ),
+                                decoration: InputDecoration(
+                                  hintText: 'Search...',
+                                  hintStyle: const TextStyle(
+                                    color:
+                                        Colors.white54, // Light gray hint text
+                                    fontSize:
+                                        16, // Slightly smaller hint size for contrast
+                                  ),
+                                  filled: true,
+                                  fillColor: Theme.of(context)
+                                      .colorScheme
+                                      .onSurface, // Slight translucent effect for input background
+                                  contentPadding: const EdgeInsets.symmetric(
+                                      vertical: 10, horizontal: 20),
+                                  border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(30),
+                                    borderSide: BorderSide
+                                        .none, // No border for a clean look
+                                  ),
+                                  // Add a search icon with onPressed event
+                                  suffixIcon: IconButton(
+                                    icon: const Icon(Icons.search,
+                                        color: Colors.white),
+                                    onPressed: () {
+                                      // Trigger search only when the search icon is tapped
+                                      _performSearch(_searchController.text);
+                                    },
+                                  ),
+                                ),
+                              ),
+                            ),
+                            const Spacer(),
+                            IconButton(
+                              icon: Icon(Icons.close,
+                                  color: Theme.of(context)
+                                      .colorScheme
+                                      .onSurface), // White close icon
+                              onPressed: () {
+                                setState(() {
+                                  _isSearching = false;
+                                  _searchController.clear();
+                                });
+                              },
+                            ),
+                          ],
+                        ),
+                      )
+                    else
                       Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 20.0),
                         child: Row(
@@ -500,9 +648,16 @@ class _SentimentPageState extends State<SentimentPage>
                               ),
                             ),
                             const Spacer(),
-                            Image.asset(
-                              'images/SearchButton.png',
-                              height: 50,
+                            InkWell(
+                              onTap: () {
+                                setState(() {
+                                  _isSearching = true;
+                                });
+                              },
+                              child: Image.asset(
+                                'images/SearchButton.png',
+                                height: 50,
+                              ),
                             ),
                             InkWell(
                               onTap: () {
@@ -519,6 +674,52 @@ class _SentimentPageState extends State<SentimentPage>
                       SizedBox(
                         height: MediaQuery.of(context).size.height * 0.03,
                       ),
+                     if (_isSearching) ...[
+                      if (searchLoading) ...[
+                        Center(
+                          child: CircularProgressIndicator(
+                            valueColor: AlwaysStoppedAnimation<Color>(
+                              Theme.of(context).colorScheme.onSurface,
+                            ), // Use primary color
+                            strokeWidth: 4.0,
+                          ),
+                        )
+                      ] else ...[
+                        if (searchResults.isNotEmpty) ...[
+                          ListView.builder(
+                            itemCount: searchResults.length,
+                            itemBuilder: (context, index) {
+                              return ListTile(
+                                title: Text(
+                                  searchResults[index]['title'] ?? 'No Title',
+                                  style: TextStyle(
+                                    color:
+                                        Theme.of(context).colorScheme.onSurface,
+                                  ),
+                                ),
+                                subtitle: Text(
+                                  searchResults[index]['description'] ??
+                                      'No Description',
+                                  style: TextStyle(
+                                    color:
+                                        Theme.of(context).colorScheme.onSurface,
+                                  ),
+                                ),
+                              );
+                            },
+                          )
+                        ] else ...[
+                          Center(
+                            child: Text(
+                              'No results to display',
+                              style: TextStyle(
+                                color: Theme.of(context).colorScheme.onSurface,
+                              ),
+                            ),
+                          ),
+                        ]
+                      ]
+                    ] else ...[
                       TabBar(
                         controller: tabController,
                         tabs: [
@@ -597,13 +798,18 @@ class _SentimentPageState extends State<SentimentPage>
                                           ? 0
                                           : 1), // Add 1 for the loading indicator if not the last page
                                   itemBuilder: (context, index) {
-                                    if (index == sentiments.length) {
+                                    if (index == sentiments.length &&
+                                        !isLastPage) {
                                       // Show a loading indicator at the bottom when loading more
-                                      return Center(
+                                      return const Center(
                                           child: CircularProgressIndicator());
+                                    } else if (index < sentiments.length) {
+                                      return forexCard(sentiments[
+                                          index]); // Your card widget
+                                    } else {
+                                      return const SizedBox
+                                          .shrink(); // Avoids returning null
                                     }
-                                    return forexCard(
-                                        sentiments[index]); // Your card widget
                                   },
                                 ),
                               ),
@@ -656,13 +862,18 @@ class _SentimentPageState extends State<SentimentPage>
                                           ? 0
                                           : 1), // Add 1 for the loading indicator if not the last page
                                   itemBuilder: (context, index) {
-                                    if (index == sentiments.length) {
+                                    if (index == sentiments.length &&
+                                        !isLastPage) {
                                       // Show a loading indicator at the bottom when loading more
-                                      return Center(
+                                      return const Center(
                                           child: CircularProgressIndicator());
+                                    } else if (index < sentiments.length) {
+                                      return forexCard(sentiments[
+                                          index]); // Your card widget
+                                    } else {
+                                      return const SizedBox
+                                          .shrink(); // Avoids returning null
                                     }
-                                    return forexCard(
-                                        sentiments[index]); // Your card widget
                                   },
                                 ),
                               ),
@@ -717,19 +928,25 @@ class _SentimentPageState extends State<SentimentPage>
                                           ? 0
                                           : 1), // Add 1 for the loading indicator if not the last page
                                   itemBuilder: (context, index) {
-                                    if (index == sentiments.length) {
+                                    if (index == sentiments.length &&
+                                        !isLastPage) {
                                       // Show a loading indicator at the bottom when loading more
-                                      return Center(
+                                      return const Center(
                                           child: CircularProgressIndicator());
+                                    } else if (index < sentiments.length) {
+                                      return forexCard(sentiments[
+                                          index]); // Your card widget
+                                    } else {
+                                      return const SizedBox
+                                          .shrink(); // Avoids returning null
                                     }
-                                    return forexCard(
-                                        sentiments[index]); // Your card widget
                                   },
                                 ),
                               ),
                           ],
                         ),
                       ),
+                     ],
                     ],
                   ),
                 ),

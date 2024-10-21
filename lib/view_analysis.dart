@@ -186,28 +186,31 @@ class ViewAnalysisState extends State<ViewAnalysis> {
                                                     .size
                                                     .width *
                                                 0.03),
-                                        InkWell(
-                                          onTap: () {
-                                            Navigator.push(
-                                              context,
-                                              MaterialPageRoute(
-                                                builder: (context) =>
-                                                    SignalAuthorPage(
-                                                  key: UniqueKey(),
-                                                  authorId: widget.authorId,
-                                                  authorName: widget.authorName,
+                                        Flexible(
+                                          child: InkWell(
+                                            onTap: () {
+                                              Navigator.push(
+                                                context,
+                                                MaterialPageRoute(
+                                                  builder: (context) =>
+                                                      SignalAuthorPage(
+                                                    key: UniqueKey(),
+                                                    authorId: widget.authorId,
+                                                    authorName:
+                                                        widget.authorName,
+                                                  ),
                                                 ),
+                                              );
+                                            },
+                                            child: Text(
+                                              "By ${widget.authorName}",
+                                              overflow: TextOverflow.ellipsis,
+                                              style: const TextStyle(
+                                                fontSize: 15,
+                                                fontFamily: 'Inconsolata',
+                                                fontWeight: FontWeight.bold,
+                                                color: Colors.grey,
                                               ),
-                                            );
-                                          },
-                                          child: Text(
-                                            "By ${widget.authorName}",
-                                            overflow: TextOverflow.ellipsis,
-                                            style: const TextStyle(
-                                              fontSize: 15,
-                                              fontFamily: 'Inconsolata',
-                                              fontWeight: FontWeight.bold,
-                                              color: Colors.grey,
                                             ),
                                           ),
                                         ),
