@@ -113,7 +113,7 @@ class _MainAppState extends State<MainApp>
   bool _isLoadingMoreNews = false;
   bool _hasMoreCourses = true;
   bool _hasMoreNews = true;
-  bool subscribedForCourse = false;
+  bool subscribedForCourse = true;
   OverlayEntry? _overlayEntry;
 
   @override
