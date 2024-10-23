@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 class TransactionHistory extends StatefulWidget {
   const TransactionHistory({super.key});
@@ -43,14 +44,16 @@ class TransactionHistoryState extends State<TransactionHistory> {
       'Authorization': 'Bearer $accessToken',
     });
 
+    print(response.body);
     if (response.statusCode == 200) {
       List<dynamic> jsonData = json.decode(response.body);
       return jsonData.map((transaction) {
         return {
-          "id": transaction["id"],
-          "amount": transaction["amount"],
-          "reason": transaction["reason"],
-          "time": transaction["time"],
+          "id": transaction["id"] ?? 0, // Default to 0 if null
+          "message": transaction["message"] ??
+              'No description available', // Ensure 'message' field is used correctly
+          "created_at": transaction["created_at"] ??
+              'Unknown date', // Handle null 'created_at'
         };
       }).toList();
     } else if (response.statusCode == 401) {
@@ -266,7 +269,8 @@ class TransactionHistoryState extends State<TransactionHistory> {
                     {};
 
                 for (var transaction in transactions) {
-                  String formattedDate = formatDate(transaction['created_at']);
+                  String formattedDate = formatDate(
+                      transaction['created_at'] ?? DateTime.now().toString());
                   if (groupedTransactions.containsKey(formattedDate)) {
                     groupedTransactions[formattedDate]!.add(transaction);
                   } else {
@@ -337,9 +341,11 @@ class TransactionHistoryState extends State<TransactionHistory> {
                                     padding:
                                         const EdgeInsets.only(bottom: 15.0),
                                     child: transactionWidget(
-                                      'images/iconamoon_transaction.png',
-                                      transaction['description'],
-                                      transaction['created_at'],
+                                      'images/mdi_tick.png',
+                                      transaction['message'] ??
+                                          'No description available',
+                                      transaction['created_at'] ??
+                                          'Unknown date',
                                     ),
                                   );
                                 }).toList(),
@@ -363,8 +369,13 @@ class TransactionHistoryState extends State<TransactionHistory> {
     return Row(
       children: [
         SizedBox(width: MediaQuery.of(context).size.width * 0.02),
-        Image.asset(img, color: Theme.of(context).colorScheme.onSurface),
-        SizedBox(width: MediaQuery.of(context).size.width * 0.02),
+        // FontAwesome check icon for transactions
+        FaIcon(
+          FontAwesomeIcons.circleCheck, // Use a stylish check mark
+          size: 40,
+          color: Theme.of(context).colorScheme.onSurface,
+        ),
+        SizedBox(width: MediaQuery.of(context).size.width * 0.04),
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -379,14 +390,15 @@ class TransactionHistoryState extends State<TransactionHistory> {
                   color: Theme.of(context).colorScheme.onSurface,
                 ),
               ),
-              SizedBox(height: MediaQuery.of(context).size.height * 0.02),
+              SizedBox(height: MediaQuery.of(context).size.height * 0.01),
               Text(
                 time,
                 style: TextStyle(
                   fontFamily: 'Inconsolata',
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: Theme.of(context).colorScheme.onSurface,
+                  fontSize: 14,
+                  fontWeight: FontWeight.normal,
+                  color:
+                      Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
                 ),
               ),
             ],

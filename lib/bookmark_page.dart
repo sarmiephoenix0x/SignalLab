@@ -59,10 +59,10 @@ class BookmarkPageState extends State<BookmarkPage>
   }
 
   @override
-void dispose() {
-  _scrollController.dispose();
-  super.dispose();
-}
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
 
   void _handleTabSelection() {
     setState(() {
@@ -100,47 +100,46 @@ void dispose() {
         headers: {'Authorization': 'Bearer $accessToken'},
       );
 
+      // Log the response body for debugging
+      print("Response Body: ${response.body}");
+
       if (response.statusCode == 200) {
         final Map<String, dynamic> responseData =
             json.decode(response.body); // Parse as Map
-        final Map<String, dynamic> dataMap =
-            responseData['data']; // Extract 'data' map
-        final List<Map<String, dynamic>> data = dataMap.values
-            .toList()
-            .cast<Map<String, dynamic>>(); // Convert map to list
 
-        final pagination =
-            responseData['pagination']; // Extract pagination details
+        // Ensure the 'data' field is a list
+        if (responseData['data'] is List) {
+          final List<Map<String, dynamic>> data =
+              List<Map<String, dynamic>>.from(responseData['data']);
 
-        setState(() {
-          if (loadMore) {
-            // Append the new data to the existing list
-            bookmarkedNews.addAll(data
-                .where((item) => item['upvotes'] != null)
-                .cast<Map<String, dynamic>>()
-                .toList());
-            bookmarkedCourses.addAll(data
-                .where((item) => item['upvotes'] == null)
-                .cast<Map<String, dynamic>>()
-                .toList());
-          } else {
-            // Replace the list on initial load
-            bookmarkedNews = data
-                .where((item) => item['upvotes'] != null)
-                .cast<Map<String, dynamic>>()
-                .toList();
-            bookmarkedCourses = data
-                .where((item) => item['upvotes'] == null)
-                .cast<Map<String, dynamic>>()
-                .toList();
-          }
+          // Extract pagination details safely
+          final pagination = responseData['pagination'] ?? {};
 
-          // Update pagination data
-          isLastPage = pagination['next_page_url'] == null;
-          currentPage++;
-          loading = false;
-          isLoadingMore = false;
-        });
+          setState(() {
+            if (loadMore) {
+              // Append the new data to the existing list
+              bookmarkedNews
+                  .addAll(data.where((item) => item['upvotes'] != null));
+              bookmarkedCourses
+                  .addAll(data.where((item) => item['upvotes'] == null));
+            } else {
+              // Replace the list on initial load
+              bookmarkedNews =
+                  data.where((item) => item['upvotes'] != null).toList();
+              bookmarkedCourses =
+                  data.where((item) => item['upvotes'] == null).toList();
+            }
+
+            // Update pagination data
+            isLastPage = pagination['next_page_url'] == null;
+            currentPage++;
+            loading = false;
+            isLoadingMore = false;
+          });
+        } else {
+          throw Exception(
+              'Expected a list for data, but got: ${responseData['data']}');
+        }
       } else if (response.statusCode == 400) {
         setState(() {
           errorMessage = "You don't have any bookmarks at the moment";
@@ -153,10 +152,19 @@ void dispose() {
           loading = false;
           isLoadingMore = false;
         });
+      } else {
+        // Handle other status codes if needed
+        setState(() {
+          errorMessage = "Unexpected error: ${response.statusCode}";
+          loading = false;
+          isLoadingMore = false;
+        });
       }
     } catch (e) {
+      // Print the error for debugging
+      print("Error: $e");
       setState(() {
-        errorMessage = "An error occurred";
+        errorMessage = "An error occurred: $e"; // Include error in message
         loading = false;
         isLoadingMore = false;
       });

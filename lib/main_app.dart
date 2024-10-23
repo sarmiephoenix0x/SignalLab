@@ -1380,8 +1380,9 @@ class _MainAppState extends State<MainApp>
                           suffixIcon: IconButton(
                             icon: const Icon(Icons.search, color: Colors.white),
                             onPressed: () {
-                              // Trigger search only when the search icon is tapped
-                              _performSearch(_searchController.text);
+                              if(_searchController.text.isNotEmpty){
+                                        _performSearch(_searchController.text.trim());
+                                        }
                             },
                           ),
                         ),

@@ -52,7 +52,7 @@ class _EventsPageState extends State<EventsPage> with TickerProviderStateMixin {
     // _airdropsFuture2 = _fetchInitialAirdrops('forex');
     // _airdropsFuture3 = _fetchInitialAirdrops('stocks');
     airdropTab = TabController(length: 3, vsync: this);
-    tabController = TabController(length: 9, vsync: this);
+    tabController = TabController(length: 3, vsync: this);
     tabController!.addListener(_handleTabSelection);
     fetchEvents();
     _scrollController.addListener(() {
@@ -640,8 +640,10 @@ class _EventsPageState extends State<EventsPage> with TickerProviderStateMixin {
                                     icon: const Icon(Icons.search,
                                         color: Colors.white),
                                     onPressed: () {
-                                      // Trigger search only when the search icon is tapped
-                                      _performSearch(_searchController.text);
+                                      if (_searchController.text.isNotEmpty) {
+                                        _performSearch(
+                                            _searchController.text.trim());
+                                      }
                                     },
                                   ),
                                 ),
@@ -1293,356 +1295,356 @@ class _EventsPageState extends State<EventsPage> with TickerProviderStateMixin {
                                   },
                                 ),
                               ),
-                            if (loading)
-                              Center(
-                                child: CircularProgressIndicator(
-                                    color: Theme.of(context)
-                                        .colorScheme
-                                        .onSurface),
-                              )
-                            else if (errorMessage != null)
-                              Center(
-                                child: Column(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    Text(
-                                      errorMessage!,
-                                      textAlign: TextAlign.center,
-                                      style: const TextStyle(
-                                        fontFamily: 'Inconsolata',
-                                        color: Colors.red,
-                                      ),
-                                    ),
-                                    const SizedBox(height: 16),
-                                    ElevatedButton(
-                                      onPressed: _refreshData,
-                                      child: Text(
-                                        'Retry',
-                                        style: TextStyle(
-                                          fontFamily: 'Inconsolata',
-                                          fontWeight: FontWeight.bold,
-                                          fontSize: 18,
-                                          color: Theme.of(context)
-                                              .colorScheme
-                                              .onSurface,
-                                        ),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              )
-                            else
-                              RefreshIndicator(
-                                onRefresh: _refreshData,
-                                color: Colors.black,
-                                child: ListView.builder(
-                                  controller: _scrollController,
-                                  itemCount: events.length,
-                                  itemBuilder: (context, index) {
-                                    return cryptoCard(events[index]);
-                                  },
-                                ),
-                              ),
-                            if (loading)
-                              Center(
-                                child: CircularProgressIndicator(
-                                    color: Theme.of(context)
-                                        .colorScheme
-                                        .onSurface),
-                              )
-                            else if (errorMessage != null)
-                              Center(
-                                child: Column(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    Text(
-                                      errorMessage!,
-                                      textAlign: TextAlign.center,
-                                      style: const TextStyle(
-                                        fontFamily: 'Inconsolata',
-                                        color: Colors.red,
-                                      ),
-                                    ),
-                                    const SizedBox(height: 16),
-                                    ElevatedButton(
-                                      onPressed: _refreshData,
-                                      child: Text(
-                                        'Retry',
-                                        style: TextStyle(
-                                          fontFamily: 'Inconsolata',
-                                          fontWeight: FontWeight.bold,
-                                          fontSize: 18,
-                                          color: Theme.of(context)
-                                              .colorScheme
-                                              .onSurface,
-                                        ),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              )
-                            else
-                              RefreshIndicator(
-                                onRefresh:
-                                    _refreshData, // Function to refresh the events
-                                color: Theme.of(context).colorScheme.onSurface,
-                                child: ListView.builder(
-                                  controller:
-                                      _scrollController, // Ensure _scrollController is properly set up
-                                  itemCount: events.length +
-                                      (isLastPage
-                                          ? 0
-                                          : 1), // Add 1 for the loading indicator if not the last page
-                                  itemBuilder: (context, index) {
-                                    if (index == events.length) {
-                                      // Show a loading indicator at the bottom of the list when loading more
-                                      return const Center(
-                                          child: CircularProgressIndicator());
-                                    }
-                                    return cryptoCard(events[index]);
-                                  },
-                                ),
-                              ),
-                            if (loading)
-                              Center(
-                                child: CircularProgressIndicator(
-                                    color: Theme.of(context)
-                                        .colorScheme
-                                        .onSurface),
-                              )
-                            else if (errorMessage != null)
-                              Center(
-                                child: Column(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    Text(
-                                      errorMessage!,
-                                      textAlign: TextAlign.center,
-                                      style: const TextStyle(
-                                        fontFamily: 'Inconsolata',
-                                        color: Colors.red,
-                                      ),
-                                    ),
-                                    const SizedBox(height: 16),
-                                    ElevatedButton(
-                                      onPressed: _refreshData,
-                                      child: Text(
-                                        'Retry',
-                                        style: TextStyle(
-                                          fontFamily: 'Inconsolata',
-                                          fontWeight: FontWeight.bold,
-                                          fontSize: 18,
-                                          color: Theme.of(context)
-                                              .colorScheme
-                                              .onSurface,
-                                        ),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              )
-                            else
-                              RefreshIndicator(
-                                onRefresh:
-                                    _refreshData, // Function to refresh the events
-                                color: Theme.of(context).colorScheme.onSurface,
-                                child: ListView.builder(
-                                  controller:
-                                      _scrollController, // Ensure _scrollController is properly set up
-                                  itemCount: events.length +
-                                      (isLastPage
-                                          ? 0
-                                          : 1), // Add 1 for the loading indicator if not the last page
-                                  itemBuilder: (context, index) {
-                                    if (index == events.length) {
-                                      // Show a loading indicator at the bottom of the list when loading more
-                                      return const Center(
-                                          child: CircularProgressIndicator());
-                                    }
-                                    return cryptoCard(events[index]);
-                                  },
-                                ),
-                              ),
-                            if (loading)
-                              Center(
-                                child: CircularProgressIndicator(
-                                    color: Theme.of(context)
-                                        .colorScheme
-                                        .onSurface),
-                              )
-                            else if (errorMessage != null)
-                              Center(
-                                child: Column(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    Text(
-                                      errorMessage!,
-                                      textAlign: TextAlign.center,
-                                      style: const TextStyle(
-                                        fontFamily: 'Inconsolata',
-                                        color: Colors.red,
-                                      ),
-                                    ),
-                                    const SizedBox(height: 16),
-                                    ElevatedButton(
-                                      onPressed: _refreshData,
-                                      child: Text(
-                                        'Retry',
-                                        style: TextStyle(
-                                          fontFamily: 'Inconsolata',
-                                          fontWeight: FontWeight.bold,
-                                          fontSize: 18,
-                                          color: Theme.of(context)
-                                              .colorScheme
-                                              .onSurface,
-                                        ),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              )
-                            else
-                              RefreshIndicator(
-                                onRefresh:
-                                    _refreshData, // Function to refresh the events
-                                color: Theme.of(context).colorScheme.onSurface,
-                                child: ListView.builder(
-                                  controller:
-                                      _scrollController, // Ensure _scrollController is properly set up
-                                  itemCount: events.length +
-                                      (isLastPage
-                                          ? 0
-                                          : 1), // Add 1 for the loading indicator if not the last page
-                                  itemBuilder: (context, index) {
-                                    if (index == events.length) {
-                                      // Show a loading indicator at the bottom of the list when loading more
-                                      return const Center(
-                                          child: CircularProgressIndicator());
-                                    }
-                                    return cryptoCard(events[index]);
-                                  },
-                                ),
-                              ),
-                            if (loading)
-                              Center(
-                                child: CircularProgressIndicator(
-                                    color: Theme.of(context)
-                                        .colorScheme
-                                        .onSurface),
-                              )
-                            else if (errorMessage != null)
-                              Center(
-                                child: Column(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    Text(
-                                      errorMessage!,
-                                      textAlign: TextAlign.center,
-                                      style: const TextStyle(
-                                        fontFamily: 'Inconsolata',
-                                        color: Colors.red,
-                                      ),
-                                    ),
-                                    const SizedBox(height: 16),
-                                    ElevatedButton(
-                                      onPressed: _refreshData,
-                                      child: Text(
-                                        'Retry',
-                                        style: TextStyle(
-                                          fontFamily: 'Inconsolata',
-                                          fontWeight: FontWeight.bold,
-                                          fontSize: 18,
-                                          color: Theme.of(context)
-                                              .colorScheme
-                                              .onSurface,
-                                        ),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              )
-                            else
-                              RefreshIndicator(
-                                onRefresh:
-                                    _refreshData, // Function to refresh the events
-                                color: Theme.of(context).colorScheme.onSurface,
-                                child: ListView.builder(
-                                  controller:
-                                      _scrollController, // Ensure _scrollController is properly set up
-                                  itemCount: events.length +
-                                      (isLastPage
-                                          ? 0
-                                          : 1), // Add 1 for the loading indicator if not the last page
-                                  itemBuilder: (context, index) {
-                                    if (index == events.length) {
-                                      // Show a loading indicator at the bottom of the list when loading more
-                                      return const Center(
-                                          child: CircularProgressIndicator());
-                                    }
-                                    return cryptoCard(events[index]);
-                                  },
-                                ),
-                              ),
-                            if (loading)
-                              Center(
-                                child: CircularProgressIndicator(
-                                    color: Theme.of(context)
-                                        .colorScheme
-                                        .onSurface),
-                              )
-                            else if (errorMessage != null)
-                              Center(
-                                child: Column(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    Text(
-                                      errorMessage!,
-                                      textAlign: TextAlign.center,
-                                      style: const TextStyle(
-                                        fontFamily: 'Inconsolata',
-                                        color: Colors.red,
-                                      ),
-                                    ),
-                                    const SizedBox(height: 16),
-                                    ElevatedButton(
-                                      onPressed: _refreshData,
-                                      child: Text(
-                                        'Retry',
-                                        style: TextStyle(
-                                          fontFamily: 'Inconsolata',
-                                          fontWeight: FontWeight.bold,
-                                          fontSize: 18,
-                                          color: Theme.of(context)
-                                              .colorScheme
-                                              .onSurface,
-                                        ),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              )
-                            else
-                              RefreshIndicator(
-                                onRefresh:
-                                    _refreshData, // Function to refresh the events
-                                color: Theme.of(context).colorScheme.onSurface,
-                                child: ListView.builder(
-                                  controller:
-                                      _scrollController, // Ensure _scrollController is properly set up
-                                  itemCount: events.length +
-                                      (isLastPage
-                                          ? 0
-                                          : 1), // Add 1 for the loading indicator if not the last page
-                                  itemBuilder: (context, index) {
-                                    if (index == events.length) {
-                                      // Show a loading indicator at the bottom of the list when loading more
-                                      return const Center(
-                                          child: CircularProgressIndicator());
-                                    }
-                                    return cryptoCard(events[index]);
-                                  },
-                                ),
-                              ),
+                            // if (loading)
+                            //   Center(
+                            //     child: CircularProgressIndicator(
+                            //         color: Theme.of(context)
+                            //             .colorScheme
+                            //             .onSurface),
+                            //   )
+                            // else if (errorMessage != null)
+                            //   Center(
+                            //     child: Column(
+                            //       mainAxisAlignment: MainAxisAlignment.center,
+                            //       children: [
+                            //         Text(
+                            //           errorMessage!,
+                            //           textAlign: TextAlign.center,
+                            //           style: const TextStyle(
+                            //             fontFamily: 'Inconsolata',
+                            //             color: Colors.red,
+                            //           ),
+                            //         ),
+                            //         const SizedBox(height: 16),
+                            //         ElevatedButton(
+                            //           onPressed: _refreshData,
+                            //           child: Text(
+                            //             'Retry',
+                            //             style: TextStyle(
+                            //               fontFamily: 'Inconsolata',
+                            //               fontWeight: FontWeight.bold,
+                            //               fontSize: 18,
+                            //               color: Theme.of(context)
+                            //                   .colorScheme
+                            //                   .onSurface,
+                            //             ),
+                            //           ),
+                            //         ),
+                            //       ],
+                            //     ),
+                            //   )
+                            // else
+                            //   RefreshIndicator(
+                            //     onRefresh: _refreshData,
+                            //     color: Colors.black,
+                            //     child: ListView.builder(
+                            //       controller: _scrollController,
+                            //       itemCount: events.length,
+                            //       itemBuilder: (context, index) {
+                            //         return cryptoCard(events[index]);
+                            //       },
+                            //     ),
+                            //   ),
+                            // if (loading)
+                            //   Center(
+                            //     child: CircularProgressIndicator(
+                            //         color: Theme.of(context)
+                            //             .colorScheme
+                            //             .onSurface),
+                            //   )
+                            // else if (errorMessage != null)
+                            //   Center(
+                            //     child: Column(
+                            //       mainAxisAlignment: MainAxisAlignment.center,
+                            //       children: [
+                            //         Text(
+                            //           errorMessage!,
+                            //           textAlign: TextAlign.center,
+                            //           style: const TextStyle(
+                            //             fontFamily: 'Inconsolata',
+                            //             color: Colors.red,
+                            //           ),
+                            //         ),
+                            //         const SizedBox(height: 16),
+                            //         ElevatedButton(
+                            //           onPressed: _refreshData,
+                            //           child: Text(
+                            //             'Retry',
+                            //             style: TextStyle(
+                            //               fontFamily: 'Inconsolata',
+                            //               fontWeight: FontWeight.bold,
+                            //               fontSize: 18,
+                            //               color: Theme.of(context)
+                            //                   .colorScheme
+                            //                   .onSurface,
+                            //             ),
+                            //           ),
+                            //         ),
+                            //       ],
+                            //     ),
+                            //   )
+                            // else
+                            //   RefreshIndicator(
+                            //     onRefresh:
+                            //         _refreshData, // Function to refresh the events
+                            //     color: Theme.of(context).colorScheme.onSurface,
+                            //     child: ListView.builder(
+                            //       controller:
+                            //           _scrollController, // Ensure _scrollController is properly set up
+                            //       itemCount: events.length +
+                            //           (isLastPage
+                            //               ? 0
+                            //               : 1), // Add 1 for the loading indicator if not the last page
+                            //       itemBuilder: (context, index) {
+                            //         if (index == events.length) {
+                            //           // Show a loading indicator at the bottom of the list when loading more
+                            //           return const Center(
+                            //               child: CircularProgressIndicator());
+                            //         }
+                            //         return cryptoCard(events[index]);
+                            //       },
+                            //     ),
+                            //   ),
+                            // if (loading)
+                            //   Center(
+                            //     child: CircularProgressIndicator(
+                            //         color: Theme.of(context)
+                            //             .colorScheme
+                            //             .onSurface),
+                            //   )
+                            // else if (errorMessage != null)
+                            //   Center(
+                            //     child: Column(
+                            //       mainAxisAlignment: MainAxisAlignment.center,
+                            //       children: [
+                            //         Text(
+                            //           errorMessage!,
+                            //           textAlign: TextAlign.center,
+                            //           style: const TextStyle(
+                            //             fontFamily: 'Inconsolata',
+                            //             color: Colors.red,
+                            //           ),
+                            //         ),
+                            //         const SizedBox(height: 16),
+                            //         ElevatedButton(
+                            //           onPressed: _refreshData,
+                            //           child: Text(
+                            //             'Retry',
+                            //             style: TextStyle(
+                            //               fontFamily: 'Inconsolata',
+                            //               fontWeight: FontWeight.bold,
+                            //               fontSize: 18,
+                            //               color: Theme.of(context)
+                            //                   .colorScheme
+                            //                   .onSurface,
+                            //             ),
+                            //           ),
+                            //         ),
+                            //       ],
+                            //     ),
+                            //   )
+                            // else
+                            //   RefreshIndicator(
+                            //     onRefresh:
+                            //         _refreshData, // Function to refresh the events
+                            //     color: Theme.of(context).colorScheme.onSurface,
+                            //     child: ListView.builder(
+                            //       controller:
+                            //           _scrollController, // Ensure _scrollController is properly set up
+                            //       itemCount: events.length +
+                            //           (isLastPage
+                            //               ? 0
+                            //               : 1), // Add 1 for the loading indicator if not the last page
+                            //       itemBuilder: (context, index) {
+                            //         if (index == events.length) {
+                            //           // Show a loading indicator at the bottom of the list when loading more
+                            //           return const Center(
+                            //               child: CircularProgressIndicator());
+                            //         }
+                            //         return cryptoCard(events[index]);
+                            //       },
+                            //     ),
+                            //   ),
+                            // if (loading)
+                            //   Center(
+                            //     child: CircularProgressIndicator(
+                            //         color: Theme.of(context)
+                            //             .colorScheme
+                            //             .onSurface),
+                            //   )
+                            // else if (errorMessage != null)
+                            //   Center(
+                            //     child: Column(
+                            //       mainAxisAlignment: MainAxisAlignment.center,
+                            //       children: [
+                            //         Text(
+                            //           errorMessage!,
+                            //           textAlign: TextAlign.center,
+                            //           style: const TextStyle(
+                            //             fontFamily: 'Inconsolata',
+                            //             color: Colors.red,
+                            //           ),
+                            //         ),
+                            //         const SizedBox(height: 16),
+                            //         ElevatedButton(
+                            //           onPressed: _refreshData,
+                            //           child: Text(
+                            //             'Retry',
+                            //             style: TextStyle(
+                            //               fontFamily: 'Inconsolata',
+                            //               fontWeight: FontWeight.bold,
+                            //               fontSize: 18,
+                            //               color: Theme.of(context)
+                            //                   .colorScheme
+                            //                   .onSurface,
+                            //             ),
+                            //           ),
+                            //         ),
+                            //       ],
+                            //     ),
+                            //   )
+                            // else
+                            //   RefreshIndicator(
+                            //     onRefresh:
+                            //         _refreshData, // Function to refresh the events
+                            //     color: Theme.of(context).colorScheme.onSurface,
+                            //     child: ListView.builder(
+                            //       controller:
+                            //           _scrollController, // Ensure _scrollController is properly set up
+                            //       itemCount: events.length +
+                            //           (isLastPage
+                            //               ? 0
+                            //               : 1), // Add 1 for the loading indicator if not the last page
+                            //       itemBuilder: (context, index) {
+                            //         if (index == events.length) {
+                            //           // Show a loading indicator at the bottom of the list when loading more
+                            //           return const Center(
+                            //               child: CircularProgressIndicator());
+                            //         }
+                            //         return cryptoCard(events[index]);
+                            //       },
+                            //     ),
+                            //   ),
+                            // if (loading)
+                            //   Center(
+                            //     child: CircularProgressIndicator(
+                            //         color: Theme.of(context)
+                            //             .colorScheme
+                            //             .onSurface),
+                            //   )
+                            // else if (errorMessage != null)
+                            //   Center(
+                            //     child: Column(
+                            //       mainAxisAlignment: MainAxisAlignment.center,
+                            //       children: [
+                            //         Text(
+                            //           errorMessage!,
+                            //           textAlign: TextAlign.center,
+                            //           style: const TextStyle(
+                            //             fontFamily: 'Inconsolata',
+                            //             color: Colors.red,
+                            //           ),
+                            //         ),
+                            //         const SizedBox(height: 16),
+                            //         ElevatedButton(
+                            //           onPressed: _refreshData,
+                            //           child: Text(
+                            //             'Retry',
+                            //             style: TextStyle(
+                            //               fontFamily: 'Inconsolata',
+                            //               fontWeight: FontWeight.bold,
+                            //               fontSize: 18,
+                            //               color: Theme.of(context)
+                            //                   .colorScheme
+                            //                   .onSurface,
+                            //             ),
+                            //           ),
+                            //         ),
+                            //       ],
+                            //     ),
+                            //   )
+                            // else
+                            //   RefreshIndicator(
+                            //     onRefresh:
+                            //         _refreshData, // Function to refresh the events
+                            //     color: Theme.of(context).colorScheme.onSurface,
+                            //     child: ListView.builder(
+                            //       controller:
+                            //           _scrollController, // Ensure _scrollController is properly set up
+                            //       itemCount: events.length +
+                            //           (isLastPage
+                            //               ? 0
+                            //               : 1), // Add 1 for the loading indicator if not the last page
+                            //       itemBuilder: (context, index) {
+                            //         if (index == events.length) {
+                            //           // Show a loading indicator at the bottom of the list when loading more
+                            //           return const Center(
+                            //               child: CircularProgressIndicator());
+                            //         }
+                            //         return cryptoCard(events[index]);
+                            //       },
+                            //     ),
+                            //   ),
+                            // if (loading)
+                            //   Center(
+                            //     child: CircularProgressIndicator(
+                            //         color: Theme.of(context)
+                            //             .colorScheme
+                            //             .onSurface),
+                            //   )
+                            // else if (errorMessage != null)
+                            //   Center(
+                            //     child: Column(
+                            //       mainAxisAlignment: MainAxisAlignment.center,
+                            //       children: [
+                            //         Text(
+                            //           errorMessage!,
+                            //           textAlign: TextAlign.center,
+                            //           style: const TextStyle(
+                            //             fontFamily: 'Inconsolata',
+                            //             color: Colors.red,
+                            //           ),
+                            //         ),
+                            //         const SizedBox(height: 16),
+                            //         ElevatedButton(
+                            //           onPressed: _refreshData,
+                            //           child: Text(
+                            //             'Retry',
+                            //             style: TextStyle(
+                            //               fontFamily: 'Inconsolata',
+                            //               fontWeight: FontWeight.bold,
+                            //               fontSize: 18,
+                            //               color: Theme.of(context)
+                            //                   .colorScheme
+                            //                   .onSurface,
+                            //             ),
+                            //           ),
+                            //         ),
+                            //       ],
+                            //     ),
+                            //   )
+                            // else
+                            //   RefreshIndicator(
+                            //     onRefresh:
+                            //         _refreshData, // Function to refresh the events
+                            //     color: Theme.of(context).colorScheme.onSurface,
+                            //     child: ListView.builder(
+                            //       controller:
+                            //           _scrollController, // Ensure _scrollController is properly set up
+                            //       itemCount: events.length +
+                            //           (isLastPage
+                            //               ? 0
+                            //               : 1), // Add 1 for the loading indicator if not the last page
+                            //       itemBuilder: (context, index) {
+                            //         if (index == events.length) {
+                            //           // Show a loading indicator at the bottom of the list when loading more
+                            //           return const Center(
+                            //               child: CircularProgressIndicator());
+                            //         }
+                            //         return cryptoCard(events[index]);
+                            //       },
+                            //     ),
+                            //   ),
                           ],
                         ),
                       ),
@@ -1678,12 +1680,12 @@ class _EventsPageState extends State<EventsPage> with TickerProviderStateMixin {
             _buildCurvedTab('Airdrops', ''),
             _buildCurvedTab('Trending', trendImg),
             _buildCurvedTab('Hot', 'images/noto_fire.png'),
-            _buildCurvedTab('Significant', 'images/noto_crown.png'),
-            _buildCurvedTab('Top 100 coins', ''),
-            _buildCurvedTab('Top 300 coins', ''),
-            _buildCurvedTab('Top 500 coins', ''),
-            _buildCurvedTab('Major categories', ''),
-            _buildCurvedTab('Next 10 days', ''),
+            // _buildCurvedTab('Significant', 'images/noto_crown.png'),
+            // _buildCurvedTab('Top 100 coins', ''),
+            // _buildCurvedTab('Top 300 coins', ''),
+            // _buildCurvedTab('Top 500 coins', ''),
+            // _buildCurvedTab('Major categories', ''),
+            // _buildCurvedTab('Next 10 days', ''),
           ],
           labelPadding: const EdgeInsets.symmetric(horizontal: 6),
           labelColor: Colors.white,
