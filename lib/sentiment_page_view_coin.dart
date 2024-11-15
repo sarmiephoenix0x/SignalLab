@@ -65,10 +65,13 @@ class _SentimentViewCoinState extends State<SentimentViewCoin>
         }
       }
     });
+    // Define your indicators here
+    String studies = '["MA@tv-basicstudies", "RSI@tv-basicstudies"]';
+
     _controller = WebViewController()
       ..setJavaScriptMode(JavaScriptMode.unrestricted)
       ..loadRequest(Uri.parse(
-          'https://s.tradingview.com/widgetembed/?symbol=$coinSymbol&interval=D&hidesidetoolbar=1&symboledit=1&saveimage=1&toolbarbg=f1f3f6&studies=[]&theme=Dark&style=1&timezone=Etc/UTC&studies_overrides={}&overrides={}&enabled_features=[]&disabled_features=[]&locale=en'));
+          'https://s.tradingview.com/widgetembed/?symbol=$coinSymbol&interval=D&hidesidetoolbar=1&symboledit=1&saveimage=1&toolbarbg=f1f3f6&studies=$studies&theme=Dark&style=1&timezone=Etc/UTC&studies_overrides={}&overrides={}&enabled_features=[]&disabled_features=[]&locale=en'));
   }
 
   @override
@@ -814,7 +817,7 @@ class _SentimentViewCoinState extends State<SentimentViewCoin>
   Widget _voteButtons() {
     if (tabController != null) {
       return Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 20.0),
+        padding: const EdgeInsets.symmetric(horizontal: 60.0),
         child: Container(
           decoration: BoxDecoration(
             border: Border.all(
@@ -848,11 +851,11 @@ class _SentimentViewCoinState extends State<SentimentViewCoin>
             unselectedLabelColor: Colors.white,
             indicatorColor: Colors.transparent,
             labelStyle: const TextStyle(
-              fontSize: 13,
+              fontSize: 11,
               fontFamily: 'Inter',
             ),
             unselectedLabelStyle: const TextStyle(
-              fontSize: 13,
+              fontSize: 11,
               fontFamily: 'Inter',
             ),
           ),
@@ -915,7 +918,6 @@ class _SentimentViewCoinState extends State<SentimentViewCoin>
       child: Text(
         label,
         style: const TextStyle(
-          fontSize: 13,
           fontWeight: FontWeight.bold,
           fontFamily: 'Inter',
         ),

@@ -22,66 +22,14 @@ class TradingViewPageState extends State<TradingViewPage> {
   @override
   void initState() {
     super.initState();
-    // _controller = WebViewController()
-    //   ..setJavaScriptMode(JavaScriptMode.unrestricted);
-    //
-    // String htmlString = '''
-    //   <!DOCTYPE html>
-    //   <html>
-    //     <head>
-    //       <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    //       <style>
-    //         html, body {
-    //           height: 100%;
-    //           margin: 0;
-    //           padding: 0;
-    //         }
-    //         .tradingview-widget-container {
-    //           height: 100%;
-    //           width: 100%;
-    //         }
-    //       </style>
-    //     </head>
-    //     <body>
-    //       <div class="tradingview-widget-container">
-    //         <div id="tradingview_5c88f" style="height: 100%; width: 100%;"></div>
-    //         <script type="text/javascript" src="https://s3.tradingview.com/tv.js"></script>
-    //         <script type="text/javascript">
-    //         new TradingView.widget({
-    //           "width": "100%",
-    //           "height": "100%",
-    //           "symbol": "$coinSymbol",
-    //           "interval": "D",
-    //           "timezone": "Etc/UTC",
-    //           "theme": "light",
-    //           "style": "1",
-    //           "locale": "en",
-    //           "toolbar_bg": "#f1f3f6",
-    //           "enable_publishing": false,
-    //           "withdateranges": true,
-    //           "hide_side_toolbar": false,
-    //           "allow_symbol_change": true,
-    //           "details": true,
-    //           "hotlist": true,
-    //           "calendar": true,
-    //           "studies": [
-    //             "MACD@tv-basicstudies",
-    //             "StochasticRSI@tv-basicstudies"
-    //           ],
-    //           "container_id": "tradingview_5c88f"
-    //         });
-    //         </script>
-    //       </div>
-    //     </body>
-    //   </html>
-    // ''';
-    //
-    // _controller.loadHtmlString(htmlString);
+
+    // Define your indicators here
+    String studies = '["MA@tv-basicstudies", "RSI@tv-basicstudies"]';
 
     _controller2 = WebViewController()
       ..setJavaScriptMode(JavaScriptMode.unrestricted)
       ..loadRequest(Uri.parse(
-          'https://s.tradingview.com/widgetembed/?symbol=$coinSymbol&interval=D&hidesidetoolbar=1&symboledit=1&saveimage=1&toolbarbg=f1f3f6&studies=[]&theme=Dark&style=1&timezone=Etc/UTC&studies_overrides={}&overrides={}&enabled_features=[]&disabled_features=[]&locale=en'));
+          'https://s.tradingview.com/widgetembed/?symbol=$coinSymbol&interval=D&hidesidetoolbar=1&symboledit=1&saveimage=1&toolbarbg=f1f3f6&studies=$studies&theme=Dark&style=1&timezone=Etc/UTC&studies_overrides={}&overrides={}&enabled_features=[]&disabled_features=[]&locale=en'));
   }
 
   Future<void> _refreshData() async {
@@ -322,10 +270,7 @@ class TradingViewPageState extends State<TradingViewPage> {
         body: Column(
           children: <Widget>[
             SizedBox(
-              height: MediaQuery
-                  .of(context)
-                  .size
-                  .height * 0.1,
+              height: MediaQuery.of(context).size.height * 0.1,
             ),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20.0),
@@ -355,7 +300,10 @@ class TradingViewPageState extends State<TradingViewPage> {
                       }
                       // Navigator.pop(context);
                     },
-                    child: Image.asset('images/tabler_arrow-back.png',height:50,),
+                    child: Image.asset(
+                      'images/tabler_arrow-back.png',
+                      height: 50,
+                    ),
                   ),
                   const Spacer(),
                   Expanded(
@@ -384,10 +332,7 @@ class TradingViewPageState extends State<TradingViewPage> {
               ),
             ),
             SizedBox(
-              height: MediaQuery
-                  .of(context)
-                  .size
-                  .height * 0.03,
+              height: MediaQuery.of(context).size.height * 0.03,
             ),
             // Expanded(
             //   flex: 1,
