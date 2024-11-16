@@ -360,66 +360,66 @@ class _MenuPageState extends State<MenuPage> with WidgetsBindingObserver {
                           ),
                         ),
                       ),
-                      SizedBox(
-                          height: MediaQuery.of(context).size.height * 0.05),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                        child: InkWell(
-                          onTap: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) =>
-                                    EventsPage(key: UniqueKey()),
-                              ),
-                            );
-                          },
-                          child: Container(
-                            height: (50 / MediaQuery.of(context).size.height) *
-                                MediaQuery.of(context).size.height,
-                            padding: const EdgeInsets.all(10.0),
-                            decoration: BoxDecoration(
-                              color:
-                                  isDarkMode ? Colors.grey[900] : Colors.white,
-                              borderRadius: BorderRadius.circular(5),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: isDarkMode
-                                      ? Colors.grey.withOpacity(0.2)
-                                      : Colors.grey.withOpacity(0.5),
-                                  spreadRadius: 3,
-                                  blurRadius: 5,
-                                ),
-                              ],
-                            ),
-                            child: Row(
-                              children: [
-                                SizedBox(
-                                    width: MediaQuery.of(context).size.width *
-                                        0.02),
-                                Image.asset(
-                                  'images/carbon_event.png',
-                                  color:
-                                      Theme.of(context).colorScheme.onSurface,
-                                ),
-                                SizedBox(
-                                    width: MediaQuery.of(context).size.width *
-                                        0.04),
-                                Text(
-                                  'Events',
-                                  style: TextStyle(
-                                    fontFamily: 'Inter',
-                                    fontSize: 15,
-                                    fontWeight: FontWeight.bold,
-                                    color:
-                                        Theme.of(context).colorScheme.onSurface,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ),
+                      // SizedBox(
+                      //     height: MediaQuery.of(context).size.height * 0.05),
+                      // Padding(
+                      //   padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                      //   child: InkWell(
+                      //     onTap: () {
+                      //       Navigator.push(
+                      //         context,
+                      //         MaterialPageRoute(
+                      //           builder: (context) =>
+                      //               EventsPage(key: UniqueKey()),
+                      //         ),
+                      //       );
+                      //     },
+                      //     child: Container(
+                      //       height: (50 / MediaQuery.of(context).size.height) *
+                      //           MediaQuery.of(context).size.height,
+                      //       padding: const EdgeInsets.all(10.0),
+                      //       decoration: BoxDecoration(
+                      //         color:
+                      //             isDarkMode ? Colors.grey[900] : Colors.white,
+                      //         borderRadius: BorderRadius.circular(5),
+                      //         boxShadow: [
+                      //           BoxShadow(
+                      //             color: isDarkMode
+                      //                 ? Colors.grey.withOpacity(0.2)
+                      //                 : Colors.grey.withOpacity(0.5),
+                      //             spreadRadius: 3,
+                      //             blurRadius: 5,
+                      //           ),
+                      //         ],
+                      //       ),
+                      //       child: Row(
+                      //         children: [
+                      //           SizedBox(
+                      //               width: MediaQuery.of(context).size.width *
+                      //                   0.02),
+                      //           Image.asset(
+                      //             'images/carbon_event.png',
+                      //             color:
+                      //                 Theme.of(context).colorScheme.onSurface,
+                      //           ),
+                      //           SizedBox(
+                      //               width: MediaQuery.of(context).size.width *
+                      //                   0.04),
+                      //           Text(
+                      //             'Events',
+                      //             style: TextStyle(
+                      //               fontFamily: 'Inter',
+                      //               fontSize: 15,
+                      //               fontWeight: FontWeight.bold,
+                      //               color:
+                      //                   Theme.of(context).colorScheme.onSurface,
+                      //             ),
+                      //           ),
+                      //         ],
+                      //       ),
+                      //     ),
+                      //   ),
+                      // ),
                       SizedBox(
                           height: MediaQuery.of(context).size.height * 0.05),
                       Padding(

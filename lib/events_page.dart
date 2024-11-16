@@ -599,7 +599,7 @@ class _EventsPageState extends State<EventsPage> with TickerProviderStateMixin {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    SizedBox(height: MediaQuery.of(context).size.height * 0.1),
+                    SizedBox(height: MediaQuery.of(context).size.height * 0.05),
                     if (_isSearching)
                       Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 20.0),
