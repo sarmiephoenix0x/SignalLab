@@ -324,6 +324,7 @@ class _SentimentPageState extends State<SentimentPage>
             isLastPage = true; // No more data to load
             loading = false;
             isLoadingMore = false;
+            errorMessage = 'No sentiments available';
           });
         }
       } else {
@@ -335,9 +336,10 @@ class _SentimentPageState extends State<SentimentPage>
             loading = false;
             isLoadingMore = false;
             errorMessage =
-                'Error: $errorResponse'; // Display detailed error response
+                'An error occurred'; // Display detailed error response
           });
         }
+        print('Error: $errorResponse');
       }
     } catch (e) {
       // Handle network or JSON parsing errors
@@ -346,7 +348,7 @@ class _SentimentPageState extends State<SentimentPage>
           loading = false;
           isLoadingMore = false;
           errorMessage =
-              'Exception caught: ${e.toString()}'; // Provide detailed exception
+              'An unexpected error occurred'; // Provide detailed exception
         });
       }
       print('Exception caught: $e');
@@ -622,8 +624,9 @@ class _SentimentPageState extends State<SentimentPage>
                                       icon: const Icon(Icons.search,
                                           color: Colors.white),
                                       onPressed: () {
-                                        if(_searchController.text.isNotEmpty){
-                                        _performSearch(_searchController.text.trim());
+                                        if (_searchController.text.isNotEmpty) {
+                                          _performSearch(
+                                              _searchController.text.trim());
                                         }
                                       },
                                     ),

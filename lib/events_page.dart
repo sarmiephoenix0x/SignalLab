@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:signal_app/events_details.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
@@ -117,12 +118,12 @@ class _EventsPageState extends State<EventsPage> with TickerProviderStateMixin {
     } else if (response.statusCode == 401) {
       throw Exception('Unauthorized access');
     } else if (response.statusCode == 404) {
-      throw Exception('No signals available');
+      throw Exception('No airdrops available');
     } else if (response.statusCode == 422) {
       throw Exception(
           'Validation error: ${json.decode(response.body)['message']}');
     } else {
-      throw Exception('Failed to load signals: ${response.statusCode}');
+      throw Exception('Failed to load airdrops: ${response.statusCode}');
     }
   }
 
@@ -233,6 +234,7 @@ class _EventsPageState extends State<EventsPage> with TickerProviderStateMixin {
             isLastPage = true; // No more data to load
             loading = false;
             isLoadingMore = false;
+            errorMessage = 'No events available';
           });
         }
       } else {
@@ -244,9 +246,10 @@ class _EventsPageState extends State<EventsPage> with TickerProviderStateMixin {
             loading = false;
             isLoadingMore = false;
             errorMessage =
-                'Error: $errorResponse'; // Display detailed error response
+                'An error occurred'; // Display detailed error response
           });
         }
+        print('Error: $errorResponse');
       }
     } catch (e) {
       // Handle network or JSON parsing errors
@@ -255,7 +258,7 @@ class _EventsPageState extends State<EventsPage> with TickerProviderStateMixin {
           loading = false;
           isLoadingMore = false;
           errorMessage =
-              'Exception caught: ${e.toString()}'; // Provide detailed exception
+              'An unexpected error occurred'; // Provide detailed exception
         });
       }
       print('Exception caught: $e');
@@ -588,1068 +591,1095 @@ class _EventsPageState extends State<EventsPage> with TickerProviderStateMixin {
   Widget build(BuildContext context) {
     return OrientationBuilder(
       builder: (context, orientation) {
-        return Scaffold(
-          body: Center(
-            child: SizedBox(
-              height: orientation == Orientation.portrait
-                  ? MediaQuery.of(context).size.height
-                  : MediaQuery.of(context).size.height * 1.5,
+        return PopScope(
+          canPop: false,
+          onPopInvokedWithResult: (didPop, dynamic result) {
+            if (!didPop) {
+              if (_overlayEntry != null) {
+                _removeOverlay();
+              } else {
+                // if (Navigator.of(context).canPop()) {
+                //   Navigator.of(context).pop();
+                // } else {
+                //   SystemChannels.platform.invokeMethod('SystemNavigator.pop');
+                // }
+              }
+            }
+          },
+          child: Scaffold(
+            body: Center(
               child: SizedBox(
-                height: MediaQuery.of(context).size.height,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    SizedBox(height: MediaQuery.of(context).size.height * 0.05),
-                    if (_isSearching)
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                        child: Row(
-                          children: [
-                            Expanded(
-                              flex: 10,
-                              child: TextField(
-                                controller: _searchController,
-                                autofocus: true,
-                                style: const TextStyle(
-                                  color: Colors
-                                      .white, // White text for search input
-                                  fontSize:
-                                      18, // Adjust size for better visibility
-                                ),
-                                decoration: InputDecoration(
-                                  hintText: 'Search...',
-                                  hintStyle: const TextStyle(
-                                    color:
-                                        Colors.white54, // Light gray hint text
+                height: orientation == Orientation.portrait
+                    ? MediaQuery.of(context).size.height
+                    : MediaQuery.of(context).size.height * 1.5,
+                child: SizedBox(
+                  height: MediaQuery.of(context).size.height,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      SizedBox(
+                          height: MediaQuery.of(context).size.height * 0.05),
+                      if (_isSearching)
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                          child: Row(
+                            children: [
+                              Expanded(
+                                flex: 10,
+                                child: TextField(
+                                  controller: _searchController,
+                                  autofocus: true,
+                                  style: const TextStyle(
+                                    color: Colors
+                                        .white, // White text for search input
                                     fontSize:
-                                        16, // Slightly smaller hint size for contrast
+                                        18, // Adjust size for better visibility
                                   ),
-                                  filled: true,
-                                  fillColor: Theme.of(context)
-                                      .colorScheme
-                                      .onSurface, // Slight translucent effect for input background
-                                  contentPadding: const EdgeInsets.symmetric(
-                                      vertical: 10, horizontal: 20),
-                                  border: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(30),
-                                    borderSide: BorderSide
-                                        .none, // No border for a clean look
-                                  ),
-                                  // Add a search icon with onPressed event
-                                  suffixIcon: IconButton(
-                                    icon: const Icon(Icons.search,
-                                        color: Colors.white),
-                                    onPressed: () {
-                                      if (_searchController.text.isNotEmpty) {
-                                        _performSearch(
-                                            _searchController.text.trim());
-                                      }
-                                    },
+                                  decoration: InputDecoration(
+                                    hintText: 'Search...',
+                                    hintStyle: const TextStyle(
+                                      color: Colors
+                                          .white54, // Light gray hint text
+                                      fontSize:
+                                          16, // Slightly smaller hint size for contrast
+                                    ),
+                                    filled: true,
+                                    fillColor: Theme.of(context)
+                                        .colorScheme
+                                        .onSurface, // Slight translucent effect for input background
+                                    contentPadding: const EdgeInsets.symmetric(
+                                        vertical: 10, horizontal: 20),
+                                    border: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(30),
+                                      borderSide: BorderSide
+                                          .none, // No border for a clean look
+                                    ),
+                                    // Add a search icon with onPressed event
+                                    suffixIcon: IconButton(
+                                      icon: const Icon(Icons.search,
+                                          color: Colors.white),
+                                      onPressed: () {
+                                        if (_searchController.text.isNotEmpty) {
+                                          _performSearch(
+                                              _searchController.text.trim());
+                                        }
+                                      },
+                                    ),
                                   ),
                                 ),
                               ),
-                            ),
-                            const Spacer(),
-                            IconButton(
-                              icon: Icon(Icons.close,
-                                  color: Theme.of(context)
-                                      .colorScheme
-                                      .onSurface), // White close icon
-                              onPressed: () {
-                                setState(() {
-                                  _isSearching = false;
-                                  _searchController.clear();
-                                });
-                              },
-                            ),
-                          ],
-                        ),
-                      )
-                    else
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                        child: Row(
-                          children: [
-                            InkWell(
-                              onTap: () {
-                                Navigator.pop(context);
-                              },
-                              child: Image.asset(
-                                'images/tabler_arrow-back.png',
-                                height: 50,
-                              ),
-                            ),
-                            SizedBox(
-                                width:
-                                    MediaQuery.of(context).size.width * 0.02),
-                            Text(
-                              'Events',
-                              style: TextStyle(
-                                fontFamily: 'Inter',
-                                fontWeight: FontWeight.bold,
-                                fontSize: 22.0,
-                                color: Theme.of(context).colorScheme.onSurface,
-                              ),
-                            ),
-                            const Spacer(),
-                            InkWell(
-                                onTap: () {
-                                  _showFilterOverlay();
+                              const Spacer(),
+                              IconButton(
+                                icon: Icon(Icons.close,
+                                    color: Theme.of(context)
+                                        .colorScheme
+                                        .onSurface), // White close icon
+                                onPressed: () {
+                                  setState(() {
+                                    _isSearching = false;
+                                    _searchController.clear();
+                                  });
                                 },
-                                child: Image.asset(
-                                  'images/PlusButton.png',
-                                  height: 50,
-                                )),
-                            InkWell(
-                              onTap: () {
-                                setState(() {
-                                  _isSearching = true;
-                                });
-                              },
-                              child: Image.asset(
-                                'images/SearchButton.png',
-                                height: 50,
                               ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    SizedBox(
-                      height: MediaQuery.of(context).size.height * 0.03,
-                    ),
-                    if (_isSearching) ...[
-                      if (searchLoading) ...[
-                        Center(
-                          child: CircularProgressIndicator(
-                            valueColor: AlwaysStoppedAnimation<Color>(
-                              Theme.of(context).colorScheme.onSurface,
-                            ), // Use primary color
-                            strokeWidth: 4.0,
+                            ],
                           ),
                         )
-                      ] else ...[
-                        if (searchResults.isNotEmpty) ...[
-                          ListView.builder(
-                            itemCount: searchResults.length,
-                            itemBuilder: (context, index) {
-                              return ListTile(
-                                title: Text(
-                                  searchResults[index]['title'] ?? 'No Title',
-                                  style: TextStyle(
-                                    color:
-                                        Theme.of(context).colorScheme.onSurface,
-                                  ),
+                      else
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                          child: Row(
+                            children: [
+                              // InkWell(
+                              //   onTap: () {
+                              //     Navigator.pop(context);
+                              //   },
+                              //   child: Image.asset(
+                              //     'images/tabler_arrow-back.png',
+                              //     height: 50,
+                              //   ),
+                              // ),
+                              // SizedBox(
+                              //     width:
+                              //         MediaQuery.of(context).size.width * 0.02),
+                              Text(
+                                'Events',
+                                style: TextStyle(
+                                  fontFamily: 'Inter',
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 22.0,
+                                  color:
+                                      Theme.of(context).colorScheme.onSurface,
                                 ),
-                                subtitle: Text(
-                                  searchResults[index]['description'] ??
-                                      'No Description',
-                                  style: TextStyle(
-                                    color:
-                                        Theme.of(context).colorScheme.onSurface,
-                                  ),
+                              ),
+                              const Spacer(),
+                              InkWell(
+                                  onTap: () {
+                                    _showFilterOverlay();
+                                  },
+                                  child: Image.asset(
+                                    'images/PlusButton.png',
+                                    height: 50,
+                                  )),
+                              InkWell(
+                                onTap: () {
+                                  setState(() {
+                                    _isSearching = true;
+                                  });
+                                },
+                                child: Image.asset(
+                                  'images/SearchButton.png',
+                                  height: 50,
                                 ),
-                              );
-                            },
+                              ),
+                            ],
+                          ),
+                        ),
+                      SizedBox(
+                        height: MediaQuery.of(context).size.height * 0.03,
+                      ),
+                      if (_isSearching) ...[
+                        if (searchLoading) ...[
+                          Center(
+                            child: CircularProgressIndicator(
+                              valueColor: AlwaysStoppedAnimation<Color>(
+                                Theme.of(context).colorScheme.onSurface,
+                              ), // Use primary color
+                              strokeWidth: 4.0,
+                            ),
                           )
                         ] else ...[
-                          Center(
-                            child: Text(
-                              'No results to display',
-                              style: TextStyle(
-                                color: Theme.of(context).colorScheme.onSurface,
-                              ),
-                            ),
-                          ),
-                        ]
-                      ]
-                    ] else ...[
-                      _latestInfoTabBar(),
-                      // if (tabController!.index == 0)
-                      //   TabBar(
-                      //     controller:
-                      //         airdropTab, // Ensure airdropTab is initialized
-                      //     tabs: [
-                      //       _buildTab('Crypto'),
-                      //       _buildTab('Forex'),
-                      //       _buildTab('Stocks'),
-                      //     ],
-                      //     labelColor: Theme.of(context).colorScheme.onSurface,
-                      //     unselectedLabelColor: Colors.grey,
-                      //     labelStyle: const TextStyle(
-                      //       fontSize: 16,
-                      //       fontWeight: FontWeight.bold,
-                      //       fontFamily: 'Inconsolata',
-                      //     ),
-                      //     unselectedLabelStyle: const TextStyle(
-                      //       fontSize: 16,
-                      //       fontWeight: FontWeight.bold,
-                      //       fontFamily: 'Inconsolata',
-                      //     ),
-                      //     labelPadding: EdgeInsets.zero,
-                      //     indicatorSize: TabBarIndicatorSize.tab,
-                      //     indicatorColor:
-                      //         Theme.of(context).colorScheme.onSurface,
-                      //   ),
-                      Expanded(
-                        child: TabBarView(
-                          controller: tabController,
-                          children: [
-                            FutureBuilder<void>(
-                              future: _airdropsFuture1,
-                              builder: (context, snapshot) {
-                                if (snapshot.connectionState ==
-                                    ConnectionState.waiting) {
-                                  return Center(
-                                    child: CircularProgressIndicator(
+                          if (searchResults.isNotEmpty) ...[
+                            ListView.builder(
+                              itemCount: searchResults.length,
+                              itemBuilder: (context, index) {
+                                return ListTile(
+                                  title: Text(
+                                    searchResults[index]['title'] ?? 'No Title',
+                                    style: TextStyle(
                                       color: Theme.of(context)
                                           .colorScheme
                                           .onSurface,
                                     ),
-                                  );
-                                } else if (snapshot.hasError) {
-                                  return Center(
-                                    child: Column(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.center,
-                                      children: [
-                                        const Text(
-                                          'An unexpected error occurred',
-                                          textAlign: TextAlign.center,
-                                          style: TextStyle(
-                                            fontFamily: 'Inconsolata',
-                                            color: Colors.red,
-                                          ),
-                                        ),
-                                        const SizedBox(height: 16),
-                                        ElevatedButton(
-                                          onPressed: () {
-                                            setState(() {
-                                              _airdropsFuture1 =
-                                                  _fetchInitialAirdrops(
-                                                      'airdrop');
-                                            });
-                                          },
-                                          child: Text(
-                                            'Retry',
+                                  ),
+                                  subtitle: Text(
+                                    searchResults[index]['description'] ??
+                                        'No Description',
+                                    style: TextStyle(
+                                      color: Theme.of(context)
+                                          .colorScheme
+                                          .onSurface,
+                                    ),
+                                  ),
+                                );
+                              },
+                            )
+                          ] else ...[
+                            Center(
+                              child: Text(
+                                'No results to display',
+                                style: TextStyle(
+                                  color:
+                                      Theme.of(context).colorScheme.onSurface,
+                                ),
+                              ),
+                            ),
+                          ]
+                        ]
+                      ] else ...[
+                        _latestInfoTabBar(),
+                        // if (tabController!.index == 0)
+                        //   TabBar(
+                        //     controller:
+                        //         airdropTab, // Ensure airdropTab is initialized
+                        //     tabs: [
+                        //       _buildTab('Crypto'),
+                        //       _buildTab('Forex'),
+                        //       _buildTab('Stocks'),
+                        //     ],
+                        //     labelColor: Theme.of(context).colorScheme.onSurface,
+                        //     unselectedLabelColor: Colors.grey,
+                        //     labelStyle: const TextStyle(
+                        //       fontSize: 16,
+                        //       fontWeight: FontWeight.bold,
+                        //       fontFamily: 'Inconsolata',
+                        //     ),
+                        //     unselectedLabelStyle: const TextStyle(
+                        //       fontSize: 16,
+                        //       fontWeight: FontWeight.bold,
+                        //       fontFamily: 'Inconsolata',
+                        //     ),
+                        //     labelPadding: EdgeInsets.zero,
+                        //     indicatorSize: TabBarIndicatorSize.tab,
+                        //     indicatorColor:
+                        //         Theme.of(context).colorScheme.onSurface,
+                        //   ),
+                        Expanded(
+                          child: TabBarView(
+                            controller: tabController,
+                            children: [
+                              FutureBuilder<void>(
+                                future: _airdropsFuture1,
+                                builder: (context, snapshot) {
+                                  if (snapshot.connectionState ==
+                                      ConnectionState.waiting) {
+                                    return Center(
+                                      child: CircularProgressIndicator(
+                                        color: Theme.of(context)
+                                            .colorScheme
+                                            .onSurface,
+                                      ),
+                                    );
+                                  } else if (snapshot.hasError) {
+                                    return Center(
+                                      child: Column(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
+                                        children: [
+                                          const Text(
+                                            'An unexpected error occurred',
+                                            textAlign: TextAlign.center,
                                             style: TextStyle(
                                               fontFamily: 'Inconsolata',
-                                              fontWeight: FontWeight.bold,
-                                              fontSize: 18,
-                                              color: Theme.of(context)
-                                                  .colorScheme
-                                                  .onSurface,
+                                              color: Colors.red,
                                             ),
                                           ),
-                                        ),
-                                      ],
-                                    ),
-                                  );
-                                }
-
-                                return RefreshIndicator(
-                                  onRefresh: () =>
-                                      _fetchInitialAirdrops('airdrop'),
-                                  child: _isLoadingAirdrops // Check if loading
-                                      ? Center(
-                                          child: CircularProgressIndicator(
-                                            color: Theme.of(context)
-                                                .colorScheme
-                                                .onSurface,
+                                          const SizedBox(height: 16),
+                                          ElevatedButton(
+                                            onPressed: () {
+                                              setState(() {
+                                                _airdropsFuture1 =
+                                                    _fetchInitialAirdrops(
+                                                        'airdrop');
+                                              });
+                                            },
+                                            child: Text(
+                                              'Retry',
+                                              style: TextStyle(
+                                                fontFamily: 'Inconsolata',
+                                                fontWeight: FontWeight.bold,
+                                                fontSize: 18,
+                                                color: Theme.of(context)
+                                                    .colorScheme
+                                                    .onSurface,
+                                              ),
+                                            ),
                                           ),
-                                        )
-                                      : _airdropsList
-                                              .isEmpty // Check if the list is empty
-                                          ? Center(
-                                              child: Text(
-                                                'No airdrops available',
-                                                style: TextStyle(
-                                                  fontFamily: 'Inconsolata',
+                                        ],
+                                      ),
+                                    );
+                                  }
+
+                                  return RefreshIndicator(
+                                    onRefresh: () =>
+                                        _fetchInitialAirdrops('airdrop'),
+                                    child:
+                                        _isLoadingAirdrops // Check if loading
+                                            ? Center(
+                                                child:
+                                                    CircularProgressIndicator(
                                                   color: Theme.of(context)
                                                       .colorScheme
                                                       .onSurface,
                                                 ),
-                                              ),
-                                            )
-                                          : ListView.builder(
-                                              itemCount: _airdropsList
-                                                  .length, // Use the length of the list
-                                              itemBuilder: (context, index) {
-                                                final signal = _airdropsList[
-                                                    index]; // Access the list safely
-                                                return cryptoCard(
-                                                    signal); // Use the correct variable for the signal
-                                              },
-                                            ),
-                                );
-                              },
-                            ),
-                            // Expanded(
-                            //   child: TabBarView(
-                            //     controller: airdropTab,
-                            //     children: [
-                            //       FutureBuilder<void>(
-                            //         future: _airdropsFuture1,
-                            //         builder: (context, snapshot) {
-                            //           if (snapshot.connectionState ==
-                            //               ConnectionState.waiting) {
-                            //             return Center(
-                            //               child: CircularProgressIndicator(
-                            //                 color: Theme.of(context)
-                            //                     .colorScheme
-                            //                     .onSurface,
-                            //               ),
-                            //             );
-                            //           } else if (snapshot.hasError) {
-                            //             return Center(
-                            //               child: Column(
-                            //                 mainAxisAlignment:
-                            //                     MainAxisAlignment.center,
-                            //                 children: [
-                            //                   const Text(
-                            //                     'An unexpected error occurred',
-                            //                     textAlign: TextAlign.center,
-                            //                     style: TextStyle(
-                            //                       fontFamily: 'Inconsolata',
-                            //                       color: Colors.red,
-                            //                     ),
-                            //                   ),
-                            //                   const SizedBox(height: 16),
-                            //                   ElevatedButton(
-                            //                     onPressed: () {
-                            //                       setState(() {
-                            //                         _airdropsFuture1 =
-                            //                             _fetchInitialAirdrops(
-                            //                                 'crypto');
-                            //                       });
-                            //                     },
-                            //                     child: Text(
-                            //                       'Retry',
-                            //                       style: TextStyle(
-                            //                         fontFamily: 'Inconsolata',
-                            //                         fontWeight: FontWeight.bold,
-                            //                         fontSize: 18,
-                            //                         color: Theme.of(context)
-                            //                             .colorScheme
-                            //                             .onSurface,
-                            //                       ),
-                            //                     ),
-                            //                   ),
-                            //                 ],
-                            //               ),
-                            //             );
-                            //           }
+                                              )
+                                            : _airdropsList
+                                                    .isEmpty // Check if the list is empty
+                                                ? Center(
+                                                    child: Text(
+                                                      'No airdrops available',
+                                                      style: TextStyle(
+                                                        fontFamily:
+                                                            'Inconsolata',
+                                                        color: Theme.of(context)
+                                                            .colorScheme
+                                                            .onSurface,
+                                                      ),
+                                                    ),
+                                                  )
+                                                : ListView.builder(
+                                                    itemCount: _airdropsList
+                                                        .length, // Use the length of the list
+                                                    itemBuilder:
+                                                        (context, index) {
+                                                      final signal = _airdropsList[
+                                                          index]; // Access the list safely
+                                                      return cryptoCard(
+                                                          signal); // Use the correct variable for the signal
+                                                    },
+                                                  ),
+                                  );
+                                },
+                              ),
+                              // Expanded(
+                              //   child: TabBarView(
+                              //     controller: airdropTab,
+                              //     children: [
+                              //       FutureBuilder<void>(
+                              //         future: _airdropsFuture1,
+                              //         builder: (context, snapshot) {
+                              //           if (snapshot.connectionState ==
+                              //               ConnectionState.waiting) {
+                              //             return Center(
+                              //               child: CircularProgressIndicator(
+                              //                 color: Theme.of(context)
+                              //                     .colorScheme
+                              //                     .onSurface,
+                              //               ),
+                              //             );
+                              //           } else if (snapshot.hasError) {
+                              //             return Center(
+                              //               child: Column(
+                              //                 mainAxisAlignment:
+                              //                     MainAxisAlignment.center,
+                              //                 children: [
+                              //                   const Text(
+                              //                     'An unexpected error occurred',
+                              //                     textAlign: TextAlign.center,
+                              //                     style: TextStyle(
+                              //                       fontFamily: 'Inconsolata',
+                              //                       color: Colors.red,
+                              //                     ),
+                              //                   ),
+                              //                   const SizedBox(height: 16),
+                              //                   ElevatedButton(
+                              //                     onPressed: () {
+                              //                       setState(() {
+                              //                         _airdropsFuture1 =
+                              //                             _fetchInitialAirdrops(
+                              //                                 'crypto');
+                              //                       });
+                              //                     },
+                              //                     child: Text(
+                              //                       'Retry',
+                              //                       style: TextStyle(
+                              //                         fontFamily: 'Inconsolata',
+                              //                         fontWeight: FontWeight.bold,
+                              //                         fontSize: 18,
+                              //                         color: Theme.of(context)
+                              //                             .colorScheme
+                              //                             .onSurface,
+                              //                       ),
+                              //                     ),
+                              //                   ),
+                              //                 ],
+                              //               ),
+                              //             );
+                              //           }
 
-                            //           return RefreshIndicator(
-                            //             onRefresh: () =>
-                            //                 _fetchInitialAirdrops('crypto'),
-                            //             child:
-                            //                 _isLoadingAirdrops // Check if loading
-                            //                     ? Center(
-                            //                         child:
-                            //                             CircularProgressIndicator(
-                            //                           color: Theme.of(context)
-                            //                               .colorScheme
-                            //                               .onSurface,
-                            //                         ),
-                            //                       )
-                            //                     : _airdropsList
-                            //                             .isEmpty // Check if the list is empty
-                            //                         ? Center(
-                            //                             child: Text(
-                            //                               'No airdrops available',
-                            //                               style: TextStyle(
-                            //                                 fontFamily:
-                            //                                     'Inconsolata',
-                            //                                 color: Theme.of(
-                            //                                         context)
-                            //                                     .colorScheme
-                            //                                     .onSurface,
-                            //                               ),
-                            //                             ),
-                            //                           )
-                            //                         : ListView.builder(
-                            //                             itemCount: _airdropsList
-                            //                                 .length, // Use the length of the list
-                            //                             itemBuilder:
-                            //                                 (context, index) {
-                            //                               final signal =
-                            //                                   _airdropsList[
-                            //                                       index]; // Access the list safely
-                            //                               return cryptoCard(
-                            //                                   signal); // Use the correct variable for the signal
-                            //                             },
-                            //                           ),
-                            //           );
-                            //         },
-                            //       ),
-                            //       FutureBuilder<void>(
-                            //         future: _airdropsFuture2,
-                            //         builder: (context, snapshot) {
-                            //           if (snapshot.connectionState ==
-                            //               ConnectionState.waiting) {
-                            //             return Center(
-                            //               child: CircularProgressIndicator(
-                            //                 color: Theme.of(context)
-                            //                     .colorScheme
-                            //                     .onSurface,
-                            //               ),
-                            //             );
-                            //           } else if (snapshot.hasError) {
-                            //             return Center(
-                            //               child: Column(
-                            //                 mainAxisAlignment:
-                            //                     MainAxisAlignment.center,
-                            //                 children: [
-                            //                   const Text(
-                            //                     'An unexpected error occurred',
-                            //                     textAlign: TextAlign.center,
-                            //                     style: TextStyle(
-                            //                       fontFamily: 'Inconsolata',
-                            //                       color: Colors.red,
-                            //                     ),
-                            //                   ),
-                            //                   const SizedBox(height: 16),
-                            //                   ElevatedButton(
-                            //                     onPressed: () {
-                            //                       setState(() {
-                            //                         _airdropsFuture2 =
-                            //                             _fetchInitialAirdrops(
-                            //                                 'forex');
-                            //                       });
-                            //                     },
-                            //                     child: Text(
-                            //                       'Retry',
-                            //                       style: TextStyle(
-                            //                         fontFamily: 'Inconsolata',
-                            //                         fontWeight: FontWeight.bold,
-                            //                         fontSize: 18,
-                            //                         color: Theme.of(context)
-                            //                             .colorScheme
-                            //                             .onSurface,
-                            //                       ),
-                            //                     ),
-                            //                   ),
-                            //                 ],
-                            //               ),
-                            //             );
-                            //           }
+                              //           return RefreshIndicator(
+                              //             onRefresh: () =>
+                              //                 _fetchInitialAirdrops('crypto'),
+                              //             child:
+                              //                 _isLoadingAirdrops // Check if loading
+                              //                     ? Center(
+                              //                         child:
+                              //                             CircularProgressIndicator(
+                              //                           color: Theme.of(context)
+                              //                               .colorScheme
+                              //                               .onSurface,
+                              //                         ),
+                              //                       )
+                              //                     : _airdropsList
+                              //                             .isEmpty // Check if the list is empty
+                              //                         ? Center(
+                              //                             child: Text(
+                              //                               'No airdrops available',
+                              //                               style: TextStyle(
+                              //                                 fontFamily:
+                              //                                     'Inconsolata',
+                              //                                 color: Theme.of(
+                              //                                         context)
+                              //                                     .colorScheme
+                              //                                     .onSurface,
+                              //                               ),
+                              //                             ),
+                              //                           )
+                              //                         : ListView.builder(
+                              //                             itemCount: _airdropsList
+                              //                                 .length, // Use the length of the list
+                              //                             itemBuilder:
+                              //                                 (context, index) {
+                              //                               final signal =
+                              //                                   _airdropsList[
+                              //                                       index]; // Access the list safely
+                              //                               return cryptoCard(
+                              //                                   signal); // Use the correct variable for the signal
+                              //                             },
+                              //                           ),
+                              //           );
+                              //         },
+                              //       ),
+                              //       FutureBuilder<void>(
+                              //         future: _airdropsFuture2,
+                              //         builder: (context, snapshot) {
+                              //           if (snapshot.connectionState ==
+                              //               ConnectionState.waiting) {
+                              //             return Center(
+                              //               child: CircularProgressIndicator(
+                              //                 color: Theme.of(context)
+                              //                     .colorScheme
+                              //                     .onSurface,
+                              //               ),
+                              //             );
+                              //           } else if (snapshot.hasError) {
+                              //             return Center(
+                              //               child: Column(
+                              //                 mainAxisAlignment:
+                              //                     MainAxisAlignment.center,
+                              //                 children: [
+                              //                   const Text(
+                              //                     'An unexpected error occurred',
+                              //                     textAlign: TextAlign.center,
+                              //                     style: TextStyle(
+                              //                       fontFamily: 'Inconsolata',
+                              //                       color: Colors.red,
+                              //                     ),
+                              //                   ),
+                              //                   const SizedBox(height: 16),
+                              //                   ElevatedButton(
+                              //                     onPressed: () {
+                              //                       setState(() {
+                              //                         _airdropsFuture2 =
+                              //                             _fetchInitialAirdrops(
+                              //                                 'forex');
+                              //                       });
+                              //                     },
+                              //                     child: Text(
+                              //                       'Retry',
+                              //                       style: TextStyle(
+                              //                         fontFamily: 'Inconsolata',
+                              //                         fontWeight: FontWeight.bold,
+                              //                         fontSize: 18,
+                              //                         color: Theme.of(context)
+                              //                             .colorScheme
+                              //                             .onSurface,
+                              //                       ),
+                              //                     ),
+                              //                   ),
+                              //                 ],
+                              //               ),
+                              //             );
+                              //           }
 
-                            //           return RefreshIndicator(
-                            //             onRefresh: () =>
-                            //                 _fetchInitialAirdrops('forex'),
-                            //             child:
-                            //                 _isLoadingAirdrops // Check if loading
-                            //                     ? Center(
-                            //                         child:
-                            //                             CircularProgressIndicator(
-                            //                           color: Theme.of(context)
-                            //                               .colorScheme
-                            //                               .onSurface,
-                            //                         ),
-                            //                       )
-                            //                     : _airdropsList
-                            //                             .isEmpty // Check if the list is empty
-                            //                         ? Center(
-                            //                             child: Text(
-                            //                               'No airdrops available',
-                            //                               style: TextStyle(
-                            //                                 fontFamily:
-                            //                                     'Inconsolata',
-                            //                                 color: Theme.of(
-                            //                                         context)
-                            //                                     .colorScheme
-                            //                                     .onSurface,
-                            //                               ),
-                            //                             ),
-                            //                           )
-                            //                         : ListView.builder(
-                            //                             itemCount: _airdropsList
-                            //                                 .length, // Use the length of the list
-                            //                             itemBuilder:
-                            //                                 (context, index) {
-                            //                               final signal =
-                            //                                   _airdropsList[
-                            //                                       index]; // Access the list safely
-                            //                               return cryptoCard(
-                            //                                   signal); // Use the correct variable for the signal
-                            //                             },
-                            //                           ),
-                            //           );
-                            //         },
-                            //       ),
-                            //       FutureBuilder<void>(
-                            //         future: _airdropsFuture3,
-                            //         builder: (context, snapshot) {
-                            //           if (snapshot.connectionState ==
-                            //               ConnectionState.waiting) {
-                            //             return Center(
-                            //               child: CircularProgressIndicator(
-                            //                 color: Theme.of(context)
-                            //                     .colorScheme
-                            //                     .onSurface,
-                            //               ),
-                            //             );
-                            //           } else if (snapshot.hasError) {
-                            //             return Center(
-                            //               child: Column(
-                            //                 mainAxisAlignment:
-                            //                     MainAxisAlignment.center,
-                            //                 children: [
-                            //                   const Text(
-                            //                     'An unexpected error occurred',
-                            //                     textAlign: TextAlign.center,
-                            //                     style: TextStyle(
-                            //                       fontFamily: 'Inconsolata',
-                            //                       color: Colors.red,
-                            //                     ),
-                            //                   ),
-                            //                   const SizedBox(height: 16),
-                            //                   ElevatedButton(
-                            //                     onPressed: () {
-                            //                       setState(() {
-                            //                         _airdropsFuture3 =
-                            //                             _fetchInitialAirdrops(
-                            //                                 'stocks');
-                            //                       });
-                            //                     },
-                            //                     child: Text(
-                            //                       'Retry',
-                            //                       style: TextStyle(
-                            //                         fontFamily: 'Inconsolata',
-                            //                         fontWeight: FontWeight.bold,
-                            //                         fontSize: 18,
-                            //                         color: Theme.of(context)
-                            //                             .colorScheme
-                            //                             .onSurface,
-                            //                       ),
-                            //                     ),
-                            //                   ),
-                            //                 ],
-                            //               ),
-                            //             );
-                            //           }
+                              //           return RefreshIndicator(
+                              //             onRefresh: () =>
+                              //                 _fetchInitialAirdrops('forex'),
+                              //             child:
+                              //                 _isLoadingAirdrops // Check if loading
+                              //                     ? Center(
+                              //                         child:
+                              //                             CircularProgressIndicator(
+                              //                           color: Theme.of(context)
+                              //                               .colorScheme
+                              //                               .onSurface,
+                              //                         ),
+                              //                       )
+                              //                     : _airdropsList
+                              //                             .isEmpty // Check if the list is empty
+                              //                         ? Center(
+                              //                             child: Text(
+                              //                               'No airdrops available',
+                              //                               style: TextStyle(
+                              //                                 fontFamily:
+                              //                                     'Inconsolata',
+                              //                                 color: Theme.of(
+                              //                                         context)
+                              //                                     .colorScheme
+                              //                                     .onSurface,
+                              //                               ),
+                              //                             ),
+                              //                           )
+                              //                         : ListView.builder(
+                              //                             itemCount: _airdropsList
+                              //                                 .length, // Use the length of the list
+                              //                             itemBuilder:
+                              //                                 (context, index) {
+                              //                               final signal =
+                              //                                   _airdropsList[
+                              //                                       index]; // Access the list safely
+                              //                               return cryptoCard(
+                              //                                   signal); // Use the correct variable for the signal
+                              //                             },
+                              //                           ),
+                              //           );
+                              //         },
+                              //       ),
+                              //       FutureBuilder<void>(
+                              //         future: _airdropsFuture3,
+                              //         builder: (context, snapshot) {
+                              //           if (snapshot.connectionState ==
+                              //               ConnectionState.waiting) {
+                              //             return Center(
+                              //               child: CircularProgressIndicator(
+                              //                 color: Theme.of(context)
+                              //                     .colorScheme
+                              //                     .onSurface,
+                              //               ),
+                              //             );
+                              //           } else if (snapshot.hasError) {
+                              //             return Center(
+                              //               child: Column(
+                              //                 mainAxisAlignment:
+                              //                     MainAxisAlignment.center,
+                              //                 children: [
+                              //                   const Text(
+                              //                     'An unexpected error occurred',
+                              //                     textAlign: TextAlign.center,
+                              //                     style: TextStyle(
+                              //                       fontFamily: 'Inconsolata',
+                              //                       color: Colors.red,
+                              //                     ),
+                              //                   ),
+                              //                   const SizedBox(height: 16),
+                              //                   ElevatedButton(
+                              //                     onPressed: () {
+                              //                       setState(() {
+                              //                         _airdropsFuture3 =
+                              //                             _fetchInitialAirdrops(
+                              //                                 'stocks');
+                              //                       });
+                              //                     },
+                              //                     child: Text(
+                              //                       'Retry',
+                              //                       style: TextStyle(
+                              //                         fontFamily: 'Inconsolata',
+                              //                         fontWeight: FontWeight.bold,
+                              //                         fontSize: 18,
+                              //                         color: Theme.of(context)
+                              //                             .colorScheme
+                              //                             .onSurface,
+                              //                       ),
+                              //                     ),
+                              //                   ),
+                              //                 ],
+                              //               ),
+                              //             );
+                              //           }
 
-                            //           return RefreshIndicator(
-                            //             onRefresh: () =>
-                            //                 _fetchInitialAirdrops('stocks'),
-                            //             child:
-                            //                 _isLoadingAirdrops // Check if loading
-                            //                     ? Center(
-                            //                         child:
-                            //                             CircularProgressIndicator(
-                            //                           color: Theme.of(context)
-                            //                               .colorScheme
-                            //                               .onSurface,
-                            //                         ),
-                            //                       )
-                            //                     : _airdropsList
-                            //                             .isEmpty // Check if the list is empty
-                            //                         ? Center(
-                            //                             child: Text(
-                            //                               'No airdrops available',
-                            //                               style: TextStyle(
-                            //                                 fontFamily:
-                            //                                     'Inconsolata',
-                            //                                 color: Theme.of(
-                            //                                         context)
-                            //                                     .colorScheme
-                            //                                     .onSurface,
-                            //                               ),
-                            //                             ),
-                            //                           )
-                            //                         : ListView.builder(
-                            //                             itemCount: _airdropsList
-                            //                                 .length, // Use the length of the list
-                            //                             itemBuilder:
-                            //                                 (context, index) {
-                            //                               final signal =
-                            //                                   _airdropsList[
-                            //                                       index]; // Access the list safely
-                            //                               return cryptoCard(
-                            //                                   signal); // Use the correct variable for the signal
-                            //                             },
-                            //                           ),
-                            //           );
-                            //         },
-                            //       ),
-                            //     ],
-                            //   ),
-                            // ),
-                            if (loading)
-                              Center(
-                                child: CircularProgressIndicator(
-                                    color: Theme.of(context)
-                                        .colorScheme
-                                        .onSurface),
-                              )
-                            else if (errorMessage != null)
-                              Center(
-                                child: Column(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    Text(
-                                      errorMessage!,
-                                      textAlign: TextAlign.center,
-                                      style: const TextStyle(
-                                        fontFamily: 'Inconsolata',
-                                        color: Colors.red,
-                                      ),
-                                    ),
-                                    const SizedBox(height: 16),
-                                    ElevatedButton(
-                                      onPressed: _refreshData,
-                                      child: Text(
-                                        'Retry',
-                                        style: TextStyle(
+                              //           return RefreshIndicator(
+                              //             onRefresh: () =>
+                              //                 _fetchInitialAirdrops('stocks'),
+                              //             child:
+                              //                 _isLoadingAirdrops // Check if loading
+                              //                     ? Center(
+                              //                         child:
+                              //                             CircularProgressIndicator(
+                              //                           color: Theme.of(context)
+                              //                               .colorScheme
+                              //                               .onSurface,
+                              //                         ),
+                              //                       )
+                              //                     : _airdropsList
+                              //                             .isEmpty // Check if the list is empty
+                              //                         ? Center(
+                              //                             child: Text(
+                              //                               'No airdrops available',
+                              //                               style: TextStyle(
+                              //                                 fontFamily:
+                              //                                     'Inconsolata',
+                              //                                 color: Theme.of(
+                              //                                         context)
+                              //                                     .colorScheme
+                              //                                     .onSurface,
+                              //                               ),
+                              //                             ),
+                              //                           )
+                              //                         : ListView.builder(
+                              //                             itemCount: _airdropsList
+                              //                                 .length, // Use the length of the list
+                              //                             itemBuilder:
+                              //                                 (context, index) {
+                              //                               final signal =
+                              //                                   _airdropsList[
+                              //                                       index]; // Access the list safely
+                              //                               return cryptoCard(
+                              //                                   signal); // Use the correct variable for the signal
+                              //                             },
+                              //                           ),
+                              //           );
+                              //         },
+                              //       ),
+                              //     ],
+                              //   ),
+                              // ),
+                              if (loading)
+                                Center(
+                                  child: CircularProgressIndicator(
+                                      color: Theme.of(context)
+                                          .colorScheme
+                                          .onSurface),
+                                )
+                              else if (errorMessage != null)
+                                Center(
+                                  child: Column(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Text(
+                                        errorMessage!,
+                                        textAlign: TextAlign.center,
+                                        style: const TextStyle(
                                           fontFamily: 'Inconsolata',
-                                          fontWeight: FontWeight.bold,
-                                          fontSize: 18,
-                                          color: Theme.of(context)
-                                              .colorScheme
-                                              .onSurface,
+                                          color: Colors.red,
                                         ),
                                       ),
-                                    ),
-                                  ],
-                                ),
-                              )
-                            else
-                              RefreshIndicator(
-                                onRefresh:
-                                    _refreshData, // Function to refresh the events
-                                color: Theme.of(context).colorScheme.onSurface,
-                                child: ListView.builder(
-                                  controller:
-                                      _scrollController, // Ensure _scrollController is properly set up
-                                  itemCount: events.length +
-                                      (isLastPage
-                                          ? 0
-                                          : 1), // Add 1 for the loading indicator if not the last page
-                                  itemBuilder: (context, index) {
-                                    if (index == events.length) {
-                                      // Show a loading indicator at the bottom of the list when loading more
-                                      return const Center(
-                                          child: CircularProgressIndicator());
-                                    }
-                                    return cryptoCard(events[index]);
-                                  },
-                                ),
-                              ),
-                            if (loading)
-                              Center(
-                                child: CircularProgressIndicator(
-                                    color: Theme.of(context)
-                                        .colorScheme
-                                        .onSurface),
-                              )
-                            else if (errorMessage != null)
-                              Center(
-                                child: Column(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    Text(
-                                      errorMessage!,
-                                      textAlign: TextAlign.center,
-                                      style: const TextStyle(
-                                        fontFamily: 'Inconsolata',
-                                        color: Colors.red,
-                                      ),
-                                    ),
-                                    const SizedBox(height: 16),
-                                    ElevatedButton(
-                                      onPressed: _refreshData,
-                                      child: Text(
-                                        'Retry',
-                                        style: TextStyle(
-                                          fontFamily: 'Inconsolata',
-                                          fontWeight: FontWeight.bold,
-                                          fontSize: 18,
-                                          color: Theme.of(context)
-                                              .colorScheme
-                                              .onSurface,
+                                      const SizedBox(height: 16),
+                                      ElevatedButton(
+                                        onPressed: _refreshData,
+                                        child: Text(
+                                          'Retry',
+                                          style: TextStyle(
+                                            fontFamily: 'Inconsolata',
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 18,
+                                            color: Theme.of(context)
+                                                .colorScheme
+                                                .onSurface,
+                                          ),
                                         ),
                                       ),
-                                    ),
-                                  ],
+                                    ],
+                                  ),
+                                )
+                              else
+                                RefreshIndicator(
+                                  onRefresh:
+                                      _refreshData, // Function to refresh the events
+                                  color:
+                                      Theme.of(context).colorScheme.onSurface,
+                                  child: ListView.builder(
+                                    controller:
+                                        _scrollController, // Ensure _scrollController is properly set up
+                                    itemCount: events.length +
+                                        (isLastPage
+                                            ? 0
+                                            : 1), // Add 1 for the loading indicator if not the last page
+                                    itemBuilder: (context, index) {
+                                      if (index == events.length) {
+                                        // Show a loading indicator at the bottom of the list when loading more
+                                        return const Center(
+                                            child: CircularProgressIndicator());
+                                      }
+                                      return cryptoCard(events[index]);
+                                    },
+                                  ),
                                 ),
-                              )
-                            else
-                              RefreshIndicator(
-                                onRefresh:
-                                    _refreshData, // Function to refresh the events
-                                color: Theme.of(context).colorScheme.onSurface,
-                                child: ListView.builder(
-                                  controller:
-                                      _scrollController, // Ensure _scrollController is properly set up
-                                  itemCount: events.length +
-                                      (isLastPage
-                                          ? 0
-                                          : 1), // Add 1 for the loading indicator if not the last page
-                                  itemBuilder: (context, index) {
-                                    if (index == events.length) {
-                                      // Show a loading indicator at the bottom of the list when loading more
-                                      return const Center(
-                                          child: CircularProgressIndicator());
-                                    }
-                                    return cryptoCard(events[index]);
-                                  },
+                              if (loading)
+                                Center(
+                                  child: CircularProgressIndicator(
+                                      color: Theme.of(context)
+                                          .colorScheme
+                                          .onSurface),
+                                )
+                              else if (errorMessage != null)
+                                Center(
+                                  child: Column(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Text(
+                                        errorMessage!,
+                                        textAlign: TextAlign.center,
+                                        style: const TextStyle(
+                                          fontFamily: 'Inconsolata',
+                                          color: Colors.red,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 16),
+                                      ElevatedButton(
+                                        onPressed: _refreshData,
+                                        child: Text(
+                                          'Retry',
+                                          style: TextStyle(
+                                            fontFamily: 'Inconsolata',
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 18,
+                                            color: Theme.of(context)
+                                                .colorScheme
+                                                .onSurface,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                )
+                              else
+                                RefreshIndicator(
+                                  onRefresh:
+                                      _refreshData, // Function to refresh the events
+                                  color:
+                                      Theme.of(context).colorScheme.onSurface,
+                                  child: ListView.builder(
+                                    controller:
+                                        _scrollController, // Ensure _scrollController is properly set up
+                                    itemCount: events.length +
+                                        (isLastPage
+                                            ? 0
+                                            : 1), // Add 1 for the loading indicator if not the last page
+                                    itemBuilder: (context, index) {
+                                      if (index == events.length) {
+                                        // Show a loading indicator at the bottom of the list when loading more
+                                        return const Center(
+                                            child: CircularProgressIndicator());
+                                      }
+                                      return cryptoCard(events[index]);
+                                    },
+                                  ),
                                 ),
-                              ),
-                            // if (loading)
-                            //   Center(
-                            //     child: CircularProgressIndicator(
-                            //         color: Theme.of(context)
-                            //             .colorScheme
-                            //             .onSurface),
-                            //   )
-                            // else if (errorMessage != null)
-                            //   Center(
-                            //     child: Column(
-                            //       mainAxisAlignment: MainAxisAlignment.center,
-                            //       children: [
-                            //         Text(
-                            //           errorMessage!,
-                            //           textAlign: TextAlign.center,
-                            //           style: const TextStyle(
-                            //             fontFamily: 'Inconsolata',
-                            //             color: Colors.red,
-                            //           ),
-                            //         ),
-                            //         const SizedBox(height: 16),
-                            //         ElevatedButton(
-                            //           onPressed: _refreshData,
-                            //           child: Text(
-                            //             'Retry',
-                            //             style: TextStyle(
-                            //               fontFamily: 'Inconsolata',
-                            //               fontWeight: FontWeight.bold,
-                            //               fontSize: 18,
-                            //               color: Theme.of(context)
-                            //                   .colorScheme
-                            //                   .onSurface,
-                            //             ),
-                            //           ),
-                            //         ),
-                            //       ],
-                            //     ),
-                            //   )
-                            // else
-                            //   RefreshIndicator(
-                            //     onRefresh: _refreshData,
-                            //     color: Colors.black,
-                            //     child: ListView.builder(
-                            //       controller: _scrollController,
-                            //       itemCount: events.length,
-                            //       itemBuilder: (context, index) {
-                            //         return cryptoCard(events[index]);
-                            //       },
-                            //     ),
-                            //   ),
-                            // if (loading)
-                            //   Center(
-                            //     child: CircularProgressIndicator(
-                            //         color: Theme.of(context)
-                            //             .colorScheme
-                            //             .onSurface),
-                            //   )
-                            // else if (errorMessage != null)
-                            //   Center(
-                            //     child: Column(
-                            //       mainAxisAlignment: MainAxisAlignment.center,
-                            //       children: [
-                            //         Text(
-                            //           errorMessage!,
-                            //           textAlign: TextAlign.center,
-                            //           style: const TextStyle(
-                            //             fontFamily: 'Inconsolata',
-                            //             color: Colors.red,
-                            //           ),
-                            //         ),
-                            //         const SizedBox(height: 16),
-                            //         ElevatedButton(
-                            //           onPressed: _refreshData,
-                            //           child: Text(
-                            //             'Retry',
-                            //             style: TextStyle(
-                            //               fontFamily: 'Inconsolata',
-                            //               fontWeight: FontWeight.bold,
-                            //               fontSize: 18,
-                            //               color: Theme.of(context)
-                            //                   .colorScheme
-                            //                   .onSurface,
-                            //             ),
-                            //           ),
-                            //         ),
-                            //       ],
-                            //     ),
-                            //   )
-                            // else
-                            //   RefreshIndicator(
-                            //     onRefresh:
-                            //         _refreshData, // Function to refresh the events
-                            //     color: Theme.of(context).colorScheme.onSurface,
-                            //     child: ListView.builder(
-                            //       controller:
-                            //           _scrollController, // Ensure _scrollController is properly set up
-                            //       itemCount: events.length +
-                            //           (isLastPage
-                            //               ? 0
-                            //               : 1), // Add 1 for the loading indicator if not the last page
-                            //       itemBuilder: (context, index) {
-                            //         if (index == events.length) {
-                            //           // Show a loading indicator at the bottom of the list when loading more
-                            //           return const Center(
-                            //               child: CircularProgressIndicator());
-                            //         }
-                            //         return cryptoCard(events[index]);
-                            //       },
-                            //     ),
-                            //   ),
-                            // if (loading)
-                            //   Center(
-                            //     child: CircularProgressIndicator(
-                            //         color: Theme.of(context)
-                            //             .colorScheme
-                            //             .onSurface),
-                            //   )
-                            // else if (errorMessage != null)
-                            //   Center(
-                            //     child: Column(
-                            //       mainAxisAlignment: MainAxisAlignment.center,
-                            //       children: [
-                            //         Text(
-                            //           errorMessage!,
-                            //           textAlign: TextAlign.center,
-                            //           style: const TextStyle(
-                            //             fontFamily: 'Inconsolata',
-                            //             color: Colors.red,
-                            //           ),
-                            //         ),
-                            //         const SizedBox(height: 16),
-                            //         ElevatedButton(
-                            //           onPressed: _refreshData,
-                            //           child: Text(
-                            //             'Retry',
-                            //             style: TextStyle(
-                            //               fontFamily: 'Inconsolata',
-                            //               fontWeight: FontWeight.bold,
-                            //               fontSize: 18,
-                            //               color: Theme.of(context)
-                            //                   .colorScheme
-                            //                   .onSurface,
-                            //             ),
-                            //           ),
-                            //         ),
-                            //       ],
-                            //     ),
-                            //   )
-                            // else
-                            //   RefreshIndicator(
-                            //     onRefresh:
-                            //         _refreshData, // Function to refresh the events
-                            //     color: Theme.of(context).colorScheme.onSurface,
-                            //     child: ListView.builder(
-                            //       controller:
-                            //           _scrollController, // Ensure _scrollController is properly set up
-                            //       itemCount: events.length +
-                            //           (isLastPage
-                            //               ? 0
-                            //               : 1), // Add 1 for the loading indicator if not the last page
-                            //       itemBuilder: (context, index) {
-                            //         if (index == events.length) {
-                            //           // Show a loading indicator at the bottom of the list when loading more
-                            //           return const Center(
-                            //               child: CircularProgressIndicator());
-                            //         }
-                            //         return cryptoCard(events[index]);
-                            //       },
-                            //     ),
-                            //   ),
-                            // if (loading)
-                            //   Center(
-                            //     child: CircularProgressIndicator(
-                            //         color: Theme.of(context)
-                            //             .colorScheme
-                            //             .onSurface),
-                            //   )
-                            // else if (errorMessage != null)
-                            //   Center(
-                            //     child: Column(
-                            //       mainAxisAlignment: MainAxisAlignment.center,
-                            //       children: [
-                            //         Text(
-                            //           errorMessage!,
-                            //           textAlign: TextAlign.center,
-                            //           style: const TextStyle(
-                            //             fontFamily: 'Inconsolata',
-                            //             color: Colors.red,
-                            //           ),
-                            //         ),
-                            //         const SizedBox(height: 16),
-                            //         ElevatedButton(
-                            //           onPressed: _refreshData,
-                            //           child: Text(
-                            //             'Retry',
-                            //             style: TextStyle(
-                            //               fontFamily: 'Inconsolata',
-                            //               fontWeight: FontWeight.bold,
-                            //               fontSize: 18,
-                            //               color: Theme.of(context)
-                            //                   .colorScheme
-                            //                   .onSurface,
-                            //             ),
-                            //           ),
-                            //         ),
-                            //       ],
-                            //     ),
-                            //   )
-                            // else
-                            //   RefreshIndicator(
-                            //     onRefresh:
-                            //         _refreshData, // Function to refresh the events
-                            //     color: Theme.of(context).colorScheme.onSurface,
-                            //     child: ListView.builder(
-                            //       controller:
-                            //           _scrollController, // Ensure _scrollController is properly set up
-                            //       itemCount: events.length +
-                            //           (isLastPage
-                            //               ? 0
-                            //               : 1), // Add 1 for the loading indicator if not the last page
-                            //       itemBuilder: (context, index) {
-                            //         if (index == events.length) {
-                            //           // Show a loading indicator at the bottom of the list when loading more
-                            //           return const Center(
-                            //               child: CircularProgressIndicator());
-                            //         }
-                            //         return cryptoCard(events[index]);
-                            //       },
-                            //     ),
-                            //   ),
-                            // if (loading)
-                            //   Center(
-                            //     child: CircularProgressIndicator(
-                            //         color: Theme.of(context)
-                            //             .colorScheme
-                            //             .onSurface),
-                            //   )
-                            // else if (errorMessage != null)
-                            //   Center(
-                            //     child: Column(
-                            //       mainAxisAlignment: MainAxisAlignment.center,
-                            //       children: [
-                            //         Text(
-                            //           errorMessage!,
-                            //           textAlign: TextAlign.center,
-                            //           style: const TextStyle(
-                            //             fontFamily: 'Inconsolata',
-                            //             color: Colors.red,
-                            //           ),
-                            //         ),
-                            //         const SizedBox(height: 16),
-                            //         ElevatedButton(
-                            //           onPressed: _refreshData,
-                            //           child: Text(
-                            //             'Retry',
-                            //             style: TextStyle(
-                            //               fontFamily: 'Inconsolata',
-                            //               fontWeight: FontWeight.bold,
-                            //               fontSize: 18,
-                            //               color: Theme.of(context)
-                            //                   .colorScheme
-                            //                   .onSurface,
-                            //             ),
-                            //           ),
-                            //         ),
-                            //       ],
-                            //     ),
-                            //   )
-                            // else
-                            //   RefreshIndicator(
-                            //     onRefresh:
-                            //         _refreshData, // Function to refresh the events
-                            //     color: Theme.of(context).colorScheme.onSurface,
-                            //     child: ListView.builder(
-                            //       controller:
-                            //           _scrollController, // Ensure _scrollController is properly set up
-                            //       itemCount: events.length +
-                            //           (isLastPage
-                            //               ? 0
-                            //               : 1), // Add 1 for the loading indicator if not the last page
-                            //       itemBuilder: (context, index) {
-                            //         if (index == events.length) {
-                            //           // Show a loading indicator at the bottom of the list when loading more
-                            //           return const Center(
-                            //               child: CircularProgressIndicator());
-                            //         }
-                            //         return cryptoCard(events[index]);
-                            //       },
-                            //     ),
-                            //   ),
-                            // if (loading)
-                            //   Center(
-                            //     child: CircularProgressIndicator(
-                            //         color: Theme.of(context)
-                            //             .colorScheme
-                            //             .onSurface),
-                            //   )
-                            // else if (errorMessage != null)
-                            //   Center(
-                            //     child: Column(
-                            //       mainAxisAlignment: MainAxisAlignment.center,
-                            //       children: [
-                            //         Text(
-                            //           errorMessage!,
-                            //           textAlign: TextAlign.center,
-                            //           style: const TextStyle(
-                            //             fontFamily: 'Inconsolata',
-                            //             color: Colors.red,
-                            //           ),
-                            //         ),
-                            //         const SizedBox(height: 16),
-                            //         ElevatedButton(
-                            //           onPressed: _refreshData,
-                            //           child: Text(
-                            //             'Retry',
-                            //             style: TextStyle(
-                            //               fontFamily: 'Inconsolata',
-                            //               fontWeight: FontWeight.bold,
-                            //               fontSize: 18,
-                            //               color: Theme.of(context)
-                            //                   .colorScheme
-                            //                   .onSurface,
-                            //             ),
-                            //           ),
-                            //         ),
-                            //       ],
-                            //     ),
-                            //   )
-                            // else
-                            //   RefreshIndicator(
-                            //     onRefresh:
-                            //         _refreshData, // Function to refresh the events
-                            //     color: Theme.of(context).colorScheme.onSurface,
-                            //     child: ListView.builder(
-                            //       controller:
-                            //           _scrollController, // Ensure _scrollController is properly set up
-                            //       itemCount: events.length +
-                            //           (isLastPage
-                            //               ? 0
-                            //               : 1), // Add 1 for the loading indicator if not the last page
-                            //       itemBuilder: (context, index) {
-                            //         if (index == events.length) {
-                            //           // Show a loading indicator at the bottom of the list when loading more
-                            //           return const Center(
-                            //               child: CircularProgressIndicator());
-                            //         }
-                            //         return cryptoCard(events[index]);
-                            //       },
-                            //     ),
-                            //   ),
-                          ],
+                              // if (loading)
+                              //   Center(
+                              //     child: CircularProgressIndicator(
+                              //         color: Theme.of(context)
+                              //             .colorScheme
+                              //             .onSurface),
+                              //   )
+                              // else if (errorMessage != null)
+                              //   Center(
+                              //     child: Column(
+                              //       mainAxisAlignment: MainAxisAlignment.center,
+                              //       children: [
+                              //         Text(
+                              //           errorMessage!,
+                              //           textAlign: TextAlign.center,
+                              //           style: const TextStyle(
+                              //             fontFamily: 'Inconsolata',
+                              //             color: Colors.red,
+                              //           ),
+                              //         ),
+                              //         const SizedBox(height: 16),
+                              //         ElevatedButton(
+                              //           onPressed: _refreshData,
+                              //           child: Text(
+                              //             'Retry',
+                              //             style: TextStyle(
+                              //               fontFamily: 'Inconsolata',
+                              //               fontWeight: FontWeight.bold,
+                              //               fontSize: 18,
+                              //               color: Theme.of(context)
+                              //                   .colorScheme
+                              //                   .onSurface,
+                              //             ),
+                              //           ),
+                              //         ),
+                              //       ],
+                              //     ),
+                              //   )
+                              // else
+                              //   RefreshIndicator(
+                              //     onRefresh: _refreshData,
+                              //     color: Colors.black,
+                              //     child: ListView.builder(
+                              //       controller: _scrollController,
+                              //       itemCount: events.length,
+                              //       itemBuilder: (context, index) {
+                              //         return cryptoCard(events[index]);
+                              //       },
+                              //     ),
+                              //   ),
+                              // if (loading)
+                              //   Center(
+                              //     child: CircularProgressIndicator(
+                              //         color: Theme.of(context)
+                              //             .colorScheme
+                              //             .onSurface),
+                              //   )
+                              // else if (errorMessage != null)
+                              //   Center(
+                              //     child: Column(
+                              //       mainAxisAlignment: MainAxisAlignment.center,
+                              //       children: [
+                              //         Text(
+                              //           errorMessage!,
+                              //           textAlign: TextAlign.center,
+                              //           style: const TextStyle(
+                              //             fontFamily: 'Inconsolata',
+                              //             color: Colors.red,
+                              //           ),
+                              //         ),
+                              //         const SizedBox(height: 16),
+                              //         ElevatedButton(
+                              //           onPressed: _refreshData,
+                              //           child: Text(
+                              //             'Retry',
+                              //             style: TextStyle(
+                              //               fontFamily: 'Inconsolata',
+                              //               fontWeight: FontWeight.bold,
+                              //               fontSize: 18,
+                              //               color: Theme.of(context)
+                              //                   .colorScheme
+                              //                   .onSurface,
+                              //             ),
+                              //           ),
+                              //         ),
+                              //       ],
+                              //     ),
+                              //   )
+                              // else
+                              //   RefreshIndicator(
+                              //     onRefresh:
+                              //         _refreshData, // Function to refresh the events
+                              //     color: Theme.of(context).colorScheme.onSurface,
+                              //     child: ListView.builder(
+                              //       controller:
+                              //           _scrollController, // Ensure _scrollController is properly set up
+                              //       itemCount: events.length +
+                              //           (isLastPage
+                              //               ? 0
+                              //               : 1), // Add 1 for the loading indicator if not the last page
+                              //       itemBuilder: (context, index) {
+                              //         if (index == events.length) {
+                              //           // Show a loading indicator at the bottom of the list when loading more
+                              //           return const Center(
+                              //               child: CircularProgressIndicator());
+                              //         }
+                              //         return cryptoCard(events[index]);
+                              //       },
+                              //     ),
+                              //   ),
+                              // if (loading)
+                              //   Center(
+                              //     child: CircularProgressIndicator(
+                              //         color: Theme.of(context)
+                              //             .colorScheme
+                              //             .onSurface),
+                              //   )
+                              // else if (errorMessage != null)
+                              //   Center(
+                              //     child: Column(
+                              //       mainAxisAlignment: MainAxisAlignment.center,
+                              //       children: [
+                              //         Text(
+                              //           errorMessage!,
+                              //           textAlign: TextAlign.center,
+                              //           style: const TextStyle(
+                              //             fontFamily: 'Inconsolata',
+                              //             color: Colors.red,
+                              //           ),
+                              //         ),
+                              //         const SizedBox(height: 16),
+                              //         ElevatedButton(
+                              //           onPressed: _refreshData,
+                              //           child: Text(
+                              //             'Retry',
+                              //             style: TextStyle(
+                              //               fontFamily: 'Inconsolata',
+                              //               fontWeight: FontWeight.bold,
+                              //               fontSize: 18,
+                              //               color: Theme.of(context)
+                              //                   .colorScheme
+                              //                   .onSurface,
+                              //             ),
+                              //           ),
+                              //         ),
+                              //       ],
+                              //     ),
+                              //   )
+                              // else
+                              //   RefreshIndicator(
+                              //     onRefresh:
+                              //         _refreshData, // Function to refresh the events
+                              //     color: Theme.of(context).colorScheme.onSurface,
+                              //     child: ListView.builder(
+                              //       controller:
+                              //           _scrollController, // Ensure _scrollController is properly set up
+                              //       itemCount: events.length +
+                              //           (isLastPage
+                              //               ? 0
+                              //               : 1), // Add 1 for the loading indicator if not the last page
+                              //       itemBuilder: (context, index) {
+                              //         if (index == events.length) {
+                              //           // Show a loading indicator at the bottom of the list when loading more
+                              //           return const Center(
+                              //               child: CircularProgressIndicator());
+                              //         }
+                              //         return cryptoCard(events[index]);
+                              //       },
+                              //     ),
+                              //   ),
+                              // if (loading)
+                              //   Center(
+                              //     child: CircularProgressIndicator(
+                              //         color: Theme.of(context)
+                              //             .colorScheme
+                              //             .onSurface),
+                              //   )
+                              // else if (errorMessage != null)
+                              //   Center(
+                              //     child: Column(
+                              //       mainAxisAlignment: MainAxisAlignment.center,
+                              //       children: [
+                              //         Text(
+                              //           errorMessage!,
+                              //           textAlign: TextAlign.center,
+                              //           style: const TextStyle(
+                              //             fontFamily: 'Inconsolata',
+                              //             color: Colors.red,
+                              //           ),
+                              //         ),
+                              //         const SizedBox(height: 16),
+                              //         ElevatedButton(
+                              //           onPressed: _refreshData,
+                              //           child: Text(
+                              //             'Retry',
+                              //             style: TextStyle(
+                              //               fontFamily: 'Inconsolata',
+                              //               fontWeight: FontWeight.bold,
+                              //               fontSize: 18,
+                              //               color: Theme.of(context)
+                              //                   .colorScheme
+                              //                   .onSurface,
+                              //             ),
+                              //           ),
+                              //         ),
+                              //       ],
+                              //     ),
+                              //   )
+                              // else
+                              //   RefreshIndicator(
+                              //     onRefresh:
+                              //         _refreshData, // Function to refresh the events
+                              //     color: Theme.of(context).colorScheme.onSurface,
+                              //     child: ListView.builder(
+                              //       controller:
+                              //           _scrollController, // Ensure _scrollController is properly set up
+                              //       itemCount: events.length +
+                              //           (isLastPage
+                              //               ? 0
+                              //               : 1), // Add 1 for the loading indicator if not the last page
+                              //       itemBuilder: (context, index) {
+                              //         if (index == events.length) {
+                              //           // Show a loading indicator at the bottom of the list when loading more
+                              //           return const Center(
+                              //               child: CircularProgressIndicator());
+                              //         }
+                              //         return cryptoCard(events[index]);
+                              //       },
+                              //     ),
+                              //   ),
+                              // if (loading)
+                              //   Center(
+                              //     child: CircularProgressIndicator(
+                              //         color: Theme.of(context)
+                              //             .colorScheme
+                              //             .onSurface),
+                              //   )
+                              // else if (errorMessage != null)
+                              //   Center(
+                              //     child: Column(
+                              //       mainAxisAlignment: MainAxisAlignment.center,
+                              //       children: [
+                              //         Text(
+                              //           errorMessage!,
+                              //           textAlign: TextAlign.center,
+                              //           style: const TextStyle(
+                              //             fontFamily: 'Inconsolata',
+                              //             color: Colors.red,
+                              //           ),
+                              //         ),
+                              //         const SizedBox(height: 16),
+                              //         ElevatedButton(
+                              //           onPressed: _refreshData,
+                              //           child: Text(
+                              //             'Retry',
+                              //             style: TextStyle(
+                              //               fontFamily: 'Inconsolata',
+                              //               fontWeight: FontWeight.bold,
+                              //               fontSize: 18,
+                              //               color: Theme.of(context)
+                              //                   .colorScheme
+                              //                   .onSurface,
+                              //             ),
+                              //           ),
+                              //         ),
+                              //       ],
+                              //     ),
+                              //   )
+                              // else
+                              //   RefreshIndicator(
+                              //     onRefresh:
+                              //         _refreshData, // Function to refresh the events
+                              //     color: Theme.of(context).colorScheme.onSurface,
+                              //     child: ListView.builder(
+                              //       controller:
+                              //           _scrollController, // Ensure _scrollController is properly set up
+                              //       itemCount: events.length +
+                              //           (isLastPage
+                              //               ? 0
+                              //               : 1), // Add 1 for the loading indicator if not the last page
+                              //       itemBuilder: (context, index) {
+                              //         if (index == events.length) {
+                              //           // Show a loading indicator at the bottom of the list when loading more
+                              //           return const Center(
+                              //               child: CircularProgressIndicator());
+                              //         }
+                              //         return cryptoCard(events[index]);
+                              //       },
+                              //     ),
+                              //   ),
+                              // if (loading)
+                              //   Center(
+                              //     child: CircularProgressIndicator(
+                              //         color: Theme.of(context)
+                              //             .colorScheme
+                              //             .onSurface),
+                              //   )
+                              // else if (errorMessage != null)
+                              //   Center(
+                              //     child: Column(
+                              //       mainAxisAlignment: MainAxisAlignment.center,
+                              //       children: [
+                              //         Text(
+                              //           errorMessage!,
+                              //           textAlign: TextAlign.center,
+                              //           style: const TextStyle(
+                              //             fontFamily: 'Inconsolata',
+                              //             color: Colors.red,
+                              //           ),
+                              //         ),
+                              //         const SizedBox(height: 16),
+                              //         ElevatedButton(
+                              //           onPressed: _refreshData,
+                              //           child: Text(
+                              //             'Retry',
+                              //             style: TextStyle(
+                              //               fontFamily: 'Inconsolata',
+                              //               fontWeight: FontWeight.bold,
+                              //               fontSize: 18,
+                              //               color: Theme.of(context)
+                              //                   .colorScheme
+                              //                   .onSurface,
+                              //             ),
+                              //           ),
+                              //         ),
+                              //       ],
+                              //     ),
+                              //   )
+                              // else
+                              //   RefreshIndicator(
+                              //     onRefresh:
+                              //         _refreshData, // Function to refresh the events
+                              //     color: Theme.of(context).colorScheme.onSurface,
+                              //     child: ListView.builder(
+                              //       controller:
+                              //           _scrollController, // Ensure _scrollController is properly set up
+                              //       itemCount: events.length +
+                              //           (isLastPage
+                              //               ? 0
+                              //               : 1), // Add 1 for the loading indicator if not the last page
+                              //       itemBuilder: (context, index) {
+                              //         if (index == events.length) {
+                              //           // Show a loading indicator at the bottom of the list when loading more
+                              //           return const Center(
+                              //               child: CircularProgressIndicator());
+                              //         }
+                              //         return cryptoCard(events[index]);
+                              //       },
+                              //     ),
+                              //   ),
+                            ],
+                          ),
                         ),
-                      ),
-                    ]
-                  ],
+                      ]
+                    ],
+                  ),
                 ),
               ),
             ),

@@ -155,19 +155,22 @@ class BookmarkPageState extends State<BookmarkPage>
       } else {
         // Handle other status codes if needed
         setState(() {
-          errorMessage = "Unexpected error: ${response.statusCode}";
+          errorMessage = "An error occurred";
           loading = false;
           isLoadingMore = false;
         });
+        print('Error: ${response.statusCode}');
       }
     } catch (e) {
       // Print the error for debugging
       print("Error: $e");
       setState(() {
-        errorMessage = "An error occurred: $e"; // Include error in message
+        errorMessage =
+            "An unexpected error occurred"; // Include error in message
         loading = false;
         isLoadingMore = false;
       });
+      print('Exception caught: $e');
     }
   }
 

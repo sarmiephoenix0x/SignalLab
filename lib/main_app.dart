@@ -6,6 +6,7 @@ import 'events_page.dart';
 import 'news_page.dart';
 import 'course_page.dart';
 import 'profile_page.dart';
+import 'articles.dart';
 
 class MainApp extends StatefulWidget {
   final Function(bool) onToggleDarkMode;
@@ -94,8 +95,9 @@ class _MainAppState extends State<MainApp> {
                   ),
                   const SignalPage(),
                   const EventsPage(),
-                  const NewsPage(),
-                  const CoursePage(),
+                  // const NewsPage(),
+                  // const CoursePage(),
+                  const ArticlesPage(),
                   UserPage(
                       onToggleDarkMode: widget.onToggleDarkMode,
                       isDarkMode: widget.isDarkMode),
@@ -130,15 +132,15 @@ class _MainAppState extends State<MainApp> {
                   color: Theme.of(context).colorScheme.onSurface),
               label: 'Events',
             ),
-            BottomNavigationBarItem(
-              icon: const ImageIcon(
-                  AssetImage('images/iconamoon_news-thin.png'),
-                  color: Colors.grey),
-              activeIcon: ImageIcon(
-                  const AssetImage('images/iconamoon_news-thin_active.png'),
-                  color: Theme.of(context).colorScheme.onSurface),
-              label: 'News',
-            ),
+            // BottomNavigationBarItem(
+            //   icon: const ImageIcon(
+            //       AssetImage('images/iconamoon_news-thin.png'),
+            //       color: Colors.grey),
+            //   activeIcon: ImageIcon(
+            //       const AssetImage('images/iconamoon_news-thin_active.png'),
+            //       color: Theme.of(context).colorScheme.onSurface),
+            //   label: 'News',
+            // ),
             BottomNavigationBarItem(
               icon: const ImageIcon(
                   AssetImage('images/fluent-mdl2_publish-course.png'),
@@ -147,7 +149,7 @@ class _MainAppState extends State<MainApp> {
                   const AssetImage(
                       'images/fluent-mdl2_publish-course_active.png'),
                   color: Theme.of(context).colorScheme.onSurface),
-              label: 'Course',
+              label: 'Articles',
             ),
             BottomNavigationBarItem(
               icon: const ImageIcon(

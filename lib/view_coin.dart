@@ -149,9 +149,10 @@ class _ViewCoinState extends State<ViewCoin> with TickerProviderStateMixin {
             loading = false;
             isLoadingMore = false;
             errorMessage =
-                'Error: $errorResponse'; // Display detailed error response
+                'An error occurred'; // Display detailed error response
           });
         }
+        print('Error: $errorResponse');
       }
     } catch (e) {
       // Handle network or JSON parsing errors
@@ -160,7 +161,7 @@ class _ViewCoinState extends State<ViewCoin> with TickerProviderStateMixin {
           loading = false;
           isLoadingMore = false;
           errorMessage =
-              'Exception caught: ${e.toString()}'; // Provide detailed exception
+              'An unexpected error occurred'; // Provide detailed exception
         });
       }
       print('Exception caught: $e');

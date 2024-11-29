@@ -218,8 +218,8 @@ class _MenuPageState extends State<MenuPage> with WidgetsBindingObserver {
               child: Center(
                 child: SizedBox(
                   height: orientation == Orientation.portrait
-                      ? MediaQuery.of(context).size.height * 1.6
-                      : MediaQuery.of(context).size.height * 2.4,
+                      ? MediaQuery.of(context).size.height * 1.5
+                      : MediaQuery.of(context).size.height * 2.3,
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
